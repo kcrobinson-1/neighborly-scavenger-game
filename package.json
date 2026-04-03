@@ -1,0 +1,14 @@
+{
+  "name": "neighborly-scavenger-game",
+  "private": true,
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
+  },
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev:web": "npm --workspace @neighborly/web run dev",
+    "build:web": "npm --workspace @neighborly/web run build"
+  }
+}

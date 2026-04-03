@@ -36,6 +36,72 @@ If we want to make the key decisions now and move into implementation quickly, t
 - Verification: backend-issued completion token on the success screen
 - Anti-abuse: browser storage plus lightweight backend dedupe
 
+## Repository Strategy
+
+Recommendation:
+
+Use one repo for the MVP.
+
+Why:
+
+- the product is still small and tightly coupled
+- frontend, backend, and infrastructure decisions will evolve together
+- one repo keeps changes, docs, and deployment context in one place
+- multiple repos would add coordination cost before they add real value
+
+Recommended structure:
+
+- `apps/web` for the React frontend
+- `apps/api` for a custom backend if one exists
+- `infra/` only if infrastructure-as-code is actually needed
+- `docs/` for product, UX, architecture, and development planning
+
+Important nuance:
+
+If the MVP uses a managed backend platform such as Supabase, we may not need a substantial `apps/api` service or a dedicated infrastructure code layer at first.
+
+Do not start the MVP with:
+
+- one repo for the frontend
+- one repo for the backend
+- one repo for CDK or infrastructure
+
+That split is more appropriate later if:
+
+- multiple teams need independent ownership
+- release cycles diverge significantly
+- infrastructure becomes shared across multiple products
+- security or operational boundaries require separation
+
+## First Engineering Deliverable
+
+Recommendation:
+
+The first thing to build should be the attendee-facing React app.
+
+Specifically, start with:
+
+- a React + TypeScript + Vite app in `apps/web`
+- static local event/question data
+- the entry screen
+- the one-question-at-a-time quiz flow
+- the completion screen
+
+Why this should come first:
+
+- it validates the most important product risk, which is whether the experience actually feels fast and game-like
+- it lets us test the mobile interaction model before backend work adds complexity
+- it gives us something real to review on phones and at an event-like pace
+- it keeps the first implementation milestone tightly aligned with the UX docs
+
+Recommended sequence:
+
+1. Scaffold the attendee app.
+2. Build the full quiz flow against static data.
+3. Test on real phones and refine the experience.
+4. Add backend-backed completion verification.
+5. Add organizer/admin and analytics capabilities after the attendee flow feels solid.
+
 ## Core Technical Decisions
 
 ### 1. Frontend Framework
