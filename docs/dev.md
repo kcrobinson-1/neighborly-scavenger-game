@@ -36,6 +36,55 @@ If we want to make the key decisions now and move into implementation quickly, t
 - Verification: backend-issued completion token on the success screen
 - Anti-abuse: browser storage plus lightweight backend dedupe
 
+## Current Implementation Decisions
+
+The current codebase already reflects a few implementation decisions that are worth documenting explicitly.
+
+### Shared config before DB-backed content
+
+The app currently uses a shared `game-config` module for sample quizzes.
+
+Why this is intentional:
+
+- the frontend needs the content to render the experience
+- the backend needs the same content to validate answers and compute score
+- sharing the module avoids drift while we are still pre-admin and pre-CMS
+
+This is a transitional step, not the final content-management model.
+
+### Reducer-based quiz session
+
+The quiz flow is modeled as a reducer-backed session rather than scattered local component state.
+
+Why:
+
+- the quiz has real state transitions now: intro, answering, correctness feedback, completion submission, and completion
+- back navigation, retries, and retakes are easier to reason about when transitions are explicit
+- this reduces the chance of invalid UI states as the product grows
+
+### Session bootstrap before gameplay
+
+The attendee flow now prepares a backend session before quiz start when Supabase is configured.
+
+Why:
+
+- it avoids discovering entitlement/session problems only at the very end
+- it ensures the browser has the signed session cookie before completion submission
+- the start screen is a better place for a recoverable setup error than the final verification moment
+
+### Dev fallback stays isolated
+
+When Supabase environment variables are missing in local development, the app falls back to a browser-only prototype completion flow.
+
+Why:
+
+- it keeps front-end iteration fast
+- it avoids blocking UI work on backend setup
+
+Constraint:
+
+- this fallback is intentionally development-only and should not be treated as production trust logic
+
 ## Repository Strategy
 
 Recommendation:

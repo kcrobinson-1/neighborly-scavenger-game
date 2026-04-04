@@ -79,6 +79,9 @@ function validatePayload(payload: unknown): CompletionRequestBody | null {
 Deno.serve(async (request) => {
   const origin = getAllowedOrigin(request);
 
+  // We require an allowed browser origin here because this function issues
+  // raffle entitlements. The signed cookie is the main trust primitive, and the
+  // origin gate keeps that cookie flow scoped to the product's own surfaces.
   if (!origin) {
     return jsonResponse(403, { error: "Origin not allowed." }, null);
   }
@@ -129,6 +132,9 @@ Deno.serve(async (request) => {
     return jsonResponse(400, { error: validation.error }, origin);
   }
 
+  // The browser sends answers, but the server owns the authoritative result.
+  // We normalize the payload, recompute score from trusted config, and only
+  // then persist the attempt through the RPC.
   const normalizedAnswers = normalizeSubmittedAnswers(game, payload.answers);
   const trustedScore = scoreAnswers(game, normalizedAnswers);
 

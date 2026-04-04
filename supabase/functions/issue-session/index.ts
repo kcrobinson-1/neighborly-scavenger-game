@@ -23,6 +23,9 @@ function jsonResponse(
 Deno.serve(async (request) => {
   const origin = getAllowedOrigin(request);
 
+  // The no-login MVP still needs a narrow trust boundary. We only mint browser
+  // sessions for known web origins, then tie entitlement to the signed cookie
+  // rather than to any caller-supplied session identifier.
   if (!origin) {
     return jsonResponse(403, { error: "Origin not allowed." }, null);
   }

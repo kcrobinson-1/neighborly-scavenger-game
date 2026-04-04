@@ -47,6 +47,69 @@ The core principle is:
 
 Keep the quiz experience fast and mostly client-driven, while making the final completion state backend-backed and trustworthy.
 
+## Key Design Decisions
+
+These are the main architectural decisions currently embodied in the codebase.
+
+### One shared game configuration source
+
+The quiz definitions currently live in a shared TypeScript module rather than only in the frontend.
+
+Why:
+
+- the same question definitions need to drive both rendering and server-side scoring
+- correctness logic should not be duplicated across client and backend
+- this keeps the frontend review UI, backend scoring, and sample content aligned while the product is still in its prototype-to-MVP phase
+
+Tradeoff:
+
+- content is not yet organizer-editable without a code change
+
+Intent:
+
+- move event content into the database later, but keep one trusted source of truth for correctness and scoring
+
+### Browser-session trust instead of user accounts
+
+The current MVP does not use login-based identity.
+
+Instead:
+
+- the browser requests a server-issued session
+- the backend sets a signed HTTP-only cookie
+- raffle entitlement is tied to that server-controlled browser session
+
+Why:
+
+- it preserves the low-friction QR-code event flow
+- it is materially stronger than trusting a client-generated session id
+- it is enough for MVP while person-level fraud prevention remains out of scope
+
+Important limitation:
+
+- this is not person identity
+- a new browser profile, private window, or device can still create a new entitlement
+
+### One entitlement, many completion attempts
+
+The system treats `quiz_completions` and `raffle_entitlements` as separate concepts.
+
+Why:
+
+- users should be able to retake the quiz for fun or score improvement
+- raffle eligibility should be granted once per event/session, not once per attempt
+- this keeps the UX flexible without weakening the reward model
+
+### Client-driven quiz, server-owned completion
+
+The attendee experience runs locally during play, but the backend owns the official completion result.
+
+Why:
+
+- local interaction keeps the quiz fast and resilient during an outdoor event
+- backend completion gives volunteers something more trustworthy than a purely client-rendered success screen
+- the final verification code becomes stable across retakes for the same entitled session
+
 ## 1. What Are the Major System Components?
 
 The MVP should have four major parts:

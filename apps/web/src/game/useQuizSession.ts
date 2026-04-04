@@ -87,6 +87,9 @@ function createCompletionSubmissionState(
   completionRequestId: string,
   answers: Answers,
 ) {
+  // Completion is a distinct phase because we want the quiz UX to stay local
+  // and fast during play, while still letting the backend own the official
+  // raffle entitlement decision at the end.
   return {
     ...state,
     answers,
@@ -288,6 +291,9 @@ export function useQuizSession(game: GameConfig) {
       return;
     }
 
+    // We intentionally guard this side effect by request id so React re-renders
+    // or local state changes cannot accidentally create duplicate completion
+    // submissions for the same attempt.
     if (handledSubmissionRequestId.current === state.completionRequestId) {
       return;
     }
@@ -420,6 +426,9 @@ export function useQuizSession(game: GameConfig) {
   };
 
   const retryCompletionSubmission = () => {
+    // Retrying must reuse the same request id when we have one. That preserves
+    // backend idempotency in the common case where the first submission may
+    // have succeeded but the response was interrupted.
     const retryRequestId = state.completionRequestId ?? createRequestId();
     handledSubmissionRequestId.current = null;
     dispatch({

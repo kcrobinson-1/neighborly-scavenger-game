@@ -43,6 +43,11 @@ export type AnswerValidationResult =
 
 export const featuredGameSlug = "first-sample";
 
+// The sample games live in a shared module so both the web app and the Supabase
+// functions can read the exact same quiz definitions. That keeps rendering,
+// validation, scoring, and answer review aligned until event content moves into
+// a real organizer-managed data model.
+
 const firstSampleGame: GameConfig = {
   id: "madrona-music-2026",
   slug: featuredGameSlug,
@@ -333,6 +338,8 @@ export function normalizeSubmittedAnswers(
   game: GameConfig,
   answers: SubmittedAnswers,
 ) {
+  // Persist answers in a canonical form so duplicate ids or different ordering
+  // do not create inconsistent records across analytics, review, and scoring.
   return Object.fromEntries(
     game.questions.map((question) => [
       question.id,

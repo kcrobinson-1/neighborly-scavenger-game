@@ -204,6 +204,9 @@ export async function ensureServerSession() {
     throw new Error("Supabase browser configuration is missing.");
   }
 
+  // We bootstrap the signed server session before gameplay starts so the
+  // entitlement flow fails early and recoverably on the intro screen instead
+  // of only surfacing a problem after the user finishes the quiz.
   const response = await fetch(`${supabaseUrl}/functions/v1/issue-session`, {
     method: "POST",
     headers: {
@@ -237,6 +240,9 @@ async function submitQuizCompletionToSupabase(
   });
 
   if (response.status === 401 && retryOnUnauthorized) {
+    // If the cookie expired or was never set, we re-bootstrap the server
+    // session once and replay the same request. The request id must stay the
+    // same so the backend can dedupe safely.
     await ensureServerSession();
     return submitQuizCompletionToSupabase(input, false);
   }
