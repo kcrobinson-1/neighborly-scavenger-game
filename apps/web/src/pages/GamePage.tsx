@@ -51,6 +51,7 @@ export function GamePage({ game, onNavigate }: GamePageProps) {
   } = useQuizSession(game);
 
   const questionCount = game.questions.length;
+  const isQuizActive = isStarted && !isComplete && !isSubmittingCompletion;
   const handleStart = async () => {
     setIsStartingSession(true);
     setStartError(null);
@@ -85,13 +86,17 @@ export function GamePage({ game, onNavigate }: GamePageProps) {
       </nav>
 
       <section className="app-card">
-        <header className="topbar">
+        <header className={`topbar${isQuizActive ? " topbar-compact" : ""}`}>
           <div>
-            <p className="eyebrow">{game.location} neighborhood event</p>
-            <h1>{game.name}</h1>
+            {!isQuizActive ? (
+              <p className="eyebrow">{game.location} neighborhood event</p>
+            ) : null}
+            <h1 className={isQuizActive ? "topbar-title-compact" : undefined}>
+              {game.name}
+            </h1>
           </div>
-          {isStarted && !isComplete && !isSubmittingCompletion ? (
-            <div className="progress-copy" aria-live="polite">
+          {isQuizActive ? (
+            <div className="progress-copy progress-pill" aria-live="polite">
               Question {currentIndex + 1} of {questionCount}
             </div>
           ) : null}
@@ -266,12 +271,8 @@ function CurrentQuestionPanel({
         ) : null}
         <div className="question-actions">
           {canGoBack ? (
-            <button
-              className="secondary-button question-secondary-action"
-              onClick={onGoBack}
-              type="button"
-            >
-              Back
+            <button className="text-link question-back-link" onClick={onGoBack} type="button">
+              Back to previous question
             </button>
           ) : null}
           <button
@@ -398,6 +399,8 @@ function GameCompletionPanel({
   showRetake,
 }: GameCompletionPanelProps) {
   const isEntitlementNew = completion?.entitlement.status === "new";
+  const verificationCode = completion?.entitlement.verificationCode ?? null;
+  const shouldShowVerification = Boolean(completion);
 
   return (
     <section className="panel completion-panel">
@@ -425,6 +428,21 @@ function GameCompletionPanel({
             : completionError ??
               "Try the completion step again to retrieve your verification code."}
       </p>
+
+      {shouldShowVerification ? (
+        <div className="token-block">
+          <span className="token-label">Verification code</span>
+          <strong>{verificationCode}</strong>
+          <p className="token-instruction">
+            Show this code first at the volunteer table, then scroll for the answer review if needed.
+          </p>
+          <span className="token-meta">
+            {isEntitlementNew
+              ? "This session just earned the raffle entry."
+              : "This session already earned the raffle entry on an earlier attempt."}
+          </span>
+        </div>
+      ) : null}
 
       {game.feedbackMode === "final_score_reveal" ? (
         <div className="results-block">
@@ -478,18 +496,6 @@ function GameCompletionPanel({
               );
             })}
           </div>
-        </div>
-      ) : null}
-
-      {completion ? (
-        <div className="token-block">
-          <span className="token-label">Verification code</span>
-          <strong>{completion.entitlement.verificationCode}</strong>
-          <span className="token-meta">
-            {isEntitlementNew
-              ? "This session just earned the raffle entry."
-              : "This session already earned the raffle entry on an earlier attempt."}
-          </span>
         </div>
       ) : null}
 

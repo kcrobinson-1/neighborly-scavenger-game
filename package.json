@@ -9,6 +9,10 @@
   ],
   "scripts": {
     "dev:web": "npm --workspace @neighborly/web run dev",
-    "build:web": "npm --workspace @neighborly/web run build"
+    "build:web": "npm --workspace @neighborly/web run build",
+    "ui:review:capture": "node scripts/ui-review/capture-ui-review.js"
+  },
+  "devDependencies": {
+    "playwright": "^1.59.1"
   }
 }

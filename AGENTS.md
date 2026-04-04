@@ -99,6 +99,47 @@ If you changed both frontend/shared code and Supabase code, run both sets of che
 
 If you could not run a relevant check, say so explicitly and explain why.
 
+## UI Review Runs
+
+If you validate the UI by running the app locally and taking screenshots:
+
+- use Playwright rather than code-only visual guesses whenever browser automation is feasible
+- prefer a real browser pass over code-only visual guesses
+- use a mobile viewport first because the attendee flow is mobile-first
+- confirm direct route loading as well as the main click-through flow
+- capture the key states you are reviewing, not just the landing page
+
+Prefer the reusable capture workflow already in the repo:
+
+- keep reusable automation logic in `scripts/ui-review/`
+- use `scripts/ui-review/capture-ui-review.js` as the default screenshot workflow
+- extend that script when future verification needs new routes, states, or capture scenarios instead of creating one-off temp scripts unless the task is truly experimental
+
+Expected setup and execution:
+
+- start the web app locally, usually on `http://127.0.0.1:4173`
+- make sure Playwright and its browser dependency are available
+- if Chromium has not been installed yet, run `npx playwright install chromium`
+- run `npm run ui:review:capture`
+
+The capture script supports future reuse:
+
+- it writes screenshots into a timestamped folder under `tmp/ui-review/`
+- it accepts `--base-url` when the local app is running on a different origin
+- it accepts `--output-dir` when a task needs a specific artifact location
+
+Treat screenshot artifacts as temporary analysis output.
+
+- write screenshots under `tmp/`
+- do not commit generated screenshots
+- make sure the output path is ignored by git before finishing
+
+Do not let one screenshot run overwrite or mix with another accidentally.
+
+The default expectation is one timestamped subfolder per run. Only reuse an existing output directory if the task explicitly benefits from overwriting a prior capture set.
+
+Before finishing a UI-review task, make sure you do not leave behind ambiguous mixed runs that make later analysis harder.
+
 ## Self-Review Checklist
 
 Before finishing, review your own work for:

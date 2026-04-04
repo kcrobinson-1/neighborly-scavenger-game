@@ -87,27 +87,35 @@ export function LandingPage({ onNavigate }: LandingPageProps) {
         </div>
       </section>
 
-      <section className="sample-games">
-        {games.map((game) => (
-          <article className="panel sample-game-card" key={game.slug}>
-            <div className="sample-game-copy">
-              <span className="chip">
-                {game.feedbackMode === "instant_feedback_required"
-                  ? "Required correct answers"
-                  : "Final score reveal"}
-              </span>
-              <h2>{game.name}</h2>
-              <p>{game.summary}</p>
-            </div>
-            <button
-              className="secondary-button"
-              onClick={() => onNavigate(routes.game(game.slug))}
-              type="button"
-            >
-              {game.slug === featuredGameSlug ? "Open featured sample" : "Open this sample"}
-            </button>
-          </article>
-        ))}
+      <section className="panel sample-games-panel">
+        <div className="section-heading">
+          <p className="eyebrow">Playable samples</p>
+          <h2>Open a demo flow without digging through a long list of cards.</h2>
+        </div>
+        <div className="sample-games-list">
+          {games.map((game) => (
+            <article className="sample-game-row" key={game.slug}>
+              <div className="sample-game-copy">
+                <span className="chip">
+                  {game.feedbackMode === "instant_feedback_required"
+                    ? "Required correct answers"
+                    : "Final score reveal"}
+                </span>
+                <div className="sample-game-heading">
+                  <h3>{game.name}</h3>
+                  <p>{game.summary}</p>
+                </div>
+              </div>
+              <button
+                className="secondary-button sample-game-button"
+                onClick={() => onNavigate(routes.game(game.slug))}
+                type="button"
+              >
+                {game.slug === featuredGameSlug ? "Open featured sample" : "Open this sample"}
+              </button>
+            </article>
+          ))}
+        </div>
       </section>
     </section>
   );
