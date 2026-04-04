@@ -16,6 +16,8 @@ The current implementation uses the following stack:
   Shared language layer across frontend code, shared domain logic, and Supabase edge functions.
 - `Vite`
   Local dev server and production build tool for the web app in `apps/web`.
+- `ESLint`
+  Repository-wide linting for the React app, shared TypeScript modules, Supabase functions, and the Playwright review script.
 - `Vercel`
   Static hosting target for the built frontend.
 - `Supabase`
@@ -199,8 +201,9 @@ The main local development loop is:
 
 1. Install dependencies with `npm install`
 2. Start the web app with `npm run dev:web`
-3. Build-check the frontend with `npm run build:web`
-4. Type-check edge functions with:
+3. Lint the codebase with `npm run lint`
+4. Build-check the frontend with `npm run build:web`
+5. Type-check edge functions with:
 
 ```bash
 deno check --no-lock supabase/functions/issue-session/index.ts
@@ -219,12 +222,13 @@ and deploy/link the Supabase project as described in the root README.
 The codebase is currently checked with:
 
 ```bash
+npm run lint
 npm run build:web
 deno check --no-lock supabase/functions/issue-session/index.ts
 deno check --no-lock supabase/functions/complete-quiz/index.ts
 ```
 
-Those commands verify the current frontend build path plus the edge-function TypeScript/Deno surface.
+Those commands verify the current lint rules, frontend build path, and edge-function TypeScript/Deno surface.
 
 ## Remaining Implementation Roadmap
 

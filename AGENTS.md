@@ -85,6 +85,7 @@ Run the checks relevant to the area you changed.
 For frontend or shared TypeScript changes, run:
 
 ```bash
+npm run lint
 npm run build:web
 ```
 
@@ -112,7 +113,7 @@ If you validate the UI by running the app locally and taking screenshots:
 Prefer the reusable capture workflow already in the repo:
 
 - keep reusable automation logic in `scripts/ui-review/`
-- use `scripts/ui-review/capture-ui-review.js` as the default screenshot workflow
+- use `scripts/ui-review/capture-ui-review.cjs` as the default screenshot workflow
 - extend that script when future verification needs new routes, states, or capture scenarios instead of creating one-off temp scripts unless the task is truly experimental
 
 Expected setup and execution:
