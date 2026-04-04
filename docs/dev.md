@@ -272,6 +272,8 @@ Implementation note:
 - both modes require `correctAnswerIds` to exist in the underlying quiz data for every scored question
 - the frontend should maintain a provisional selection state and only commit an answer after the user presses submit
 - questions should also declare `selectionMode` so the UI knows whether to allow one selected answer or multiple selected answers before submit
+- the quiz flow should support back navigation so users can revisit and resubmit earlier questions before completion
+- the completion screen may offer a retake action, but retakes should be modeled as new quiz sessions rather than new raffle entitlements
 
 ### 7. Verification Model
 
@@ -311,6 +313,7 @@ Use lightweight anti-abuse only for MVP:
 
 - local storage or cookie to discourage repeat entries
 - backend dedupe keyed by event plus a lightweight device/session identifier
+- when reward security becomes important, persist a single raffle entitlement per participant/session per event even if the user retakes the quiz
 
 Why:
 
@@ -357,6 +360,14 @@ Why:
 - gives us a hosted database quickly
 - supports simple APIs and auth if needed later
 - reduces custom backend setup work
+
+Implementation note:
+
+- keep project-backed schema and Edge Function assets in `supabase/`
+- deploy schema changes with `npx supabase db push`
+- deploy the session and completion functions with `npx supabase functions deploy issue-session` and `npx supabase functions deploy complete-quiz`
+- set `SESSION_SIGNING_SECRET` and `ALLOWED_ORIGINS` in Supabase secrets for the no-login session-cookie trust model
+- keep function behavior in `supabase/config.toml` so both protected functions stay configured with `verify_jwt = false` for the current no-login MVP
 
 Alternative:
 

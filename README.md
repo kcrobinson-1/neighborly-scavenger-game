@@ -20,7 +20,12 @@ The product is intended for community events like concerts, fairs, and neighborh
 
 ## Current Status
 
-This repository is currently in the planning and product-definition stage. It contains product, UX, architecture, and milestone documentation, but not yet a full application implementation.
+This repository now includes:
+
+- a Vite + React attendee experience prototype
+- sample quizzes with multiple feedback modes
+- reducer-based quiz flow with submit-per-question behavior
+- Supabase scaffolding for completion storage and single raffle entitlements per event/session
 
 Initial validation target:
 
@@ -69,6 +74,48 @@ The current MVP intentionally avoids:
 
 ## Next Steps
 
-- turn the docs into an implementation plan
-- build the mobile-first quiz prototype
+- connect the Supabase function and migration to a live project
 - validate the experience in a live neighborhood event
+- add organizer-facing content management
+
+## Local Setup
+
+Install dependencies at the repo root:
+
+```bash
+npm install
+```
+
+Run the web app:
+
+```bash
+npm run dev:web
+```
+
+To enable Supabase-backed completions, copy [apps/web/.env.example](./apps/web/.env.example) to `apps/web/.env` and set:
+
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY`
+
+Without those values, the app falls back to a local browser-only completion flow so the prototype still works during development.
+
+## Supabase Setup
+
+After creating a Supabase project, link this repo and deploy the backend pieces:
+
+```bash
+npx supabase login
+npx supabase link --project-ref YOUR_PROJECT_REF
+npx supabase db push
+npx supabase secrets set SESSION_SIGNING_SECRET=your-long-random-secret
+npx supabase secrets set ALLOWED_ORIGINS=http://localhost:5173,https://neighborly-scavenger-game-web.vercel.app
+npx supabase functions deploy issue-session
+npx supabase functions deploy complete-quiz
+```
+
+The function configuration is stored in [supabase/config.toml](./supabase/config.toml), so both protected functions are deployed with JWT verification disabled for the current no-login MVP flow. Trust comes from the signed HTTP-only session cookie, not from Supabase auth.
+
+Then add these environment variables locally and in Vercel for the `apps/web` project:
+
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY`

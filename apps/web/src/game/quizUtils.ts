@@ -1,10 +1,10 @@
 import type { Question } from "../data/games";
+import {
+  answersMatch,
+  normalizeOptionIds,
+} from "../../../../shared/game-config";
 
-export type Answers = Record<string, string[]>;
-
-export function normalizeOptionIds(optionIds: string[]) {
-  return [...new Set(optionIds)].sort();
-}
+export { answersMatch, normalizeOptionIds };
 
 export function getNextSelection(
   currentSelection: string[],
@@ -18,17 +18,6 @@ export function getNextSelection(
   return currentSelection.includes(optionId)
     ? currentSelection.filter((selectedOptionId) => selectedOptionId !== optionId)
     : [...currentSelection, optionId];
-}
-
-export function answersMatch(selectedOptionIds: string[], correctAnswerIds: string[]) {
-  const selected = normalizeOptionIds(selectedOptionIds);
-  const correct = normalizeOptionIds(correctAnswerIds);
-
-  if (selected.length !== correct.length) {
-    return false;
-  }
-
-  return selected.every((optionId, index) => optionId === correct[index]);
 }
 
 export function getSelectionLabel(question: Question) {

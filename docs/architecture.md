@@ -290,6 +290,17 @@ The architecture doc should define the MVP entities clearly enough that implemen
 - verificationStatus
 - clientSessionId
 
+### RedemptionEntitlement
+
+- id
+- eventId
+- clientSessionId or participant key
+- firstCompletionId
+- raffleGrantedAt
+- status
+
+This separates "a completed run through the quiz" from "the single raffle entitlement earned for that event." A participant may have multiple completion records over time, but only one redemption entitlement.
+
 ### QuizSession Optional for MVP
 
 - id
@@ -315,8 +326,8 @@ Optional later:
 
 Modeling requirement:
 
-- any game using scored or correctness-based feedback modes should require `correctAnswer` on every scored question
-- `correctAnswer` should only be optional for non-scored or informational quiz variants
+- any game using scored or correctness-based feedback modes should require `correctAnswerIds` on every scored question
+- `correctAnswerIds` should only be optional for non-scored or informational quiz variants
 
 Why model this at the game level:
 
@@ -329,6 +340,8 @@ Behavioral implications:
 - `final_score_reveal` needs score calculation and end-of-quiz answer review support
 - `instant_feedback_required` needs correct-answer checking during the quiz plus an optional sponsor-fact interstitial
 - both modes can share the same question and answer data model as long as `selectionMode`, `correctAnswerIds`, and `explanation` or `sponsorFact` are available when needed
+- the frontend should support back navigation to previously submitted questions before completion
+- the frontend may allow retakes after completion, but backend reward logic should treat retakes as additional sessions, not additional raffle entitlements
 
 ## 9. How Should Performance and Resilience Work?
 

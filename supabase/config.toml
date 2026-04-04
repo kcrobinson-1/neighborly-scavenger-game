@@ -1,0 +1,7 @@
+project_id = "neighborly-scavenger-game"
+
+[functions.complete-quiz]
+verify_jwt = false
+
+[functions.issue-session]
+verify_jwt = false

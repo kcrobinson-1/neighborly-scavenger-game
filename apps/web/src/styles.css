@@ -360,6 +360,16 @@ a {
   gap: 16px;
 }
 
+.question-actions,
+.completion-actions {
+  display: grid;
+  gap: 12px;
+}
+
+.question-actions {
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+}
+
 .option-fieldset {
   margin: 0;
   padding: 0;
@@ -425,6 +435,10 @@ a {
 
 .submit-button {
   margin-top: 2px;
+}
+
+.question-secondary-action {
+  min-width: 0;
 }
 
 .submit-button:disabled {
@@ -506,6 +520,10 @@ a {
   letter-spacing: 0.08em;
 }
 
+.completion-actions {
+  margin-top: 4px;
+}
+
 .sr-only {
   position: absolute;
   width: 1px;
@@ -537,6 +555,12 @@ a {
   .feature-grid,
   .flow-grid,
   .sample-games {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 520px) {
+  .question-actions {
     grid-template-columns: 1fr;
   }
 }

@@ -1,14 +1,11 @@
+import { type FormEvent, useState } from "react";
 import type { GameConfig, Question } from "../data/games";
 import { featuredGameSlug } from "../data/games";
-import { type FormEvent } from "react";
-import {
-  type Answers,
-  answersMatch,
-  getOptionLabels,
-  getSelectionLabel,
-} from "../game/quizUtils";
-import { routes } from "../routes";
 import { useQuizSession } from "../game/useQuizSession";
+import { ensureServerSession } from "../lib/quizApi";
+import { answersMatch, getOptionLabels, getSelectionLabel } from "../game/quizUtils";
+import { routes } from "../routes";
+import type { Answers, QuizCompletionResult } from "../types/quiz";
 
 type GamePageProps = {
   game: GameConfig;
@@ -16,22 +13,31 @@ type GamePageProps = {
 };
 
 export function GamePage({ game, onNavigate }: GamePageProps) {
+  const [isStartingSession, setIsStartingSession] = useState(false);
+  const [startError, setStartError] = useState<string | null>(null);
   const {
     answers,
-    completionCode,
+    allowRetake,
+    canGoBack,
+    canSubmit,
+    completionError,
     continueFromCorrectFeedback,
     currentIndex,
     currentQuestion,
     feedbackKind,
     feedbackMessage,
-    canSubmit,
+    goBack,
     isComplete,
     isShowingCorrectFeedback,
     isShowingQuestion,
     isStarted,
+    isSubmittingCompletion,
+    latestCompletion,
     pendingSelection,
     progressValue,
     reset,
+    resetForRetake,
+    retryCompletionSubmission,
     score,
     selectOption,
     start,
@@ -39,6 +45,23 @@ export function GamePage({ game, onNavigate }: GamePageProps) {
   } = useQuizSession(game);
 
   const questionCount = game.questions.length;
+  const handleStart = async () => {
+    setIsStartingSession(true);
+    setStartError(null);
+
+    try {
+      await ensureServerSession();
+      start();
+    } catch (error: unknown) {
+      setStartError(
+        error instanceof Error
+          ? error.message
+          : "We couldn't prepare your quiz session right now.",
+      );
+    } finally {
+      setIsStartingSession(false);
+    }
+  };
 
   return (
     <section className="game-layout">
@@ -61,16 +84,23 @@ export function GamePage({ game, onNavigate }: GamePageProps) {
             <p className="eyebrow">{game.location} neighborhood event</p>
             <h1>{game.name}</h1>
           </div>
-          {isStarted && !isComplete ? (
+          {isStarted && !isComplete && !isSubmittingCompletion ? (
             <div className="progress-copy" aria-live="polite">
               Question {currentIndex + 1} of {questionCount}
             </div>
           ) : null}
         </header>
 
-        {!isStarted ? <GameIntroPanel game={game} onStart={start} /> : null}
+        {!isStarted ? (
+          <GameIntroPanel
+            game={game}
+            isStartingSession={isStartingSession}
+            onStart={handleStart}
+            startError={startError}
+          />
+        ) : null}
 
-        {isStarted && !isComplete && currentQuestion ? (
+        {isStarted && !isComplete && !isSubmittingCompletion && currentQuestion ? (
           <>
             <div className="progress-track" aria-hidden="true">
               <div className="progress-fill" style={{ width: `${progressValue}%` }} />
@@ -84,11 +114,13 @@ export function GamePage({ game, onNavigate }: GamePageProps) {
             ) : null}
             {isShowingQuestion ? (
               <CurrentQuestionPanel
+                canGoBack={canGoBack}
+                canSubmit={canSubmit}
                 currentIndex={currentIndex}
                 feedbackKind={feedbackKind}
                 feedbackMessage={feedbackMessage}
                 game={game}
-                canSubmit={canSubmit}
+                onGoBack={goBack}
                 onOptionSelect={selectOption}
                 onSubmit={submit}
                 pendingSelection={pendingSelection}
@@ -99,13 +131,18 @@ export function GamePage({ game, onNavigate }: GamePageProps) {
           </>
         ) : null}
 
-        {isComplete ? (
+        {isSubmittingCompletion || isComplete ? (
           <GameCompletionPanel
             answers={answers}
-            completionCode={completionCode}
+            completion={latestCompletion}
+            completionError={completionError}
             game={game}
+            isSubmitting={isSubmittingCompletion}
             onReset={reset}
+            onRetake={resetForRetake}
+            onRetrySubmission={retryCompletionSubmission}
             score={score}
+            showRetake={allowRetake}
           />
         ) : null}
       </section>
@@ -115,10 +152,17 @@ export function GamePage({ game, onNavigate }: GamePageProps) {
 
 type GameIntroPanelProps = {
   game: GameConfig;
-  onStart: () => void;
+  isStartingSession: boolean;
+  onStart: () => void | Promise<void>;
+  startError: string | null;
 };
 
-function GameIntroPanel({ game, onStart }: GameIntroPanelProps) {
+function GameIntroPanel({
+  game,
+  isStartingSession,
+  onStart,
+  startError,
+}: GameIntroPanelProps) {
   const modeDescription =
     game.feedbackMode === "instant_feedback_required"
       ? "Pick an answer, submit it, and get it right to unlock a sponsor fact before the next question."
@@ -134,19 +178,34 @@ function GameIntroPanel({ game, onStart }: GameIntroPanelProps) {
         <li>One question at a time</li>
         <li>{modeDescription}</li>
       </ul>
-      <button className="primary-button" onClick={onStart} type="button">
-        Start the game
+      {startError ? (
+        <div className="feedback-banner feedback-banner-error" role="status">
+          <strong>Session unavailable.</strong>
+          <p>{startError}</p>
+        </div>
+      ) : null}
+      <button
+        className="primary-button"
+        disabled={isStartingSession}
+        onClick={() => {
+          void onStart();
+        }}
+        type="button"
+      >
+        {isStartingSession ? "Preparing session..." : "Start the game"}
       </button>
     </section>
   );
 }
 
 type CurrentQuestionPanelProps = {
+  canGoBack: boolean;
   canSubmit: boolean;
   currentIndex: number;
   feedbackKind: "correct" | "incorrect" | null;
   feedbackMessage: string | null;
   game: GameConfig;
+  onGoBack: () => void;
   onOptionSelect: (optionId: string) => void;
   onSubmit: () => void;
   pendingSelection: string[];
@@ -155,11 +214,13 @@ type CurrentQuestionPanelProps = {
 };
 
 function CurrentQuestionPanel({
+  canGoBack,
   canSubmit,
   currentIndex,
   feedbackKind,
   feedbackMessage,
   game,
+  onGoBack,
   onOptionSelect,
   onSubmit,
   pendingSelection,
@@ -168,6 +229,7 @@ function CurrentQuestionPanel({
 }: CurrentQuestionPanelProps) {
   const submitLabel =
     question.selectionMode === "multiple" ? "Submit answers" : "Submit answer";
+
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     onSubmit();
@@ -191,13 +253,24 @@ function CurrentQuestionPanel({
             <p>{feedbackMessage}</p>
           </div>
         ) : null}
-        <button
-          className="primary-button submit-button"
-          disabled={!canSubmit}
-          type="submit"
-        >
-          {submitLabel}
-        </button>
+        <div className="question-actions">
+          {canGoBack ? (
+            <button
+              className="secondary-button question-secondary-action"
+              onClick={onGoBack}
+              type="button"
+            >
+              Back
+            </button>
+          ) : null}
+          <button
+            className="primary-button submit-button"
+            disabled={!canSubmit}
+            type="submit"
+          >
+            {submitLabel}
+          </button>
+        </div>
         <p className="sr-only">
           Question {currentIndex + 1} of {questionCount}
         </p>
@@ -278,25 +351,56 @@ function CorrectAnswerPanel({
 
 type GameCompletionPanelProps = {
   answers: Answers;
-  completionCode: string;
+  completion: QuizCompletionResult | null;
+  completionError: string | null;
   game: GameConfig;
+  isSubmitting: boolean;
   onReset: () => void;
+  onRetake: () => void;
+  onRetrySubmission: () => void;
   score: number;
+  showRetake: boolean;
 };
 
 function GameCompletionPanel({
   answers,
-  completionCode,
+  completion,
+  completionError,
   game,
+  isSubmitting,
   onReset,
+  onRetake,
+  onRetrySubmission,
   score,
+  showRetake,
 }: GameCompletionPanelProps) {
+  const isEntitlementNew = completion?.entitlement.status === "new";
+
   return (
     <section className="panel completion-panel">
-      <span className="chip chip-success">Officially complete</span>
-      <h2>Show this screen to the volunteer table</h2>
+      <span className="chip chip-success">
+        {completion
+          ? isEntitlementNew
+            ? "Officially complete"
+            : "Retake complete"
+          : isSubmitting
+            ? "Finishing up"
+            : "Needs retry"}
+      </span>
+      <h2>
+        {completion
+          ? "Show this screen to the volunteer table"
+          : isSubmitting
+            ? "Locking in your raffle entry"
+            : "We couldn't finalize your raffle entry"}
+      </h2>
       <p>
-        You finished the neighborhood game and earned your {game.raffleLabel}.
+        {completion
+          ? completion.message
+          : isSubmitting
+            ? "We are saving your completion and checking whether this session already earned the raffle entry."
+            : completionError ??
+              "Try the completion step again to retrieve your verification code."}
       </p>
 
       {game.feedbackMode === "final_score_reveal" ? (
@@ -354,14 +458,37 @@ function GameCompletionPanel({
         </div>
       ) : null}
 
-      <div className="token-block">
-        <span className="token-label">Verification code</span>
-        <strong>{completionCode}</strong>
-        <span className="token-meta">Prototype proof state for in-person redemption</span>
+      {completion ? (
+        <div className="token-block">
+          <span className="token-label">Verification code</span>
+          <strong>{completion.entitlement.verificationCode}</strong>
+          <span className="token-meta">
+            {isEntitlementNew
+              ? "This session just earned the raffle entry."
+              : "This session already earned the raffle entry on an earlier attempt."}
+          </span>
+        </div>
+      ) : null}
+
+      <div className="completion-actions">
+        {completionError && !isSubmitting ? (
+          <button
+            className="primary-button"
+            onClick={onRetrySubmission}
+            type="button"
+          >
+            Retry completion
+          </button>
+        ) : null}
+        {completion && showRetake ? (
+          <button className="primary-button" onClick={onRetake} type="button">
+            Retake quiz
+          </button>
+        ) : null}
+        <button className="secondary-button" onClick={onReset} type="button">
+          Restart from intro
+        </button>
       </div>
-      <button className="secondary-button" onClick={onReset} type="button">
-        Restart demo
-      </button>
     </section>
   );
 }

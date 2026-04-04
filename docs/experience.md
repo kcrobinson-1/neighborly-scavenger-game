@@ -84,7 +84,7 @@ That means:
 - only one question visible at a time
 - clear progress indicator
 - transition forward after an explicit submit action
-- optional back action only if it does not add confusion
+- allow a back action so attendees can revisit and change previously submitted answers before finishing
 - local state persistence so refreshes do not reset progress unnecessarily
 
 So the right model is: one application shell, one card at a time, one step per view.
@@ -96,9 +96,11 @@ So the right model is: one application shell, one card at a time, one step per v
 2. Lands on a simple entry screen with event title, time-to-complete, and raffle CTA
 3. Starts the game with one tap
 4. Answers 5-7 questions, one card at a time
-5. Sees a clear completion state with verification token or visual pattern
-6. Shows the completion screen to a volunteer
-7. Receives raffle ticket
+5. Can move backward during the quiz to review or change submitted answers
+6. Sees a clear completion state with verification token or visual pattern
+7. Shows the completion screen to a volunteer
+8. Receives raffle ticket
+9. May optionally retake the quiz for fun or score improvement without earning another raffle entry
 
 ### B) Volunteer Flow
 1. Sees attendee completion screen
@@ -216,6 +218,7 @@ The quiz should feel brisk and reassuring.
 - Use an explicit submit CTA for each question
 - For single-answer questions, allow only one selected answer at a time
 - For multiple-answer questions, allow multiple selected answers before submit
+- Allow the user to go back to earlier questions and resubmit before the quiz is complete
 - Keep transitions quick and directional so users feel progress
 
 ## Quiz Feedback Modes
@@ -314,6 +317,12 @@ Recommended elements:
 - raffle-entry confirmation
 - large verification token, badge, or timestamped proof state
 - instruction such as "Show this screen to the volunteer table"
+
+If retakes are allowed, the completion state should also make the reward rule explicit:
+
+- the attendee has already earned their raffle entry
+- retaking the quiz is allowed for fun, learning, or a better score
+- retaking the quiz does not create an additional raffle ticket
 
 This screen should look materially different from the quiz cards so nobody mistakes it for another step.
 
