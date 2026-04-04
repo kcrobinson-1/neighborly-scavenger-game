@@ -37,6 +37,7 @@ Do not casually duplicate business rules across frontend and backend.
 If quiz correctness, scoring, or answer validation changes, make sure the shared source of truth still drives both the UI and the backend completion path.
 
 Do not treat the local browser-only completion fallback as production backend behavior.
+Do not default to the local browser-only completion fallback when a remote Supabase integration run is feasible.
 
 ## Expected Workflow
 
@@ -133,9 +134,12 @@ Expected setup and execution:
 
 Backend nuance:
 
+- prefer remote Supabase-backed UI review when the project env vars are configured locally
+- the normal backend-backed path is remote Supabase plus `npm run dev:web`, or `npm run dev:web:local` when a fixed origin helps browser automation
+- if you use remote Supabase from a local web app, make sure the project `ALLOWED_ORIGINS` secret includes the local origin you are using
 - if `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY` are not configured locally, run UI review against the Vite dev server, not a production preview build
-- the browser-only completion fallback is development-only, so a preview build without Supabase env vars can fail the quiz-start flow even when the UI is otherwise healthy
-- when you need a fixed host and port for Playwright, prefer `npm --workspace @neighborly/web run dev -- --host 127.0.0.1 --port 4173`
+- the browser-only completion fallback is development-only and should only be used when explicitly enabled with `VITE_ENABLE_LOCAL_PROTOTYPE_FALLBACK=true`
+- when you need a fixed host and port for Playwright, prefer `npm run dev:web:local`
 
 The capture script supports future reuse:
 

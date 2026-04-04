@@ -82,18 +82,20 @@ Why:
 - it ensures the browser has the signed session cookie before completion submission
 - the start screen is a better place for a recoverable setup error than the final verification moment
 
-### Dev fallback stays isolated
+### Offline fallback stays explicit
 
-When Supabase environment variables are missing in local development, the app falls back to a browser-only prototype completion flow.
+When Supabase environment variables are missing in local development, the app now fails loudly unless offline mode is explicitly enabled.
 
 Why:
 
-- it keeps front-end iteration fast
-- it avoids blocking UI work on backend setup
+- local integration gaps should be visible instead of silently masked
+- the default developer path should exercise the trusted completion flow
+- front-end-only work can still continue when remote Supabase is unavailable or unnecessary
 
 Constraint:
 
-- this fallback is intentionally development-only and should not be treated as production trust logic
+- the browser-only fallback is intentionally development-only and should not be treated as production trust logic
+- use it only by explicitly setting `VITE_ENABLE_LOCAL_PROTOTYPE_FALLBACK=true`
 
 ## Core Tooling Choices
 
@@ -221,27 +223,29 @@ That model usually tells you where a change belongs:
 The main local development loop is:
 
 1. Install dependencies with `npm install`
-2. Start the web app with `npm run dev:web`
-3. Lint the codebase with `npm run lint`
-4. Build-check the frontend with `npm run build:web`
-5. Type-check edge functions with:
+2. If you want remote Supabase integration, copy `apps/web/.env.example` to `apps/web/.env` and set `VITE_SUPABASE_URL` plus `VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY`
+3. Start the web app with `npm run dev:web`
+4. If you want a fixed local origin for browser automation, use `npm run dev:web:local`
+5. Lint the codebase with `npm run lint`
+6. Build-check the frontend with `npm run build:web`
+7. Type-check edge functions with:
 
 ```bash
 deno check --no-lock supabase/functions/issue-session/index.ts
 deno check --no-lock supabase/functions/complete-quiz/index.ts
 ```
 
-5. If you want live Supabase-backed completions instead of the local fallback, configure:
+Remote-Supabase note:
 
-- `VITE_SUPABASE_URL`
-- `VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY`
-
-and deploy/link the Supabase project as described in the root README.
+- this repo currently assumes either a remote Supabase project or explicit offline fallback
+- no local Supabase emulation workflow is maintained in the repo right now
+- if you use remote Supabase from a local web app, make sure the project `ALLOWED_ORIGINS` secret includes the local origin you are using
+- if you need frontend-only iteration without Supabase, explicitly set `VITE_ENABLE_LOCAL_PROTOTYPE_FALLBACK=true`
 
 UI-review note:
 
-- when Supabase env vars are not configured locally, run browser validation against the Vite dev server rather than `vite preview`
-- the no-backend prototype completion fallback is development-only
+- prefer remote Supabase-backed UI review when the project env vars are configured locally
+- if you must use the offline fallback, run browser validation against the Vite dev server rather than `vite preview`
 
 ## Current Validation Commands
 
@@ -255,6 +259,14 @@ deno check --no-lock supabase/functions/complete-quiz/index.ts
 ```
 
 Those commands verify the current lint rules, frontend build path, and edge-function TypeScript/Deno surface.
+
+Useful remote Supabase commands:
+
+```bash
+npx supabase db push
+npx supabase functions deploy issue-session
+npx supabase functions deploy complete-quiz
+```
 
 ## Remaining Implementation Roadmap
 

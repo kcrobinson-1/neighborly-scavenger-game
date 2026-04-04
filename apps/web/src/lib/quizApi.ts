@@ -38,6 +38,11 @@ type SupabaseConfig = {
   supabaseUrl: string;
 };
 
+/** Returns true when a Vite env flag explicitly enables a behavior. */
+function isEnabledFlag(value: string | undefined) {
+  return ["1", "true", "yes", "on"].includes(getEnvironmentValue(value).toLowerCase());
+}
+
 /** Trims environment variables so empty-looking values are treated consistently. */
 function getEnvironmentValue(value: string | undefined) {
   return value?.trim() ?? "";
@@ -59,9 +64,27 @@ function getSupabaseConfig(): SupabaseConfig {
   };
 }
 
-/** Enables the local-only fallback when developing without Supabase configured. */
+/** Enables the local-only fallback only when explicitly requested in development. */
 function isPrototypeFallbackEnabled() {
-  return import.meta.env.DEV && !getSupabaseConfig().enabled;
+  return (
+    import.meta.env.DEV &&
+    !getSupabaseConfig().enabled &&
+    isEnabledFlag(import.meta.env.VITE_ENABLE_LOCAL_PROTOTYPE_FALLBACK)
+  );
+}
+
+/** Explains how to proceed when local Supabase browser configuration is missing. */
+function getMissingSupabaseConfigMessage() {
+  if (!import.meta.env.DEV) {
+    return "Supabase browser configuration is missing.";
+  }
+
+  return [
+    "Supabase browser configuration is missing.",
+    "Set `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY`",
+    "for remote Supabase integration, or explicitly set",
+    "`VITE_ENABLE_LOCAL_PROTOTYPE_FALLBACK=true` for offline-only development.",
+  ].join(" ");
 }
 
 /** Builds a stable storage key for a specific event/session pair. */
@@ -247,7 +270,7 @@ export async function ensureServerSession() {
       return;
     }
 
-    throw new Error("Supabase browser configuration is missing.");
+    throw new Error(getMissingSupabaseConfigMessage());
   }
 
   // We bootstrap the signed server session before gameplay starts so the
@@ -309,7 +332,7 @@ export async function submitQuizCompletion(input: SubmitQuizCompletionInput) {
       return buildLocalCompletionResult(input);
     }
 
-    throw new Error("Supabase browser configuration is missing.");
+    throw new Error(getMissingSupabaseConfigMessage());
   }
 
   return submitQuizCompletionToSupabase(input);

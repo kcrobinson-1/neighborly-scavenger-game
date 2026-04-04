@@ -9,6 +9,7 @@
   ],
   "scripts": {
     "dev:web": "npm --workspace @neighborly/web run dev",
+    "dev:web:local": "npm --workspace @neighborly/web run dev -- --host 127.0.0.1 --port 4173",
     "build:web": "npm --workspace @neighborly/web run build",
     "lint": "eslint apps shared supabase scripts",
     "ui:review:capture": "node scripts/ui-review/capture-ui-review.cjs"

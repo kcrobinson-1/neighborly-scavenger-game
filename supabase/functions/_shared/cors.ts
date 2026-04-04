@@ -1,6 +1,8 @@
 /** Built-in origins allowed to call edge functions when env config is absent. */
 const defaultAllowedOrigins = new Set([
+  "http://127.0.0.1:4173",
   "http://127.0.0.1:5173",
+  "http://localhost:4173",
   "http://localhost:5173",
   "https://neighborly-scavenger-game-web.vercel.app",
 ]);

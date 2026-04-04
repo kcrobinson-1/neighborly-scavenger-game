@@ -138,18 +138,31 @@ Install dependencies at the repo root:
 npm install
 ```
 
-Run the web app:
+For remote Supabase-backed development:
+
+1. Copy [apps/web/.env.example](./apps/web/.env.example) to `apps/web/.env`.
+2. Set:
+
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY`
+
+3. Start the web app:
 
 ```bash
 npm run dev:web
 ```
 
-To enable Supabase-backed completions, copy [apps/web/.env.example](./apps/web/.env.example) to `apps/web/.env` and set:
+If you want a fixed local origin for browser automation, use:
 
-- `VITE_SUPABASE_URL`
-- `VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY`
+```bash
+npm run dev:web:local
+```
 
-Without those values, the app falls back to a local browser-only completion flow so the prototype still works during development.
+For remote Supabase testing, make sure your Supabase project allows the local web origin you are using.
+
+Offline browser-only mode still exists for front-end-only emergencies, but it is now opt-in. To use it, explicitly set:
+
+- `VITE_ENABLE_LOCAL_PROTOTYPE_FALLBACK=true`
 
 ## Supabase Setup
 
@@ -160,7 +173,7 @@ npx supabase login
 npx supabase link --project-ref YOUR_PROJECT_REF
 npx supabase db push
 npx supabase secrets set SESSION_SIGNING_SECRET=your-long-random-secret
-npx supabase secrets set ALLOWED_ORIGINS=http://localhost:5173,https://neighborly-scavenger-game-web.vercel.app
+npx supabase secrets set ALLOWED_ORIGINS=http://127.0.0.1:4173,http://localhost:4173,http://127.0.0.1:5173,http://localhost:5173,https://neighborly-scavenger-game-web.vercel.app
 npx supabase functions deploy issue-session
 npx supabase functions deploy complete-quiz
 ```
