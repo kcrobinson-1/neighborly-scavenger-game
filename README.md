@@ -20,33 +20,80 @@ The product is intended for community events like concerts, fairs, and neighborh
 
 ## Current Status
 
-This repository now includes:
+This repository currently includes:
 
 - a Vite + React attendee experience prototype
-- sample quizzes with multiple feedback modes
-- reducer-based quiz flow with submit-per-question behavior
-- Supabase scaffolding for completion storage and single raffle entitlements per event/session
+- a landing page plus sample game routes
+- one-question-at-a-time quiz flow with back navigation
+- multiple quiz feedback modes
+- shared quiz content, validation, and scoring logic
+- Supabase-backed browser-session bootstrap
+- Supabase-backed completion verification
+- SQL-backed single raffle entitlement per event/session pair
+
+The current prototype is usable for engineering validation and local/demo testing, but it is not yet the full event-ready MVP described in the older product and UX docs.
 
 Initial validation target:
 
 - Madrona Music in the Playfield
 
+## What Exists Today
+
+The current codebase is intentionally small and split by responsibility:
+
+- `apps/web` contains the React attendee experience built with Vite
+- `apps/web/src/pages` contains route-level screens such as the landing page, game flow, and not-found state
+- `apps/web/src/game` contains quiz-session logic and quiz-specific helpers
+- `apps/web/src/lib` contains client-side API and session helpers
+- `apps/web/src/data` re-exports shared quiz content into the web app
+- `shared` contains `game-config.ts`, the shared quiz definitions and scoring/validation logic used by both browser and backend code
+- `supabase/functions` contains the edge functions used to issue browser sessions and finalize quiz completion
+- `supabase/migrations` contains the database schema and RPC setup for completion and entitlement tracking
+- `docs` contains product, UX, architecture, and development guidance
+
+The runtime split is:
+
+- `Vercel` serves the web app
+- the browser runs the quiz locally during play
+- `Supabase` handles the trusted completion step at the end
+
+## What Still Needs To Be Built
+
+The earlier product and UX docs described a broader event-ready MVP than what currently exists in code today. The main remaining gaps are:
+
+- database-backed event and quiz content instead of shared hardcoded sample data
+- organizer/admin tooling for editing and publishing events
+- analytics and reporting for starts, completions, and completion time
+- direct event-entry production routes instead of sample/demo routing
+- stronger anti-abuse controls if live event usage shows browser-session dedupe is insufficient
+
+## Platform Overview
+
+This system uses three major platform pieces:
+
+- `Vite` is the frontend dev server and build tool for `apps/web`. It powers local development, TypeScript-aware builds, and the static files that get deployed.
+- `Vercel` hosts the built frontend as a static site. In this repo, [apps/web/vercel.json](./apps/web/vercel.json) rewrites `/game/*` paths back to `index.html` so the single-page app router can handle those routes in the browser.
+- `Supabase` provides the backend pieces for the current prototype slice: Postgres, SQL migrations, and edge functions. In this project it is responsible for issuing a signed browser session, validating quiz submissions, deduplicating entitlements, and returning the official verification state.
+
 ## Documentation
 
 - [Product Overview](./docs/product.md) explains the problem, users, value proposition, and success criteria.
 - [UX Philosophy and Experience](./docs/experience.md) describes how the attendee and volunteer experience should feel and flow.
-- [Architecture Notes](./docs/architecture.md) defines the system shape, data model, and frontend/backend responsibilities.
-- [Development Direction](./docs/dev.md) captures framework choices, technical defaults, open implementation questions, and milestones.
+- [Architecture Notes](./docs/architecture.md) describes the current system shape, code layout, runtime flow, and backend/data responsibilities.
+- [Development Guide](./docs/dev.md) explains the toolchain, local workflow, deployment setup, and near-term implementation roadmap.
 
-## Planned Experience
+If you want the detailed code walkthrough, start with [docs/architecture.md](./docs/architecture.md). If you want the toolchain and local workflow, start with [docs/dev.md](./docs/dev.md).
 
-The intended attendee experience is:
+## Current Experience
 
-1. Scan QR code
-2. Start immediately with no login
-3. Answer one question at a time in a lightweight SPA flow
-4. Complete the quiz in under 2 minutes
-5. Show a clear completion screen to receive a raffle ticket
+The implemented attendee experience is:
+
+1. Open the site
+2. Choose a sample game from the landing page
+3. Start immediately with no login
+4. Answer one question at a time in a lightweight SPA flow
+5. Complete the quiz in under a few minutes
+6. Show a clear completion screen with a backend-backed verification code
 
 The UX direction emphasizes:
 
@@ -72,11 +119,16 @@ The current MVP intentionally avoids:
 - Median completion time stays at or below 2 minutes
 - Organizers can set up the experience in under 1 hour
 
-## Next Steps
+## Roadmap
 
-- connect the Supabase function and migration to a live project
-- validate the experience in a live neighborhood event
-- add organizer-facing content management
+Near-term improvements still to be implemented:
+
+- connect the Supabase migration and functions to a live project for event testing
+- move quiz/event content from shared TypeScript into database-backed event records
+- add organizer-facing content management and publish controls
+- shift from sample/demo routes toward direct event-entry routes for live QR usage
+- add lightweight reporting for starts, completions, and completion time
+- revisit anti-abuse if live event behavior shows browser-session dedupe is insufficient
 
 ## Local Setup
 

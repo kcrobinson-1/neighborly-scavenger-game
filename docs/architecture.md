@@ -2,536 +2,288 @@
 
 ## Purpose
 
-This document should answer the practical architecture questions needed to build and run the MVP.
+This document describes the system that currently exists in the repository and the architectural gaps that still remain before the project becomes an event-ready MVP.
+
+It focuses on:
+
+- the current codebase structure
+- runtime responsibilities and request flow
+- where trust and data ownership live today
+- which parts of the original MVP direction are already implemented
+- which pieces are still deferred to later milestones
+
+Tooling and local workflow live in `dev.md`. Product intent lives in `product.md`. UX goals live in `experience.md`.
+
+## Current Architecture Summary
+
+The current implementation is:
+
+- a React single-page app for the attendee experience
+- a shared TypeScript domain module for quiz content, validation, and scoring
+- two Supabase edge functions for session bootstrap and trusted completion
+- a Supabase SQL migration that records completion attempts and awards one raffle entitlement per event/session pair
+- local browser state during quiz play, with the backend owning the final verification result
+
+The core architectural principle already embodied in the code is:
 
-## Document Role
+Keep the quiz interaction local and fast, but make the completion state backend-backed and harder to spoof.
 
-This doc defines the system shape:
+## Current Codebase Structure
 
-- what components exist
-- what responsibilities each component owns
-- where data lives
-- how frontend and backend interact
-- what the core data model looks like
+### Top-Level Layout
 
-Specific framework and tool choices belong in `dev.md`. Product goals belong in `product.md`. UX intent belongs in `experience.md`.
+- `apps/web`
+  The attendee-facing single-page application.
+- `shared`
+  Shared TypeScript domain logic used by both the browser and Supabase functions.
+- `supabase/functions`
+  Edge functions for session bootstrap and trusted completion.
+- `supabase/migrations`
+  SQL schema, tables, and RPC logic for quiz completion and raffle entitlement behavior.
+- `docs`
+  Product, UX, architecture, and development documentation.
 
-For this product, the architecture doc should answer:
+### Frontend Structure
 
-1. What are the major system components?
-2. Where does quiz content live?
-3. How does the attendee experience load and run?
-4. What data is stored on the client versus the backend?
-5. How is quiz completion verified for raffle redemption?
-6. What backend endpoints or services are required?
-7. What should the core data model look like?
-8. How should performance and offline resilience be handled?
-9. What is the MVP anti-abuse strategy?
-10. What admin or organizer tooling is required?
-11. How should deployment be structured?
-12. What is intentionally out of scope for MVP?
+The current frontend is intentionally shallow:
 
-This doc answers those questions with recommended MVP defaults.
+- `apps/web/src/main.tsx`
+  Browser entry point. Mounts the React app.
+- `apps/web/src/App.tsx`
+  Root shell and pathname-based route selection.
+- `apps/web/src/routes.ts`
+  Central route definitions plus pathname normalization and matching.
+- `apps/web/src/usePathnameNavigation.ts`
+  Minimal client-side navigation hook built on the History API.
+- `apps/web/src/pages/LandingPage.tsx`
+  Product overview and entry point into sample games.
+- `apps/web/src/pages/GamePage.tsx`
+  End-to-end player flow: intro, active question UI, correctness feedback, and completion screen.
+- `apps/web/src/pages/NotFoundPage.tsx`
+  Fallback route.
+- `apps/web/src/game/useQuizSession.ts`
+  Reducer-driven quiz session state machine.
+- `apps/web/src/game/quizUtils.ts`
+  Quiz-specific selection, label, and feedback helpers.
+- `apps/web/src/lib/quizApi.ts`
+  Client-side session bootstrap and completion submission logic, including the local-development fallback.
+- `apps/web/src/lib/session.ts`
+  Small client id-generation helpers.
+- `apps/web/src/types/quiz.ts`
+  Client-side types for completion payloads and results.
+- `apps/web/src/data/games.ts`
+  Re-export layer for shared quiz definitions.
+- `apps/web/src/styles.css`
+  Global prototype styling.
 
-## Architecture Summary
+### Shared Domain Structure
 
-The recommended MVP architecture is:
+The shared layer is currently a single file:
 
-- a SPA frontend
-- a minimal backend API
-- a simple hosted database
-- local browser state during quiz play
-- backend-issued completion verification at the end
+- `shared/game-config.ts`
 
-The core principle is:
+It contains:
 
-Keep the quiz experience fast and mostly client-driven, while making the final completion state backend-backed and trustworthy.
+- sample game definitions
+- shared quiz domain types
+- answer normalization
+- scoring
+- submitted-answer validation
+- game lookups by id and slug
 
-## Key Design Decisions
+This is the current source of truth for quiz correctness. The browser uses it to render and review answers, and the backend uses it to validate and score the final submission.
 
-These are the main architectural decisions currently embodied in the codebase.
+### Backend Structure
 
-### One shared game configuration source
+The Supabase side is intentionally small:
 
-The quiz definitions currently live in a shared TypeScript module rather than only in the frontend.
+- `supabase/functions/issue-session/index.ts`
+  Creates or reuses the signed browser session cookie.
+- `supabase/functions/complete-quiz/index.ts`
+  Validates the completion payload, verifies the session cookie, computes the trusted score, and calls the database RPC.
+- `supabase/functions/_shared/cors.ts`
+  Shared CORS helpers.
+- `supabase/functions/_shared/session-cookie.ts`
+  Cookie signing and verification helpers.
+- `supabase/migrations/20260403120000_complete_quiz_entitlements.sql`
+  Database objects that store completion attempts and ensure only one raffle entitlement is granted per event/session pair.
 
-Why:
+## What Is Implemented Now
 
-- the same question definitions need to drive both rendering and server-side scoring
-- correctness logic should not be duplicated across client and backend
-- this keeps the frontend review UI, backend scoring, and sample content aligned while the product is still in its prototype-to-MVP phase
+### Shared quiz logic across frontend and backend
 
-Tradeoff:
+Quiz definitions, answer normalization, validation, and scoring all live in `shared/game-config.ts`.
 
-- content is not yet organizer-editable without a code change
+That means:
 
-Intent:
+- the frontend renders from the same source that the backend validates
+- score/review behavior cannot drift from server-side completion logic without a code change
+- sample game data fails fast if ids or answer definitions are inconsistent
 
-- move event content into the database later, but keep one trusted source of truth for correctness and scoring
+### Browser-session trust for the no-login MVP
 
-### Browser-session trust instead of user accounts
+The backend issues a signed HTTP-only cookie through `issue-session`.
 
-The current MVP does not use login-based identity.
+That cookie is then used by `complete-quiz` to:
 
-Instead:
+- associate completions with a backend-controlled browser session
+- avoid trusting a client-generated session identifier
+- allow repeat completions without minting repeat raffle entitlements
 
-- the browser requests a server-issued session
-- the backend sets a signed HTTP-only cookie
-- raffle entitlement is tied to that server-controlled browser session
+This is intentionally lighter than full user identity, but it is stronger than a purely client-rendered completion screen.
 
-Why:
+### Local quiz state with backend-owned completion
 
-- it preserves the low-friction QR-code event flow
-- it is materially stronger than trusting a client-generated session id
-- it is enough for MVP while person-level fraud prevention remains out of scope
+The player experience is client-driven until the end of the quiz.
 
-Important limitation:
+Today:
 
-- this is not person identity
-- a new browser profile, private window, or device can still create a new entitlement
+- question flow, progress, pending answers, retries, and retakes are managed locally in the browser
+- final verification is returned from Supabase
+- the completion screen displays backend-produced verification data rather than an entirely local success state
 
-### One entitlement, many completion attempts
+### Multiple quiz modes
 
-The system treats `quiz_completions` and `raffle_entitlements` as separate concepts.
-
-Why:
-
-- users should be able to retake the quiz for fun or score improvement
-- raffle eligibility should be granted once per event/session, not once per attempt
-- this keeps the UX flexible without weakening the reward model
-
-### Client-driven quiz, server-owned completion
-
-The attendee experience runs locally during play, but the backend owns the official completion result.
-
-Why:
-
-- local interaction keeps the quiz fast and resilient during an outdoor event
-- backend completion gives volunteers something more trustworthy than a purely client-rendered success screen
-- the final verification code becomes stable across retakes for the same entitled session
-
-## 1. What Are the Major System Components?
-
-The MVP should have four major parts:
-
-### Attendee Frontend
-
-The mobile web app opened from a QR code.
-
-Responsibilities:
-
-- load the event and question set
-- render one question card at a time
-- track in-progress answers locally
-- submit the final completion payload
-- display the completion verification screen
-
-### Backend API
-
-A thin service that supports the live event flow.
-
-Responsibilities:
-
-- return event/question/sponsor content
-- accept quiz completion submissions
-- create a completion record
-- return a verification token or proof state
-- provide lightweight analytics events if needed
-
-### Database
-
-The source of truth for event content and completion records.
-
-Responsibilities:
-
-- store events
-- store questions and answer options
-- store sponsor metadata
-- store completion records
-- support basic reporting
-
-### Organizer/Admin Tooling
-
-A minimal way to manage event content.
-
-Responsibilities:
-
-- create and edit events
-- add questions
-- attach sponsors
-- publish or unpublish an event
-
-## 2. Where Should Quiz Content Live?
-
-### Prototype Answer
-
-For the earliest prototype, quiz content can live in local JSON or code.
-
-### MVP Answer
-
-For an event-ready MVP, quiz content should live in the database.
-
-Why:
-
-- organizers may need to update questions without a code deploy
-- sponsor content is operational data, not hardcoded product logic
-- event reuse becomes easier over time
-
-The frontend should fetch published event content once at startup and then run the quiz locally.
-
-## 3. How Should the Attendee Experience Load and Run?
-
-The attendee experience should be a SPA with one visible question card at a time.
-
-Recommended flow:
-
-1. User scans QR code
-2. Frontend loads the published event payload
-3. Frontend stores quiz state locally
-4. User answers questions without page reloads
-5. Frontend submits completion at the end
-6. Backend returns official completion proof
-7. Frontend renders the final verification screen
-
-Important architectural choice:
-
-The experience should feel uninterrupted even if routing exists internally. The user should not experience separate hard-loaded pages between questions.
-
-The frontend should also support configurable quiz feedback behavior at the game level, such as:
-
-- move straight through and reveal score at the end
-- require the correct answer before continuing
-
-## 4. What Data Lives on the Client vs the Backend?
-
-### Client-Side Data
-
-The frontend should temporarily store:
-
-- current question index
-- selected answers
-- progress state
-- event content cache
-- local anti-repeat marker
-
-This data should survive a refresh when possible.
-
-### Backend Data
-
-The backend should persist:
-
-- event records
-- question records
-- answer option records
-- sponsor data
-- completion records
-- verification tokens
-- timestamps and lightweight analytics data
-
-Recommended rule:
-
-The client owns quiz interaction state.
-The backend owns official completion state.
-
-## 5. How Should Completion Be Verified?
-
-Completion should not be trusted purely from the frontend.
-
-Recommended MVP approach:
-
-- frontend submits the completion payload
-- backend creates a completion record
-- backend returns a token or proof object
-- frontend displays a distinctive success screen using that proof
-
-Recommended proof elements:
-
-- short human-readable code
-- timestamp
-- event-specific visual confirmation
-
-Why:
-
-- volunteers need quick confidence
-- a purely client-rendered "success" screen is too easy to fake
-
-## 6. What Backend Endpoints or Services Are Required?
-
-The MVP backend should stay small.
-
-Recommended minimum capabilities:
-
-### Event Content Read
-
-Purpose:
-
-- return the published event and its questions for attendee play
-
-### Completion Submit
-
-Purpose:
-
-- accept a completed quiz payload
-- validate that the event is active
-- create a completion record
-- return completion proof
-
-### Admin Content Management
-
-Purpose:
-
-- create and update event data
-- manage questions and sponsors
-- publish and unpublish events
-
-### Analytics Read
-
-Purpose:
-
-- support basic reporting for starts, completions, and timing
-
-These can exist as separate endpoints, serverless functions, or a small managed backend layer.
-
-## 7. What Should the Core Data Model Be?
-
-The architecture doc should define the MVP entities clearly enough that implementation and admin tooling can follow from them.
-
-## Recommended Content Model
-
-### Event
-
-- id
-- slug or shareable identifier
-- name
-- feedbackMode
-- status
-- start/end or active window
-- theme color or theme configuration
-- intro copy
-- raffle instructions
-- createdAt
-- updatedAt
-
-### Sponsor
-
-- id
-- eventId
-- name
-- logoUrl
-- sponsorLabel
-- websiteUrl
-- displayOrder
-
-### Question
-
-- id
-- eventId
-- sponsorId nullable
-- prompt
-- selectionMode
-- displayOrder
-- correctAnswerIds
-- explanation nullable
-- sponsorFact nullable
-
-### AnswerOption
-
-- id
-- questionId
-- label
-- value
-- displayOrder
-
-### Completion
-
-- id
-- eventId
-- token
-- createdAt
-- submittedAnswers
-- completionDuration
-- verificationStatus
-- clientSessionId
-
-### RedemptionEntitlement
-
-- id
-- eventId
-- clientSessionId or participant key
-- firstCompletionId
-- raffleGrantedAt
-- status
-
-This separates "a completed run through the quiz" from "the single raffle entitlement earned for that event." A participant may have multiple completion records over time, but only one redemption entitlement.
-
-### QuizSession Optional for MVP
-
-- id
-- eventId
-- startedAt
-- completedAt nullable
-- clientSessionId
-
-If we want the lightest MVP possible, `QuizSession` can be skipped at first and inferred from frontend or analytics events.
-
-## 8. How Should Quiz Feedback Modes Be Modeled?
-
-The system should support a game-level feedback mode instead of hardcoding one quiz behavior.
-
-Recommended MVP values:
+The current shared game model and frontend support more than one quiz behavior:
 
 - `final_score_reveal`
 - `instant_feedback_required`
 
-Optional later:
+This capability is implemented in both the shared config model and the `useQuizSession` reducer flow.
 
-- `instant_feedback_non_blocking`
+## Runtime Request Flow
 
-Modeling requirement:
+The current system works like this:
 
-- any game using scored or correctness-based feedback modes should require `correctAnswerIds` on every scored question
-- `correctAnswerIds` should only be optional for non-scored or informational quiz variants
+1. A user lands on the frontend hosted on Vercel.
+2. The React app loads and resolves the pathname locally.
+3. When the user starts a game, the browser calls the Supabase `issue-session` edge function.
+4. Supabase returns a signed HTTP-only cookie that represents the browser session.
+5. The player completes the quiz entirely in local browser state.
+6. At the end, the browser submits answers, duration, event id, and request id to `complete-quiz`.
+7. The backend verifies the signed cookie, validates answers against `shared/game-config.ts`, recomputes score, and executes the database RPC.
+8. The RPC records the completion attempt, creates or reuses the raffle entitlement, and returns the official verification data.
+9. The frontend renders the completion screen using that trusted response.
 
-Why model this at the game level:
+This flow keeps question-to-question interaction fast while reserving the final trust decision for the backend.
 
-- it keeps the attendee experience consistent within a single quiz
-- it avoids question-by-question rule confusion
-- it gives organizers a simple, understandable choice
+## Current Backend Surface
 
-Behavioral implications:
+The current implementation uses two edge functions:
 
-- `final_score_reveal` needs score calculation and end-of-quiz answer review support
-- `instant_feedback_required` needs correct-answer checking during the quiz plus an optional sponsor-fact interstitial
-- both modes can share the same question and answer data model as long as `selectionMode`, `correctAnswerIds`, and `explanation` or `sponsorFact` are available when needed
-- the frontend should support back navigation to previously submitted questions before completion
-- the frontend may allow retakes after completion, but backend reward logic should treat retakes as additional sessions, not additional raffle entitlements
+- `issue-session`
+  Prepares the signed session cookie used as the trust boundary for the no-login MVP.
+- `complete-quiz`
+  Owns final validation, scoring, dedupe, and verification-code return.
 
-## 9. How Should Performance and Resilience Work?
+No general-purpose REST API exists yet, and that is intentional. The system currently exposes only the endpoints needed by the attendee flow.
 
-The product has outdoor, mobile, event-based constraints, so architecture should optimize for perceived speed and survivability.
+## Data Ownership Today
 
-Recommended performance approach:
+### Client-Owned During Play
 
-- fetch event content once at the start
-- cache it in memory for the session
-- avoid server round-trips between questions
-- keep assets small, especially sponsor logos
-- preload the completion experience if practical
+The browser currently owns:
 
-Recommended resilience approach:
+- current question index
+- pending selection state
+- submitted local answers
+- transient feedback state
+- local progress state during a run
+- development-only fallback completion data when Supabase env vars are absent
 
-- persist progress locally
-- tolerate refreshes
-- make completion submission retryable
-- handle intermittent connectivity gracefully near the final step
+### Backend-Owned At Completion
 
-The architecture should optimize for:
+Supabase currently owns:
 
-- low latency
-- low data usage
-- minimal moving parts during the live event
+- signed browser-session trust
+- final answer validation
+- trusted score calculation
+- completion attempt persistence
+- raffle entitlement dedupe
+- verification code return
 
-## 10. What Is the MVP Anti-Abuse Strategy?
+## Current Deployment Shape
 
-Strong anti-fraud is explicitly out of scope, but some minimum architecture is still needed.
+The current deployment model is:
 
-Recommended MVP anti-abuse:
+- `Vercel` hosts the static frontend build from `apps/web`
+- `Vite` produces that frontend build and powers local development
+- `Supabase` hosts the database and edge functions
 
-- local storage or cookie to discourage repeated entries
-- lightweight backend dedupe using event plus a client/session identifier
-- optionally reject duplicate completion submissions within a short window
+Those services have distinct roles:
 
-Not recommended for MVP:
+- `Vite` is not a hosting platform. It is the frontend build tool and local dev server.
+- `Vercel` is not the backend of record. It serves the built SPA and handles route rewrites for browser navigation.
+- `Supabase` is not rendering the quiz UI. It stores data and runs the trusted completion/session logic.
 
-- heavy identity verification
-- account creation
-- complex device fingerprinting
-- manual moderation flows
+In this repo, [apps/web/vercel.json](../apps/web/vercel.json) rewrites `/game/:path*` to `index.html` so the SPA can resolve those URLs in the browser after deployment.
 
-## 11. What Admin Tooling Is Required?
+## Remaining Gaps To Event-Ready MVP
 
-At minimum, someone needs to manage content without breaking the live event.
+The repository has a working prototype slice, but it does not yet satisfy the full event-ready MVP described in `product.md` and `experience.md`. The major remaining gaps are:
 
-Recommended MVP admin capabilities:
+### Database-backed event content
 
-- create an event
-- edit event details
-- create and reorder questions
-- attach sponsor metadata
-- choose a feedback mode
-- mark an event as published
+Today, quiz content still lives in `shared/game-config.ts`.
 
-Admin tooling can begin as:
+What is missing:
 
-- a simple protected internal interface
-- or a direct database/admin console for the earliest phase
+- event records in the database
+- question/answer/sponsor records in the database
+- published-event reads from the backend instead of hardcoded sample content
 
-But long-term, the architecture should assume a lightweight organizer-facing admin flow exists.
+### Organizer/admin tooling
 
-## 12. How Should Deployment Be Structured?
+Today, there is no organizer interface.
 
-Recommended deployment model:
+What is missing:
 
-- static or edge-hosted frontend
-- managed backend/data platform
+- creating and editing events without code changes
+- publishing and unpublishing events
+- managing sponsor attribution and question content
 
-Example stack:
+### Analytics and reporting
 
-- frontend on Vercel or Netlify
-- backend/data on Supabase
+Today, the backend persists trusted completion data, but there is no reporting surface.
 
-Why this is a good fit:
+What is missing:
 
-- low ops overhead
-- quick deployment cycles
-- enough flexibility for MVP and first event validation
+- completion/start reporting
+- timing summaries
+- organizer-visible event metrics
 
-Specific tool and framework recommendations live in `dev.md`.
+### Live event routing model
 
-## 13. What Is Out of Scope for MVP?
+Today, the web app includes a marketing/demo landing page plus sample routes.
 
-The architecture should explicitly avoid overbuilding.
+What is missing for live operation:
 
-Out of scope:
+- direct event-entry URLs for QR codes
+- event-specific loading instead of sample-game selection
+- a production path that opens straight into a live event flow
 
-- multi-tenant SaaS architecture
-- advanced permissions systems
-- strong anti-fraud infrastructure
-- payments and billing
-- complex sponsor analytics dashboards
-- native mobile apps
-- real-time multiplayer or live leaderboard mechanics
+### Stronger anti-abuse, if needed
 
-## Recommended MVP Request Flow
+Today, the trust boundary is:
 
-### Attendee Flow
+- signed HTTP-only cookie
+- one raffle entitlement per event/session pair
 
-1. QR code opens the attendee frontend
-2. Frontend requests published event data
-3. Frontend runs the quiz locally
-4. Frontend submits completion to backend
-5. Backend stores completion and returns verification data
-6. Frontend renders the success screen
+What is not yet implemented:
 
-### Organizer Flow
+- person-level dedupe
+- multi-device abuse controls
+- more advanced operational fraud handling
 
-1. Organizer creates event content
-2. System stores event, sponsors, and questions in the database
-3. Organizer publishes the event
-4. QR code points attendees to the published frontend route
+This is an explicit product tradeoff, not an accidental omission.
 
-## Final Recommendation
+## Roadmap
 
-The architecture should be deliberately small:
+The most sensible next architectural steps are:
 
-- client-heavy during quiz play
-- backend-backed at completion
-- database-backed for content and reporting
-- minimal admin functionality
-
-That balance best matches the product goals:
-
-- fast mobile experience
-- operational simplicity
-- trustworthy raffle redemption
-- low implementation overhead
+1. Connect the Supabase migration and functions to a live project and validate the completion flow end to end.
+2. Move event and quiz content into database-backed records while preserving one trusted scoring/validation path.
+3. Add organizer-facing content management and publish controls.
+4. Add lightweight analytics/reporting for live events.
+5. Replace sample/demo routing with event-specific QR entry flows.
+6. Revisit abuse controls after observing live event behavior.

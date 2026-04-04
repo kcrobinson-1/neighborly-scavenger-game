@@ -1,0 +1,132 @@
+# Agent Instructions
+
+This file gives repository-specific guidance to AI coding agents working in this project.
+
+Use it as a practical checklist for making changes that stay aligned with the current architecture, documentation, and product stage.
+
+## Purpose
+
+This repository currently contains a prototype-to-MVP attendee quiz experience:
+
+- `apps/web` is the Vite + React frontend
+- `shared/game-config.ts` is the shared quiz domain source of truth
+- `supabase/functions` contains the trusted backend edge functions
+- `supabase/migrations` contains the database schema and RPC logic
+- `docs` explains the current system, tooling, and roadmap
+
+Before making major architectural assumptions, read:
+
+- `README.md`
+- `docs/architecture.md`
+- `docs/dev.md`
+
+Use `docs/product.md` and `docs/experience.md` as product and UX targets, not as proof that every planned feature already exists.
+
+## Architecture Guardrails
+
+Respect the current split of responsibilities:
+
+- Put visual and interaction changes in `apps/web/src`
+- Put quiz definitions, validation, and scoring changes in `shared/game-config.ts`
+- Put trust, session, persistence, and entitlement logic in `supabase/functions` and `supabase/migrations`
+
+Do not casually duplicate business rules across frontend and backend.
+
+If quiz correctness, scoring, or answer validation changes, make sure the shared source of truth still drives both the UI and the backend completion path.
+
+Do not treat the local browser-only completion fallback as production backend behavior.
+
+## Expected Workflow
+
+When asked to make a change:
+
+1. Read the relevant code and the matching docs before editing.
+2. Make the smallest coherent change that solves the task cleanly.
+3. Review your own diff before finishing.
+4. Update comments and documentation if the change affects behavior, architecture, setup, or workflow.
+5. Run the relevant validation commands before handing off.
+
+If you discover that the current docs no longer describe the code accurately, fix the docs in the same change when practical.
+
+## Documentation Expectations
+
+Keep documentation synchronized with the implementation.
+
+Update `README.md` when:
+
+- the current capabilities change
+- setup or deployment steps change
+- the platform responsibilities or repo structure change
+
+Update `docs/architecture.md` when:
+
+- code ownership or runtime flow changes
+- trust boundaries or data ownership change
+- new backend surfaces or major modules are added
+
+Update `docs/dev.md` when:
+
+- local workflow changes
+- validation commands change
+- tooling choices or deployment steps change
+
+Update inline comments and function/type documentation when:
+
+- behavior changes in a non-obvious way
+- new logic would be hard to understand without context
+- a documented function, type, or data structure changes meaningfully
+
+Do not add comments that merely restate the code.
+
+## Validation Expectations
+
+Run the checks relevant to the area you changed.
+
+For frontend or shared TypeScript changes, run:
+
+```bash
+npm run build:web
+```
+
+For Supabase edge function changes, run:
+
+```bash
+deno check --no-lock supabase/functions/issue-session/index.ts
+deno check --no-lock supabase/functions/complete-quiz/index.ts
+```
+
+If you changed both frontend/shared code and Supabase code, run both sets of checks.
+
+If you could not run a relevant check, say so explicitly and explain why.
+
+## Self-Review Checklist
+
+Before finishing, review your own work for:
+
+- correctness
+- regressions in the existing attendee flow
+- readability and maintainability
+- duplicated logic
+- stale comments or stale docs
+- missing validation
+- accessibility or usability regressions in the mobile flow
+
+For UI changes, confirm:
+
+- the flow still feels mobile-first and one-step-at-a-time
+- direct route loading still works
+- progress, answer selection, submission, and completion states still make sense
+
+For backend or trust-related changes, confirm:
+
+- client input is still validated defensively
+- shared quiz logic is still the source of truth where appropriate
+- completion verification and entitlement behavior remain coherent
+
+## Change Boundaries
+
+Prefer targeted fixes over speculative refactors.
+
+Do not introduce new frameworks, new backend services, or broad architecture rewrites unless the task clearly calls for that.
+
+This repository is still in a focused MVP stage. Favor clarity, reliability, and maintainable incremental progress over premature platform expansion.
