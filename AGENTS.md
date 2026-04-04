@@ -9,7 +9,7 @@ Use it as a practical checklist for making changes that stay aligned with the cu
 This repository currently contains a prototype-to-MVP attendee quiz experience:
 
 - `apps/web` is the Vite + React frontend
-- `shared/game-config.ts` is the shared quiz domain source of truth
+- `shared/game-config.ts` is the shared quiz public entrypoint, backed by focused modules in `shared/game-config/`
 - `supabase/functions` contains the trusted backend edge functions
 - `supabase/migrations` contains the database schema and RPC logic
 - `docs` explains the current system, tooling, and roadmap
@@ -27,7 +27,7 @@ Use `docs/product.md` and `docs/experience.md` as product and UX targets, not as
 Respect the current split of responsibilities:
 
 - Put visual and interaction changes in `apps/web/src`
-- Put quiz definitions, validation, and scoring changes in `shared/game-config.ts`
+- Put quiz definitions, catalog, validation, and scoring changes in `shared/game-config.ts` and `shared/game-config/`
 - Put trust, session, persistence, and entitlement logic in `supabase/functions` and `supabase/migrations`
 
 Do not casually duplicate business rules across frontend and backend.

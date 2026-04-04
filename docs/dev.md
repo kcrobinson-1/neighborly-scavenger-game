@@ -128,7 +128,7 @@ The current content model is code-backed rather than database-backed.
 
 Today:
 
-- sample games live in `shared/game-config.ts`
+- sample games live in the shared `game-config` module, implemented under `shared/game-config/`
 - the frontend imports them through `apps/web/src/data/games.ts`
 - the backend validates against the same shared definitions
 
@@ -183,14 +183,14 @@ When working in this repo, it helps to think in three layers:
 - `UI layer`
   React components, styles, and pathname navigation in `apps/web/src`
 - `shared domain layer`
-  Quiz definitions and scoring/validation logic in `shared/game-config.ts`
+  Quiz definitions, catalog lookups, and scoring/validation logic in the shared `game-config` module
 - `trusted backend layer`
   Supabase edge functions and SQL that own session verification and raffle entitlement decisions
 
 That model usually tells you where a change belongs:
 
 - visual or interaction change: `apps/web/src`
-- scoring or quiz-shape change: `shared/game-config.ts`
+- scoring or quiz-shape change: the shared `game-config` module
 - trust, persistence, or entitlement change: `supabase/functions` and `supabase/migrations`
 
 ## Local Workflow
@@ -231,7 +231,7 @@ Those commands verify the current frontend build path plus the edge-function Typ
 The repository now has a solid prototype foundation, but it does not yet cover the full event-ready MVP described in `product.md` and `experience.md`. The next development steps to close that gap are:
 
 1. Wire the Supabase deployment to a live project and validate the end-to-end completion path in a real environment.
-2. Move event and quiz content out of `shared/game-config.ts` and into database-backed event records.
+2. Move event and quiz content out of the shared `game-config` module and into database-backed event records.
 3. Add organizer/admin tooling for editing, publishing, and operating events without code changes.
 4. Add lightweight reporting for quiz starts, completions, and timing.
 5. Replace sample/demo routing assumptions with direct event-entry routes suitable for QR distribution.

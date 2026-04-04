@@ -46,7 +46,7 @@ The current codebase is intentionally small and split by responsibility:
 - `apps/web/src/game` contains quiz-session logic and quiz-specific helpers
 - `apps/web/src/lib` contains client-side API and session helpers
 - `apps/web/src/data` re-exports shared quiz content into the web app
-- `shared` contains `game-config.ts`, the shared quiz definitions and scoring/validation logic used by both browser and backend code
+- `shared` contains the `game-config.ts` shared entrypoint plus `shared/game-config/` modules for quiz definitions, lookup logic, validation, and scoring used by both browser and backend code
 - `supabase/functions` contains the edge functions used to issue browser sessions and finalize quiz completion
 - `supabase/migrations` contains the database schema and RPC setup for completion and entitlement tracking
 - `docs` contains product, UX, architecture, and development guidance

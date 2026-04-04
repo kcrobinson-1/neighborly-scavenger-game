@@ -78,11 +78,14 @@ The current frontend is intentionally shallow:
 
 ### Shared Domain Structure
 
-The shared layer is currently a single file:
+The shared layer now exposes a stable entrypoint plus focused implementation modules:
 
 - `shared/game-config.ts`
+  Public compatibility entrypoint for existing imports.
+- `shared/game-config/`
+  Internal shared modules for types, sample games, catalog lookups, validation, and answer/scoring logic.
 
-It contains:
+Together they contain:
 
 - sample game definitions
 - shared quiz domain types
@@ -112,7 +115,7 @@ The Supabase side is intentionally small:
 
 ### Shared quiz logic across frontend and backend
 
-Quiz definitions, answer normalization, validation, and scoring all live in `shared/game-config.ts`.
+Quiz definitions, answer normalization, validation, scoring, and game lookup logic all live in the shared `game-config` module surface.
 
 That means:
 
@@ -161,7 +164,7 @@ The current system works like this:
 4. Supabase returns a signed HTTP-only cookie that represents the browser session.
 5. The player completes the quiz entirely in local browser state.
 6. At the end, the browser submits answers, duration, event id, and request id to `complete-quiz`.
-7. The backend verifies the signed cookie, validates answers against `shared/game-config.ts`, recomputes score, and executes the database RPC.
+7. The backend verifies the signed cookie, validates answers against the shared `game-config` module, recomputes score, and executes the database RPC.
 8. The RPC records the completion attempt, creates or reuses the raffle entitlement, and returns the official verification data.
 9. The frontend renders the completion screen using that trusted response.
 
@@ -224,7 +227,7 @@ The repository has a working prototype slice, but it does not yet satisfy the fu
 
 ### Database-backed event content
 
-Today, quiz content still lives in `shared/game-config.ts`.
+Today, quiz content still lives in the shared `game-config` module.
 
 What is missing:
 
