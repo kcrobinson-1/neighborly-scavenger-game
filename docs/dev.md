@@ -2,256 +2,166 @@
 
 ## Purpose
 
-This document explains how the current codebase is built and operated during development, and it identifies the implementation work that still remains after the current prototype slice.
+This document explains how engineers work in the repository today.
 
-System shape and data ownership live in `architecture.md`. UX behavior and visual rules live in `experience.md`.
+Use it for:
 
-## Current Tooling In This Repo
+- local setup
+- validation commands
+- release flow
+- remote Supabase and fork bootstrap steps
+- troubleshooting common integration problems
 
-The current implementation uses the following stack:
+System shape and data ownership live in `architecture.md`. UX intent lives in `experience.md`. Platform setting ownership lives in `operations.md`.
+
+## Current Tooling
+
+This repo currently uses:
 
 - `React`
-  UI library for the attendee-facing single-page application.
+  attendee-facing UI in `apps/web`
 - `TypeScript`
-  Shared language layer across frontend code, shared domain logic, and Supabase edge functions.
+  shared language across frontend code, shared domain logic, and Edge Functions
 - `Vite`
-  Local dev server and production build tool for the web app in `apps/web`.
+  frontend dev server and production build tool
 - `Sass`
-  Lightweight CSS preprocessor used to organize the frontend styles into shared tokens, mixins, and partials.
+  styling organization for the web app
 - `ESLint`
-  Repository-wide linting for the React app, shared TypeScript modules, Supabase functions, and the Playwright review script.
-- `Vercel`
-  Static hosting target for the built frontend.
+  repo-wide linting
 - `Supabase`
-  Hosted Postgres plus edge functions for session issuance, completion validation, and entitlement persistence.
+  Postgres, migrations, secrets, and Edge Functions
 - `Deno`
-  Runtime used by the Supabase edge functions.
-
-This doc focuses on how we use those tools during development. The higher-level system ownership and request flow live in `architecture.md`.
+  runtime for the Supabase Edge Functions
+- `Vercel`
+  frontend hosting target
 
 ## Repository Shape
 
-The current repository layout is:
+The main working areas are:
 
 - `apps/web`
-  React frontend workspace.
-- `apps/web/src/styles.scss` and `apps/web/src/styles/`
-  SCSS entrypoint plus styling partials for tokens, layout, landing UI, quiz UI, and responsive rules.
+  frontend app
 - `shared`
-  Shared quiz types, content, scoring, and validation.
+  shared quiz definitions, validation, and scoring
 - `supabase/functions`
-  Edge-function runtime code.
+  trusted backend runtime code
 - `supabase/migrations`
-  SQL schema and RPC definitions.
+  database schema, RPCs, and backend hardening
 - `docs`
-  Product, UX, architecture, and development docs.
+  product, UX, architecture, development, and operations docs
 
-This project does not currently need a separate `apps/api` service because Supabase is covering the backend responsibilities we have implemented so far.
-
-## Current Implementation Decisions
+## Implementation Decisions That Matter During Development
 
 ### Shared config before DB-backed content
 
 The app currently uses a shared `game-config` module for sample quizzes.
 
-Why this is intentional:
+That is intentional because:
 
 - the frontend needs the content to render the experience
 - the backend needs the same content to validate answers and compute score
-- sharing the module avoids drift while we are still pre-admin and pre-CMS
-
-This is a transitional step, not the final content-management model.
+- sharing the module avoids drift while the project is still pre-admin and pre-CMS
 
 ### Reducer-based quiz session
 
-The quiz flow is modeled as a reducer-backed session rather than scattered local component state.
+The quiz flow is modeled as a reducer-backed session rather than scattered component state.
 
-Why:
+That keeps:
 
-- the quiz has real state transitions now: intro, answering, correctness feedback, completion submission, and completion
-- back navigation, retries, and retakes are easier to reason about when transitions are explicit
-- this reduces the chance of invalid UI states as the product grows
+- step transitions explicit
+- back navigation and retakes easier to reason about
+- invalid UI states less likely as the product grows
 
 ### Session bootstrap before gameplay
 
 The attendee flow prepares a backend session before quiz start when Supabase is configured.
 
-Why:
+That means:
 
-- it avoids discovering entitlement/session problems only at the very end
-- it ensures the browser has the signed session credential before completion submission
-- the start screen is a better place for a recoverable setup error than the final verification moment
+- integration failures surface before the user finishes the quiz
+- the browser has the signed session credential ready before completion submission
+- the start screen is a better place for a recoverable backend setup error
 
 ### Offline fallback stays explicit
 
-When Supabase environment variables are missing in local development, the app now fails loudly unless offline mode is explicitly enabled.
+When Supabase environment variables are missing, the app now fails loudly unless offline mode is explicitly enabled.
 
-Why:
+That is intentional because:
 
-- local integration gaps should be visible instead of silently masked
-- the default developer path should exercise the trusted completion flow
-- front-end-only work can still continue when remote Supabase is unavailable or unnecessary
+- backend integration gaps should be visible by default
+- the standard development path should exercise the trusted completion flow
+- frontend-only work can still continue when needed
 
 Constraint:
 
-- the browser-only fallback is intentionally development-only and should not be treated as production trust logic
-- use it only by explicitly setting `VITE_ENABLE_LOCAL_PROTOTYPE_FALLBACK=true`
-
-## Core Tooling Choices
-
-### React + TypeScript
-
-The attendee experience is implemented as a React single-page app with TypeScript.
-
-That choice is reflected in:
-
-- `apps/web/src`
-- shared types between frontend and backend
-- reducer-driven quiz flow state
-
-### Vite
-
-Vite is the frontend build tool and local development server.
-
-How this repo uses Vite:
-
-- `apps/web/package.json` uses `vite` for local development and `tsc -b && vite build` for production builds
-- `apps/web/vite.config.ts` keeps the setup intentionally minimal with the React plugin only
-- the top-level `npm run dev:web` and `npm run build:web` scripts delegate into the web workspace
-
-Vite is the tool you interact with while building the frontend locally. It is not the deployment host and it does not replace Supabase.
-
-### Sass
-
-Sass is the CSS authoring layer for the frontend.
-
-How this repo uses Sass:
-
-- `apps/web/src/main.tsx` imports `apps/web/src/styles.scss`
-- `apps/web/src/styles/_tokens.scss` defines shared design tokens and exported CSS custom properties
-- `apps/web/src/styles/_mixins.scss` holds a small set of reusable layout and surface helpers
-- the remaining partials separate base rules, shared layout, landing-page styles, quiz styles, and responsive behavior
-
-Why this repo uses Sass instead of plain CSS:
-
-- it keeps the frontend styling lightweight and Vite-native
-- it reduces duplication without introducing a CSS-in-JS runtime
-- it makes shared spacing, surface, and interaction patterns easier to maintain as the attendee UI grows
-
-### Rendering Model
-
-The current app is a SPA with:
-
-- one application shell
-- pathname-based routing
-- one visible quiz card at a time
-- client-side state transitions between quiz steps
-
-### Current Content Model
-
-The current content model is code-backed rather than database-backed.
-
-Today:
-
-- sample games live in the shared `game-config` module, implemented under `shared/game-config/`
-- the frontend imports them through `apps/web/src/data/games.ts`
-- the backend validates against the same shared definitions
-
-This is intentional for the current prototype slice, but it is still a transitional step.
-
-## What Vercel Is And How This Repo Uses It
-
-`Vercel` is the frontend hosting platform for the attendee experience.
-
-In this project, Vercel is responsible for:
-
-- serving the static files produced by `vite build`
-- providing the public frontend URL that event QR codes can point to
-- rewriting SPA routes like `/game/first-sample` back to `index.html`
-
-The route rewrite is configured in `apps/web/vercel.json`.
-
-Why it matters:
-
-- the app uses lightweight client-side routing
-- without the rewrite, direct requests to nested game URLs would 404 on refresh or first load
-
-Vercel is not currently hosting backend business logic. That logic lives in Supabase.
-
-## What Supabase Is And How This Repo Uses It
-
-`Supabase` is the managed backend platform used for the current prototype slice.
-
-In this repo it provides:
-
-- Postgres storage via SQL migrations in `supabase/migrations`
-- edge functions in `supabase/functions`
-- a place to store secrets such as `SESSION_SIGNING_SECRET`
-
-The current frontend uses Supabase for two specific actions:
-
-1. `issue-session`
-   Creates a signed browser session credential for the no-login flow.
-2. `complete-quiz`
-   Validates the submitted answers, computes the trusted score, and awards or reuses the raffle entitlement.
-
-Important implementation detail:
-
-- the current MVP does not use Supabase Auth
-- both edge functions run with `verify_jwt = false`
-- trust comes from a server-signed browser session credential rather than from a logged-in user identity
-- the backend still sets a secure cookie, but the frontend also stores the signed session token fallback for browsers that block cross-site cookie round-trips
-
-## Suggested Developer Mental Model
-
-When working in this repo, it helps to think in three layers:
-
-- `UI layer`
-  React components, styles, and pathname navigation in `apps/web/src`
-- `shared domain layer`
-  Quiz definitions, catalog lookups, and scoring/validation logic in the shared `game-config` module
-- `trusted backend layer`
-  Supabase edge functions and SQL that own session verification and raffle entitlement decisions
-
-That model usually tells you where a change belongs:
-
-- visual or interaction change: `apps/web/src`
-- scoring or quiz-shape change: the shared `game-config` module
-- trust, persistence, or entitlement change: `supabase/functions` and `supabase/migrations`
+- the browser-only fallback is development-only and should not be treated as production backend behavior
 
 ## Local Workflow
 
-The main local development loop is:
+### Prerequisites
 
-1. Install dependencies with `npm install`
-2. If you want remote Supabase integration, copy `apps/web/.env.example` to `apps/web/.env` and set `VITE_SUPABASE_URL` plus `VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY`
-3. Start the web app with `npm run dev:web`
-4. If you want a fixed local origin for browser automation, use `npm run dev:web:local`
-5. Lint the codebase with `npm run lint`
-6. Build-check the frontend with `npm run build:web`
-7. Type-check edge functions with:
+For regular contribution work, install:
+
+- Node `22.12.0+` recommended, or any version allowed by the root `package.json`
+- npm
+- Deno if you need to run the Edge Function checks locally
+- Supabase CLI if you are changing Supabase infrastructure or verifying deploy commands
+- Playwright Chromium if you are running the UI-review capture flow
+
+Install dependencies at the repo root:
 
 ```bash
-deno check --no-lock supabase/functions/issue-session/index.ts
-deno check --no-lock supabase/functions/complete-quiz/index.ts
+npm install
 ```
 
-Remote-Supabase note:
+### Remote Supabase-backed development
 
-- this repo currently assumes either a remote Supabase project or explicit offline fallback
-- no local Supabase emulation workflow is maintained in the repo right now
-- if you use remote Supabase from a local web app, make sure the project `ALLOWED_ORIGINS` secret includes the local origin you are using
-- the origin must match exactly, including protocol, host, and port; `http://127.0.0.1:4173` and `http://localhost:4173` are distinct origins
-- if you need frontend-only iteration without Supabase, explicitly set `VITE_ENABLE_LOCAL_PROTOTYPE_FALLBACK=true`
+Use this path when you have access to the shared backend and want the real completion flow:
 
-UI-review note:
+1. Copy `apps/web/.env.example` to `apps/web/.env`
+2. Set:
 
-- prefer remote Supabase-backed UI review when the project env vars are configured locally
-- if you must use the offline fallback, run browser validation against the Vite dev server rather than `vite preview`
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY`
 
-## Current Validation Commands
+3. Start the app:
 
-The codebase is currently checked with:
+```bash
+npm run dev:web
+```
+
+For a fixed local origin, use:
+
+```bash
+npm run dev:web:local
+```
+
+Notes:
+
+- Vercel access is not required for routine local development
+- if you use remote Supabase locally, the project `ALLOWED_ORIGINS` secret must include your exact local origin
+- `http://127.0.0.1:4173` and `http://localhost:4173` are distinct origins
+- the shared project already allows `http://127.0.0.1:4173`, `http://localhost:4173`, `http://127.0.0.1:5173`, and `http://localhost:5173`
+
+### Frontend-only fallback development
+
+Use this path when you do not have backend access and only need frontend iteration:
+
+1. Copy `apps/web/.env.example` to `apps/web/.env`
+2. Set:
+
+- `VITE_ENABLE_LOCAL_PROTOTYPE_FALLBACK=true`
+
+3. Leave the Supabase env vars unset
+4. Start the app with `npm run dev:web` or `npm run dev:web:local`
+
+Constraint:
+
+- this fallback is development-only and should not be treated as production trust logic
+
+## Validation Commands
+
+The current validation set is:
 
 ```bash
 npm run lint
@@ -260,28 +170,83 @@ deno check --no-lock supabase/functions/issue-session/index.ts
 deno check --no-lock supabase/functions/complete-quiz/index.ts
 ```
 
-Those commands verify the current lint rules, frontend build path, and edge-function TypeScript/Deno surface.
+Those commands are also reflected in [`.github/workflows/ci.yml`](../.github/workflows/ci.yml).
 
-GitHub and deployment expectations:
+## UI Review Workflow
 
-- `main` should require pull requests before merge
-- `main` should require the CI checks from `.github/workflows/ci.yml`
-- Supabase production should be updated from repo-backed migrations and Edge Functions, not dashboard-only edits
-- production should keep `SESSION_SIGNING_SECRET` and `ALLOWED_ORIGINS` configured correctly
+Use browser review when validating UI changes, especially mobile-first flow changes.
 
-Useful remote Supabase commands:
+Preferred path:
+
+1. Start the app locally, usually with `npm run dev:web:local`
+2. Make sure Playwright Chromium is available
+3. Run:
 
 ```bash
+npm run ui:review:capture
+```
+
+Notes:
+
+- prefer a real browser pass over code-only visual guesses
+- prefer remote Supabase-backed UI review when the env vars are configured locally
+- if you must use the offline fallback, run against the Vite dev server rather than `vite preview`
+
+## Fresh Deployment From A Fork
+
+Use this section only when creating a new deployment outside the shared project.
+
+### Supabase
+
+```bash
+npx supabase login
+npx supabase link --project-ref YOUR_PROJECT_REF
 npx supabase db push
+npx supabase secrets set SESSION_SIGNING_SECRET=your-long-random-secret
+npx supabase secrets set ALLOWED_ORIGINS=http://127.0.0.1:4173,http://localhost:4173,http://127.0.0.1:5173,http://localhost:5173,https://your-production-web-origin.example
 npx supabase functions deploy issue-session
 npx supabase functions deploy complete-quiz
 ```
+
+Then set these frontend env vars locally and in your Vercel project:
+
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY`
+
+### Vercel
+
+- create your own Vercel project for `apps/web`
+- keep the SPA route rewrite in `apps/web/vercel.json`
+- create your own local `.vercel/` link metadata after checkout; the folder is git-ignored on purpose
+
+## Release Flow
+
+The intended release path is:
+
+1. Reproduce and validate the change locally.
+2. Open a pull request.
+3. Let CI run the repo checks.
+4. Merge to `main`.
+5. Let Vercel Git integration publish the frontend from the merged commit.
+6. Let [`.github/workflows/release.yml`](../.github/workflows/release.yml) apply production Supabase migrations and deploy production Edge Functions from that same repo state.
+
+The release workflow currently expects these GitHub Actions secrets:
+
+- `SUPABASE_ACCESS_TOKEN`
+- `SUPABASE_DB_PASSWORD`
+- `SUPABASE_PROJECT_REF`
+
+Important boundary:
+
+- Vercel environment variable values remain managed in Vercel
+- Supabase secrets such as `SESSION_SIGNING_SECRET` and `ALLOWED_ORIGINS` remain managed in the Supabase project
+- the release workflow promotes code and migrations, not secret values
 
 ## Integration Troubleshooting
 
 ### Session bootstrap succeeds but completion returns 401
 
-If `issue-session` returns `200` but `complete-quiz` returns `401 Session is missing or invalid`, the browser session credential is not round-tripping.
+If `issue-session` returns `200` but `complete-quiz` returns `401 Session is missing or invalid`, the session credential is not round-tripping correctly.
 
 Current expectation:
 
@@ -292,35 +257,21 @@ If this regresses, inspect both Edge Functions together rather than treating it 
 
 ### Completion returns 500 after backend verification succeeds
 
-If the user reaches the completion step but receives the generic backend failure message, inspect the Supabase Edge Function logs for the `details` field from `complete-quiz`.
+If the user reaches the completion step but receives the generic backend failure message, inspect the Supabase Edge Function logs for the `details` field returned by `complete-quiz`.
 
 One concrete gotcha already hit in this repo:
 
-- if a `security definer` Postgres function sets `search_path = public`, extension functions such as `gen_random_bytes(...)` are no longer resolved implicitly in Supabase
+- if a hardened Postgres function sets `search_path = public`, extension functions such as `gen_random_bytes(...)` are no longer resolved implicitly in Supabase
 - use `extensions.gen_random_bytes(...)` explicitly inside hardened functions that rely on `pgcrypto`
 
-## Remaining Implementation Roadmap
+## Next Engineering Phase
 
-The repository now has a solid prototype foundation, but it does not yet cover the full event-ready MVP described in `product.md` and `experience.md`. The next development steps to close that gap are:
+The next likely development steps are:
 
-1. Wire the Supabase deployment to a live project and validate the end-to-end completion path in a real environment.
-2. Move event and quiz content out of the shared `game-config` module and into database-backed event records.
-3. Add organizer/admin tooling for editing, publishing, and operating events without code changes.
-4. Add lightweight reporting for quiz starts, completions, and timing.
-5. Replace sample/demo routing assumptions with direct event-entry routes suitable for QR distribution.
-6. Decide whether live usage justifies stronger abuse controls than the current browser-session dedupe model.
+1. Move event and quiz content out of the shared `game-config` module and into database-backed event records.
+2. Add organizer/admin tooling for editing, publishing, and operating events without code changes.
+3. Add lightweight reporting for quiz starts, completions, and timing.
+4. Replace sample/demo routing assumptions with direct event-entry routes suitable for QR distribution.
+5. Decide whether live usage justifies stronger abuse controls than the current browser-session dedupe model.
 
-## How To Read The Older Product And UX Docs
-
-`product.md` and `experience.md` still describe the intended product and UX direction in normative language.
-
-That is useful and intentional:
-
-- those docs explain what the product is trying to become
-- this doc explains how the current codebase is actually built today
-
-When they differ, treat:
-
-- `experience.md` as the design target
-- `architecture.md` as the current system snapshot plus architecture roadmap
-- `dev.md` as the current engineering workflow plus implementation roadmap
+For the broader product target, read `product.md` and `experience.md`. For the current implementation shape, read `architecture.md`.

@@ -4,6 +4,13 @@
 
 This document describes the system that currently exists in the repository and the architectural gaps that still remain before the project becomes an event-ready MVP.
 
+Use it when you need:
+
+- the current codebase shape
+- runtime responsibilities and request flow
+- trust boundaries and data ownership
+- the architectural roadmap for the next phase
+
 It focuses on:
 
 - the current codebase structure
@@ -12,7 +19,7 @@ It focuses on:
 - which parts of the original MVP direction are already implemented
 - which pieces are still deferred to later milestones
 
-Tooling and local workflow live in `dev.md`. Product intent lives in `product.md`. UX goals live in `experience.md`.
+Tooling and local workflow live in `dev.md`. Product intent lives in `product.md`. UX goals live in `experience.md`. Platform setting ownership lives in `operations.md`.
 
 ## Current Architecture Summary
 
@@ -232,9 +239,10 @@ The current deployment discipline is simpler:
 1. Develop and validate changes locally against the configured remote Supabase project or the explicit offline fallback.
 2. Use pull requests and CI to review changes before merge.
 3. Merge to `main`.
-4. Deploy migrations and Edge Functions to the production Supabase project from the repo state.
+4. Let Vercel Git integration deploy the frontend from the merged repo state.
+5. Let [`.github/workflows/release.yml`](../.github/workflows/release.yml) apply Supabase migrations and deploy Edge Functions to the production project from the same repo state.
 
-This keeps deployment repo-driven without introducing preview-branch infrastructure.
+This keeps deployment repo-driven without requiring hotfixes to start in production, and without introducing preview-branch infrastructure on the backend yet.
 
 ## Remaining Gaps To Event-Ready MVP
 
@@ -299,7 +307,7 @@ This is an explicit product tradeoff, not an accidental omission.
 
 The most sensible next architectural steps are:
 
-1. Connect the Supabase migration and functions to a live project and validate the completion flow end to end.
+1. Add a staging or branch-based Supabase promotion path if local verification plus direct-to-production release stops feeling sufficient.
 2. Move event and quiz content into database-backed records while preserving one trusted scoring/validation path.
 3. Add organizer-facing content management and publish controls.
 4. Add lightweight analytics/reporting for live events.

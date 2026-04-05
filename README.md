@@ -2,23 +2,16 @@
 
 `Neighborly Scavenger Game` is a mobile-first neighborhood event quiz designed to help local organizers raise sponsor revenue and drive attendee engagement through a short, game-like experience.
 
-The concept is simple:
+The current product shape is:
 
 - attendees scan a QR code at an event
 - complete a fast 5-7 question experience
 - see local sponsors woven into the game
-- finish with a raffle-entry confirmation screen
+- finish with a backend-verified raffle-entry confirmation state
 
 The product is intended for community events like concerts, fairs, and neighborhood markets, where the experience needs to be fast, outdoor-friendly, and easy to run without technical overhead.
 
-## Goals
-
-- Create a fundraiser that feels fun rather than transactional
-- Give local sponsors active visibility instead of passive logo placement
-- Keep the attendee flow under 2 minutes
-- Make setup simple enough for organizers to run with minimal training
-
-## Current Status
+## Current Milestone
 
 This repository currently includes:
 
@@ -31,106 +24,51 @@ This repository currently includes:
 - Supabase-backed completion verification
 - SQL-backed single raffle entitlement per event/session pair
 
-The current prototype is usable for engineering validation and local/demo testing, but it is not yet the full event-ready MVP described in the older product and UX docs.
+The current prototype is usable for engineering validation and local/demo testing, but it is not yet the full event-ready MVP described in the product and UX docs.
 
 Initial validation target:
 
 - Madrona Music in the Playfield
 
-## What Exists Today
+## Repo Shape
 
-The current codebase is intentionally small and split by responsibility:
+The codebase is intentionally small and split by responsibility:
 
-- `apps/web` contains the React attendee experience built with Vite
-- `apps/web/src/pages` contains route-level screens such as the landing page, game flow, and not-found state
-- `apps/web/src/game` contains quiz-session logic and quiz-specific helpers
-- `apps/web/src/lib` contains client-side API and session helpers
-- `apps/web/src/data` re-exports shared quiz content into the web app
-- `shared` contains the `game-config.ts` shared entrypoint plus `shared/game-config/` modules for quiz definitions, lookup logic, validation, and scoring used by both browser and backend code
-- `supabase/functions` contains the edge functions used to issue browser sessions and finalize quiz completion
-- `supabase/migrations` contains the database schema and RPC setup for completion and entitlement tracking
-- `docs` contains product, UX, architecture, and development guidance
+- `apps/web`
+  React attendee experience built with Vite
+- `shared`
+  shared `game-config.ts` entrypoint plus `shared/game-config/` modules for quiz definitions, lookup logic, validation, and scoring
+- `supabase/functions`
+  Edge Functions for session issuance and trusted completion
+- `supabase/migrations`
+  database schema, RPCs, and backend hardening
+- `docs`
+  product, UX, architecture, development, and operations guidance
 
-The runtime split is:
+Runtime responsibilities are:
 
 - `Vercel` serves the web app
-- the browser runs the quiz locally during play
+- the browser runs the quiz flow locally during play
 - `Supabase` handles the trusted completion step at the end
-
-## What Still Needs To Be Built
-
-The earlier product and UX docs described a broader event-ready MVP than what currently exists in code today. The main remaining gaps are:
-
-- database-backed event and quiz content instead of shared hardcoded sample data
-- organizer/admin tooling for editing and publishing events
-- analytics and reporting for starts, completions, and completion time
-- direct event-entry production routes instead of sample/demo routing
-- stronger anti-abuse controls if live event usage shows browser-session dedupe is insufficient
-
-## Platform Overview
-
-This system uses three major platform pieces:
-
-- `Vite` is the frontend dev server and build tool for `apps/web`. It powers local development, TypeScript-aware builds, and the static files that get deployed.
-- `Vercel` hosts the built frontend as a static site. In this repo, [apps/web/vercel.json](./apps/web/vercel.json) rewrites `/game/*` paths back to `index.html` so the single-page app router can handle those routes in the browser.
-- `Supabase` provides the backend pieces for the current prototype slice: Postgres, SQL migrations, and edge functions. In this project it is responsible for issuing a signed browser session credential, validating quiz submissions, deduplicating entitlements, and returning the official verification state.
 
 ## Documentation
 
-- [Product Overview](./docs/product.md) explains the problem, users, value proposition, and success criteria.
-- [UX Philosophy and Experience](./docs/experience.md) describes how the attendee and volunteer experience should feel and flow.
-- [Architecture Notes](./docs/architecture.md) describes the current system shape, code layout, runtime flow, and backend/data responsibilities.
-- [Development Guide](./docs/dev.md) explains the toolchain, local workflow, deployment setup, and near-term implementation roadmap.
+Start with [docs/README.md](./docs/README.md) for the documentation map.
 
-If you want the detailed code walkthrough, start with [docs/architecture.md](./docs/architecture.md). If you want the toolchain and local workflow, start with [docs/dev.md](./docs/dev.md).
+The main docs are:
 
-## Current Experience
+- [Product Overview](./docs/product.md)
+  why the product exists, who it serves, and what success looks like
+- [UX Philosophy and Experience](./docs/experience.md)
+  how the attendee, volunteer, and organizer flows should feel
+- [Architecture Notes](./docs/architecture.md)
+  current system shape, trust boundaries, and runtime flow
+- [Development Guide](./docs/dev.md)
+  local workflow, validation commands, troubleshooting, and release flow
+- [Operations Guide](./docs/operations.md)
+  which settings are repo-managed versus manually maintained across GitHub, Vercel, and Supabase
 
-The implemented attendee experience is:
-
-1. Open the site
-2. Choose a sample game from the landing page
-3. Start immediately with no login
-4. Answer one question at a time in a lightweight SPA flow
-5. Complete the quiz in under a few minutes
-6. Show a clear completion screen with a backend-backed verification code
-
-The UX direction emphasizes:
-
-- mobile-first design
-- outdoor readability
-- one decision per screen
-- sponsor visibility without interruptive ads
-- a clear, verifiable completion state
-
-## MVP Boundaries
-
-The current MVP intentionally avoids:
-
-- generalized SaaS complexity
-- advanced analytics dashboards
-- heavy anti-fraud systems
-- billing and payments infrastructure
-
-## Success Criteria
-
-- At least 30% of estimated attendees start the quiz
-- At least 70% of participants complete it
-- Median completion time stays at or below 2 minutes
-- Organizers can set up the experience in under 1 hour
-
-## Roadmap
-
-Near-term improvements still to be implemented:
-
-- connect the Supabase migration and functions to a live project for event testing
-- move quiz/event content from shared TypeScript into database-backed event records
-- add organizer-facing content management and publish controls
-- shift from sample/demo routes toward direct event-entry routes for live QR usage
-- add lightweight reporting for starts, completions, and completion time
-- revisit anti-abuse if live event behavior shows browser-session dedupe is insufficient
-
-## Local Setup
+## Quick Start
 
 Install dependencies at the repo root:
 
@@ -138,7 +76,9 @@ Install dependencies at the repo root:
 npm install
 ```
 
-For remote Supabase-backed development:
+### Contributing To The Existing Project
+
+If you have access to the shared Supabase project:
 
 1. Copy [apps/web/.env.example](./apps/web/.env.example) to `apps/web/.env`.
 2. Set:
@@ -146,61 +86,72 @@ For remote Supabase-backed development:
 - `VITE_SUPABASE_URL`
 - `VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY`
 
-3. Start the web app:
+3. Start the app:
 
 ```bash
 npm run dev:web
 ```
 
-If you want a fixed local origin for browser automation, use:
+Use `npm run dev:web:local` if you want a fixed local origin for browser automation.
 
-```bash
-npm run dev:web:local
-```
+If you do not have backend access and only need frontend iteration:
 
-For remote Supabase testing, make sure your Supabase project allows the local web origin you are using.
-
-Offline browser-only mode still exists for front-end-only emergencies, but it is now opt-in. To use it, explicitly set:
+1. Copy [apps/web/.env.example](./apps/web/.env.example) to `apps/web/.env`.
+2. Set:
 
 - `VITE_ENABLE_LOCAL_PROTOTYPE_FALLBACK=true`
 
-## Supabase Setup
+3. Leave the Supabase env vars unset.
+4. Start the app with `npm run dev:web` or `npm run dev:web:local`.
 
-After creating a Supabase project, link this repo and deploy the backend pieces:
+Validation commands:
 
 ```bash
-npx supabase login
-npx supabase link --project-ref YOUR_PROJECT_REF
-npx supabase db push
-npx supabase secrets set SESSION_SIGNING_SECRET=your-long-random-secret
-npx supabase secrets set ALLOWED_ORIGINS=http://127.0.0.1:4173,http://localhost:4173,http://127.0.0.1:5173,http://localhost:5173,https://neighborly-scavenger-game-web.vercel.app
-npx supabase functions deploy issue-session
-npx supabase functions deploy complete-quiz
+npm run lint
+npm run build:web
+deno check --no-lock supabase/functions/issue-session/index.ts
+deno check --no-lock supabase/functions/complete-quiz/index.ts
 ```
 
-The function configuration is stored in [supabase/config.toml](./supabase/config.toml), so both protected functions are deployed with JWT verification disabled for the current no-login MVP flow. Trust comes from a server-signed session credential, not from Supabase auth. The backend still sets a secure cookie, and the frontend also stores the signed session token fallback so completion can survive browsers that refuse third-party cookie round-trips.
+For contributor setup details, local workflow notes, and troubleshooting, use [docs/dev.md](./docs/dev.md).
 
-Implementation note:
+### Creating Your Own Deployment From A Fork
 
-- if a future migration hardens a Postgres function with `set search_path = public`, extension-backed helpers such as `gen_random_bytes(...)` must be schema-qualified as `extensions.gen_random_bytes(...)` in Supabase
+If you are launching your own copy, use the deployment instructions in [docs/dev.md](./docs/dev.md) together with the ownership guidance in [docs/operations.md](./docs/operations.md).
 
-Then add these environment variables locally and in Vercel for the `apps/web` project:
+In short:
 
-- `VITE_SUPABASE_URL`
-- `VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY`
+- create your own Supabase project
+- apply the repo migrations and deploy the Edge Functions
+- create your own Vercel project for `apps/web`
+- set the frontend env vars in Vercel
+- set Supabase secrets such as `SESSION_SIGNING_SECRET` and `ALLOWED_ORIGINS`
 
-## GitHub Protection
+## Release Model
 
-This repo now includes CI at [`.github/workflows/ci.yml`](./.github/workflows/ci.yml).
+This repo currently uses:
 
-Recommended GitHub protection for `main`:
+- [`.github/workflows/ci.yml`](./.github/workflows/ci.yml) for validation
+- [`.github/workflows/release.yml`](./.github/workflows/release.yml) for production Supabase promotion after successful CI on `main`
+- Vercel Git integration to deploy the frontend from `main`
 
-- require pull requests before merging
-- require the `Lint, Build, and Edge Checks` status check to pass
-- require conversation resolution before merging
+Recommended release path:
 
-Recommended deployment discipline:
+1. Reproduce and validate the change locally.
+2. Open a pull request.
+3. Let CI verify the repo.
+4. Merge to `main`.
+5. Let Vercel publish the frontend from the merged commit.
+6. Let the release workflow promote the repo-backed Supabase changes.
 
-- treat `supabase/migrations/`, `supabase/functions/`, and `supabase/config.toml` as the source of truth
-- do not treat dashboard-only production edits as valid unless they are immediately reconciled back into the repo
-- after merging backend changes, verify that the production Supabase project has the latest migration and current `issue-session` / `complete-quiz` deployments
+Operational setting ownership lives in [docs/operations.md](./docs/operations.md).
+
+## Next Phase
+
+The main remaining gaps before the broader event-ready MVP are:
+
+- database-backed event and quiz content instead of shared hardcoded sample data
+- organizer/admin tooling for editing and publishing events
+- analytics and reporting for starts, completions, and completion time
+- direct event-entry production routes instead of sample/demo routing
+- stronger anti-abuse controls if live event usage shows browser-session dedupe is insufficient
