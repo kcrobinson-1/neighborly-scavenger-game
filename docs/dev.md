@@ -233,7 +233,6 @@ The intended release path is:
 The release workflow currently expects these GitHub Actions secrets:
 
 - `SUPABASE_ACCESS_TOKEN`
-- `SUPABASE_DB_PASSWORD`
 - `SUPABASE_PROJECT_REF`
 
 Important boundary:

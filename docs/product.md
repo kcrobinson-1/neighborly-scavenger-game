@@ -99,6 +99,7 @@ This event will serve as the primary validation environment for:
 ## UX KPIs
 - Median completion time ≤ 2 minutes  
 - Page load / transition time feels instantaneous (<500ms perceived delay)  
+- After the last answer, the app immediately shows a stable verification-in-progress state with explicit wait guidance until official proof is ready  
 - No critical errors during event usage  
 
 ## Operational KPIs

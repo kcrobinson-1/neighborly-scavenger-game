@@ -79,7 +79,6 @@ For this project today, that means:
 - repository merge policy
 - GitHub Actions secrets:
   - `SUPABASE_ACCESS_TOKEN`
-  - `SUPABASE_DB_PASSWORD`
   - `SUPABASE_PROJECT_REF`
 - optional GitHub `production` environment approvals or reviewers
 

@@ -400,51 +400,66 @@ function GameCompletionPanel({
 }: GameCompletionPanelProps) {
   const isEntitlementNew = completion?.entitlement.status === "new";
   const verificationCode = completion?.entitlement.verificationCode ?? null;
-  const shouldShowVerification = Boolean(completion);
+  const shouldShowVerification = isSubmitting || Boolean(completion);
+  const shouldShowAnswerReview =
+    Boolean(completion) && game.feedbackMode === "final_score_reveal";
 
   return (
     <section className="panel completion-panel">
-      <span className="chip chip-success">
+      <span
+        className={`chip${completion ? " chip-success" : completionError ? " chip-error" : ""}`}
+      >
         {completion
           ? isEntitlementNew
             ? "Officially complete"
             : "Retake complete"
           : isSubmitting
-            ? "Finishing up"
+            ? "Generating proof"
             : "Needs retry"}
       </span>
       <h2>
         {completion
           ? "Show this screen to the volunteer table"
           : isSubmitting
-            ? "Locking in your raffle entry"
-            : "We couldn't finalize your raffle entry"}
+            ? "Generating your verification code"
+            : "We couldn't finish your verification code"}
       </h2>
       <p>
         {completion
           ? completion.message
           : isSubmitting
-            ? "We are saving your completion and checking whether this session already earned the raffle entry."
+            ? "Keep this screen open while we save your completion and issue the volunteer verification code."
             : completionError ??
               "Try the completion step again to retrieve your verification code."}
       </p>
 
       {shouldShowVerification ? (
-        <div className="token-block">
-          <span className="token-label">Verification code</span>
-          <strong>{verificationCode}</strong>
+        <div
+          aria-busy={isSubmitting}
+          className={`token-block${isSubmitting ? " token-block-pending" : ""}`}
+          role="status"
+        >
+          <div className="token-status">
+            {isSubmitting ? <span aria-hidden="true" className="token-spinner" /> : null}
+            <span className="token-label">Verification code</span>
+          </div>
+          <strong>{verificationCode ?? "Generating..."}</strong>
           <p className="token-instruction">
-            Show this code first at the volunteer table, then scroll for the answer review if needed.
+            {completion
+              ? "Show this code first at the volunteer table, then scroll for the answer review if needed."
+              : "Please wait here. We will show the volunteer code in this spot as soon as verification is complete."}
           </p>
           <span className="token-meta">
-            {isEntitlementNew
-              ? "This session just earned the raffle entry."
-              : "This session already earned the raffle entry on an earlier attempt."}
+            {completion
+              ? isEntitlementNew
+                ? "This session just earned the raffle entry."
+                : "This session already earned the raffle entry on an earlier attempt."
+              : "This usually takes just a moment, even on slower service."}
           </span>
         </div>
       ) : null}
 
-      {game.feedbackMode === "final_score_reveal" ? (
+      {shouldShowAnswerReview ? (
         <div className="results-block">
           <div className="score-card">
             <span className="token-label">Score</span>
@@ -499,25 +514,27 @@ function GameCompletionPanel({
         </div>
       ) : null}
 
-      <div className="completion-actions">
-        {completionError && !isSubmitting ? (
-          <button
-            className="primary-button"
-            onClick={onRetrySubmission}
-            type="button"
-          >
-            Retry completion
+      {!isSubmitting ? (
+        <div className="completion-actions">
+          {completionError ? (
+            <button
+              className="primary-button"
+              onClick={onRetrySubmission}
+              type="button"
+            >
+              Retry completion
+            </button>
+          ) : null}
+          {completion && showRetake ? (
+            <button className="primary-button" onClick={onRetake} type="button">
+              Retake quiz
+            </button>
+          ) : null}
+          <button className="secondary-button" onClick={onReset} type="button">
+            Restart from intro
           </button>
-        ) : null}
-        {completion && showRetake ? (
-          <button className="primary-button" onClick={onRetake} type="button">
-            Retake quiz
-          </button>
-        ) : null}
-        <button className="secondary-button" onClick={onReset} type="button">
-          Restart from intro
-        </button>
-      </div>
+        </div>
+      ) : null}
     </section>
   );
 }
