@@ -109,6 +109,8 @@ If you changed both frontend/shared code and Supabase code, run both sets of che
 
 If you could not run a relevant check, say so explicitly and explain why.
 
+For pull requests into `main`, expect GitHub CI to run the same validation via `.github/workflows/ci.yml`.
+
 ## UI Review Runs
 
 If you validate the UI by running the app locally and taking screenshots:
@@ -135,11 +137,17 @@ Expected setup and execution:
 Backend nuance:
 
 - prefer remote Supabase-backed UI review when the project env vars are configured locally
-- the normal backend-backed path is remote Supabase plus `npm run dev:web`, or `npm run dev:web:local` when a fixed origin helps browser automation
+- the preferred backend-backed review path is a Supabase preview branch for the PR, tested from a local frontend via `npm run dev:web` or `npm run dev:web:local`
 - if you use remote Supabase from a local web app, make sure the project `ALLOWED_ORIGINS` secret includes the local origin you are using
 - if `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY` are not configured locally, run UI review against the Vite dev server, not a production preview build
 - the browser-only completion fallback is development-only and should only be used when explicitly enabled with `VITE_ENABLE_LOCAL_PROTOTYPE_FALLBACK=true`
 - when you need a fixed host and port for Playwright, prefer `npm run dev:web:local`
+
+Branching expectations:
+
+- `main` is the intended production promotion branch
+- Supabase preview branches should be used for PR validation when backend changes are involved
+- dashboard-only production edits should be treated as out of bounds unless they are immediately reconciled back into repo migrations or function source
 
 The capture script supports future reuse:
 
