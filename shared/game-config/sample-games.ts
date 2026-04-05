@@ -1,5 +1,5 @@
-import { featuredGameSlug } from "./constants";
-import type { GameConfig } from "./types";
+import { featuredGameSlug } from "./constants.ts";
+import type { GameConfig } from "./types.ts";
 
 // The sample games live in a shared module so both the web app and the Supabase
 // functions can read the exact same quiz definitions. That keeps rendering,

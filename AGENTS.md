@@ -137,17 +137,16 @@ Expected setup and execution:
 Backend nuance:
 
 - prefer remote Supabase-backed UI review when the project env vars are configured locally
-- the preferred backend-backed review path is a Supabase preview branch for the PR, tested from a local frontend via `npm run dev:web` or `npm run dev:web:local`
+- the normal backend-backed review path is a configured remote Supabase project tested from a local frontend via `npm run dev:web` or `npm run dev:web:local`
 - if you use remote Supabase from a local web app, make sure the project `ALLOWED_ORIGINS` secret includes the local origin you are using
 - if `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY` are not configured locally, run UI review against the Vite dev server, not a production preview build
 - the browser-only completion fallback is development-only and should only be used when explicitly enabled with `VITE_ENABLE_LOCAL_PROTOTYPE_FALLBACK=true`
 - when you need a fixed host and port for Playwright, prefer `npm run dev:web:local`
 
-Branching expectations:
+Deployment expectations:
 
-- `main` is the intended production promotion branch
-- Supabase preview branches should be used for PR validation when backend changes are involved
-- dashboard-only production edits should be treated as out of bounds unless they are immediately reconciled back into repo migrations or function source
+- use pull requests plus GitHub CI before merging to `main`
+- treat dashboard-only production edits as out of bounds unless they are immediately reconciled back into repo migrations or function source
 
 The capture script supports future reuse:
 

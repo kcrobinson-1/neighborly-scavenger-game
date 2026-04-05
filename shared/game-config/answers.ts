@@ -2,7 +2,7 @@ import type {
   AnswerValidationResult,
   GameConfig,
   SubmittedAnswers,
-} from "./types";
+} from "./types.ts";
 
 /** Normalizes selected option ids into a stable, deduplicated order. */
 export function normalizeOptionIds(optionIds: string[]) {

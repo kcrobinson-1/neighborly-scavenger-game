@@ -1,6 +1,6 @@
-import { validateGames } from "./game-validation";
-import { games } from "./sample-games";
-import type { GameConfig } from "./types";
+import { validateGames } from "./game-validation.ts";
+import { games } from "./sample-games.ts";
+import type { GameConfig } from "./types.ts";
 
 /** Builds an object lookup for games by a chosen stable key. */
 function createGameLookup(key: keyof Pick<GameConfig, "id" | "slug">) {

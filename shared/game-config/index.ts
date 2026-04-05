@@ -1,13 +1,13 @@
-export { featuredGameSlug } from "./constants";
+export { featuredGameSlug } from "./constants.ts";
 export {
   answersMatch,
   normalizeOptionIds,
   normalizeSubmittedAnswers,
   scoreAnswers,
   validateSubmittedAnswers,
-} from "./answers";
-export { gamesById, gamesBySlug, getGameById, getGameBySlug } from "./catalog";
-export { games } from "./sample-games";
+} from "./answers.ts";
+export { gamesById, gamesBySlug, getGameById, getGameBySlug } from "./catalog.ts";
+export { games } from "./sample-games.ts";
 export type {
   AnswerOption,
   AnswerValidationResult,
@@ -16,4 +16,4 @@ export type {
   Question,
   SelectionMode,
   SubmittedAnswers,
-} from "./types";
+} from "./types.ts";

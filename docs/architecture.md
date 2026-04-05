@@ -214,8 +214,6 @@ The current deployment model is:
 - `Vercel` hosts the static frontend build from `apps/web`
 - `Vite` produces that frontend build and powers local development
 - `Supabase` hosts the database and edge functions
-- `main` is intended to be the production promotion branch for Supabase changes
-- Supabase preview branches are intended to validate PR backend changes before merge
 
 Those services have distinct roles:
 
@@ -225,15 +223,14 @@ Those services have distinct roles:
 
 In this repo, [apps/web/vercel.json](../apps/web/vercel.json) rewrites `/game/:path*` to `index.html` so the SPA can resolve those URLs in the browser after deployment.
 
-The intended promotion flow is:
+The current deployment discipline is simpler:
 
-1. Open a PR with migration and/or Edge Function changes.
-2. Supabase creates a preview branch for that PR.
-3. Engineers point a local frontend at the preview branch credentials for testing.
-4. After review and CI pass, merge to `main`.
-5. Supabase promotes the repo-backed changes to the production project.
+1. Develop and validate changes locally against the configured remote Supabase project or the explicit offline fallback.
+2. Use pull requests and CI to review changes before merge.
+3. Merge to `main`.
+4. Deploy migrations and Edge Functions to the production Supabase project from the repo state.
 
-This keeps deployment repo-driven while still allowing isolated backend validation before production.
+This keeps deployment repo-driven without introducing preview-branch infrastructure.
 
 ## Remaining Gaps To Event-Ready MVP
 

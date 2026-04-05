@@ -97,22 +97,6 @@ Constraint:
 - the browser-only fallback is intentionally development-only and should not be treated as production trust logic
 - use it only by explicitly setting `VITE_ENABLE_LOCAL_PROTOTYPE_FALLBACK=true`
 
-### Supabase Branching on top of remote projects
-
-The intended deployment model uses Supabase Branching rather than a single always-shared remote project.
-
-Why:
-
-- PRs get isolated backend validation before production promotion
-- `main` stays the only production promotion branch
-- repo migrations and Edge Functions remain the source of truth instead of dashboard edits
-
-Constraint:
-
-- v1 keeps frontend preview testing local-only
-- this repo does not wire Vercel previews to Supabase preview branches yet
-- production promotion still depends on enabling the Supabase Branching integration in the Supabase dashboard
-
 ## Core Tooling Choices
 
 ### React + TypeScript
@@ -254,19 +238,9 @@ deno check --no-lock supabase/functions/complete-quiz/index.ts
 Remote-Supabase note:
 
 - this repo currently assumes either a remote Supabase project or explicit offline fallback
-- the preferred remote workflow is Supabase Branching: PR preview branch first, production promotion on merge to `main`
 - no local Supabase emulation workflow is maintained in the repo right now
 - if you use remote Supabase from a local web app, make sure the project `ALLOWED_ORIGINS` secret includes the local origin you are using
 - if you need frontend-only iteration without Supabase, explicitly set `VITE_ENABLE_LOCAL_PROTOTYPE_FALLBACK=true`
-
-Supabase Branching review flow:
-
-1. Open a PR with migration and/or Edge Function changes.
-2. Wait for Supabase to create the preview branch for that PR.
-3. Copy the preview branch API URL and publishable key into `apps/web/.env`.
-4. Run `npm run dev:web` or `npm run dev:web:local`.
-5. Validate session bootstrap, completion, and local-origin CORS behavior against the preview branch.
-6. Merge to `main` only after CI passes and the preview branch behavior is correct.
 
 UI-review note:
 
@@ -286,12 +260,12 @@ deno check --no-lock supabase/functions/complete-quiz/index.ts
 
 Those commands verify the current lint rules, frontend build path, and edge-function TypeScript/Deno surface.
 
-GitHub and Supabase branching expectations:
+GitHub and deployment expectations:
 
 - `main` should require pull requests before merge
 - `main` should require the CI checks from `.github/workflows/ci.yml`
-- Supabase should be configured so `main` is the production branch
-- preview branches should inherit or be given `SESSION_SIGNING_SECRET` and `ALLOWED_ORIGINS`
+- Supabase production should be updated from repo-backed migrations and Edge Functions, not dashboard-only edits
+- production should keep `SESSION_SIGNING_SECRET` and `ALLOWED_ORIGINS` configured correctly
 
 Useful remote Supabase commands:
 

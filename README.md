@@ -185,47 +185,18 @@ Then add these environment variables locally and in Vercel for the `apps/web` pr
 - `VITE_SUPABASE_URL`
 - `VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY`
 
-## Supabase Branching
+## GitHub Protection
 
-The intended promotion model is:
+This repo now includes CI at [`.github/workflows/ci.yml`](./.github/workflows/ci.yml).
 
-- `main` maps to the production Supabase project
-- each PR gets a Supabase preview branch for backend validation
-- engineers test preview branches locally by pointing `apps/web/.env` at the preview branch credentials
-- merging to `main` promotes repo-backed Supabase changes to production
+Recommended GitHub protection for `main`:
 
-Repository-side responsibilities:
+- require pull requests before merging
+- require the `Lint, Build, and Edge Checks` status check to pass
+- require conversation resolution before merging
 
-- keep schema changes in `supabase/migrations/`
-- keep Edge Function source in `supabase/functions/`
-- keep function config in `supabase/config.toml`
-- do not treat dashboard-only production edits as a valid source of truth
+Recommended deployment discipline:
 
-Required Supabase/GitHub setup outside the repo:
-
-1. Connect the GitHub repository to Supabase Branching.
-2. Configure `main` as the production branch in Supabase.
-3. Make sure preview branches inherit or are supplied:
-   - `SESSION_SIGNING_SECRET`
-   - `ALLOWED_ORIGINS`
-4. Include these local origins in `ALLOWED_ORIGINS` for preview-branch testing:
-   - `http://localhost:5173`
-   - `http://127.0.0.1:5173`
-   - `http://127.0.0.1:4173`
-   - `http://localhost:4173`
-5. Include the production frontend origin in `ALLOWED_ORIGINS`.
-6. In GitHub branch protection for `main`, require pull requests plus the CI checks added in this repo before merge.
-
-Preview-branch testing recipe:
-
-1. Open a PR with migration and/or Edge Function changes.
-2. Wait for Supabase to create the preview branch.
-3. Copy the preview branch `VITE_SUPABASE_URL` and publishable key into `apps/web/.env`.
-4. Run `npm run dev:web` or `npm run dev:web:local`.
-5. Validate session bootstrap, completion, and CORS behavior against the preview branch.
-
-Production verification after merge:
-
-- confirm the latest migration is applied
-- confirm `issue-session` and `complete-quiz` are current
-- confirm `verify_jwt = false` still applies to both functions
+- treat `supabase/migrations/`, `supabase/functions/`, and `supabase/config.toml` as the source of truth
+- do not treat dashboard-only production edits as valid unless they are immediately reconciled back into the repo
+- after merging backend changes, verify that the production Supabase project has the latest migration and current `issue-session` / `complete-quiz` deployments

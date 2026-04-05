@@ -1,5 +1,5 @@
-import { normalizeOptionIds } from "./answers";
-import type { GameConfig } from "./types";
+import { normalizeOptionIds } from "./answers.ts";
+import type { GameConfig } from "./types.ts";
 
 /** Throws immediately when sample data reuses an identifier that must be unique. */
 function assertUnique(values: string[], label: string) {
