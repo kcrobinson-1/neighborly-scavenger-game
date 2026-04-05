@@ -318,6 +318,16 @@ Recommended elements:
 - large verification token, badge, or timestamped proof state
 - instruction such as "Show this screen to the volunteer table"
 
+Before that official proof arrives, the app should show a dedicated completion-pending state immediately after the last answer is submitted.
+
+Recommended pending-state rules:
+
+- keep the completion screen visually distinct from quiz cards even while proof is still loading
+- reserve the same proof area that will later show the verification token so the official state does not pop in late and shove the layout downward
+- use one clear instruction such as "Keep this screen open while we generate your verification code"
+- avoid showing retake, restart, or answer-review actions until the trusted completion response is ready
+- if verification fails, replace the waiting state with a plain-language retry state and a single obvious retry action
+
 If retakes are allowed, the completion state should also make the reward rule explicit:
 
 - the attendee has already earned their raffle entry

@@ -129,6 +129,11 @@
   background: rgba(63, 143, 90, 0.16);
 }
 
+.chip-error {
+  background: rgba(217, 107, 43, 0.14);
+  color: var(--primary);
+}
+
 .not-found-actions {
   @include stack(12px);
   margin-top: 22px;
