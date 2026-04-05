@@ -6,19 +6,19 @@ type LandingPageProps = {
   onNavigate: (path: string) => void;
 };
 
-/** Marketing landing page that introduces the product and sample games. */
+/** Demo overview page that introduces the product and sample routes. */
 export function LandingPage({ onNavigate }: LandingPageProps) {
   return (
     <section className="landing-layout">
       <header className="landing-hero panel panel-hero">
         <div className="hero-copy">
-          <p className="eyebrow">Neighborhood event engagement</p>
-          <h1>Turn a sponsor-friendly quiz into a neighborhood raffle moment.</h1>
+          <p className="eyebrow">Product demo</p>
+          <h1>See how a two-minute neighborhood quiz becomes an easy raffle check-in.</h1>
           <p className="hero-body">
-            Neighborly Scavenger Game is a mobile-first event experience for concerts,
-            markets, and neighborhood gatherings. Attendees scan, play, and finish in
-            under two minutes while sponsors become part of the experience instead of
-            just background logos.
+            This overview is for organizers, sponsors, volunteers, and teammates
+            previewing the product. In the live experience, attendees should land
+            directly in the quiz. Here, you can open demo flows and review the full
+            attendee journey from start to raffle-table handoff.
           </p>
         </div>
         <div className="hero-actions">
@@ -27,10 +27,10 @@ export function LandingPage({ onNavigate }: LandingPageProps) {
             onClick={() => onNavigate(routes.game(featuredGameSlug))}
             type="button"
           >
-            Play the first sample
+            Try the attendee demo
           </button>
           <a className="text-link" href="#how-it-works">
-            See how it works
+            Jump to demo routes
           </a>
         </div>
       </header>
@@ -38,50 +38,51 @@ export function LandingPage({ onNavigate }: LandingPageProps) {
       <section className="feature-grid" id="how-it-works">
         <article className="panel feature-card">
           <span className="chip">For organizers</span>
-          <h2>Lightweight fundraising without adding booth chaos.</h2>
+          <h2>Sell a sponsor moment, not just logo space.</h2>
           <p>
-            Organizers configure the event, add sponsored questions, publish a QR code,
-            and let the game run with minimal volunteer training.
+            The copy should make the value proposition obvious: scan the code, answer a
+            few questions, and send people to the raffle table with clear proof of
+            completion.
           </p>
         </article>
 
         <article className="panel feature-card">
           <span className="chip">For attendees</span>
-          <h2>A quick game instead of a long form.</h2>
+          <h2>Understand the experience at a glance.</h2>
           <p>
-            One question appears at a time, progress is obvious, and the finish screen
-            clearly tells people how to redeem their raffle ticket.
+            The text stays short, the time commitment is clear, and every step explains
+            what happens next without feeling like a form.
           </p>
         </article>
 
         <article className="panel feature-card">
-          <span className="chip">For sponsors</span>
-          <h2>Visible inside the experience, not pushed to the margins.</h2>
+          <span className="chip">For volunteers</span>
+          <h2>Verify a finish in a few seconds.</h2>
           <p>
-            Sponsors appear inside the game flow in a way that feels local and useful
-            instead of interruptive or ad-heavy.
+            The completion wording and proof state should let a volunteer confirm the
+            finish quickly and keep the line moving.
           </p>
         </article>
       </section>
 
       <section className="panel landing-flow">
         <div className="section-heading">
-          <p className="eyebrow">Sample route</p>
-          <h2>The product can live on one site.</h2>
+          <p className="eyebrow">Demo routes</p>
+          <h2>In the live product, attendees skip this overview.</h2>
         </div>
         <div className="flow-grid">
           <div className="flow-step">
             <strong>{routes.home}</strong>
             <p>
-              Marketing landing page that explains the product and directs people into a
-              live demo.
+              Use this page to preview the concept and choose the demo flow you want to
+              review.
             </p>
           </div>
           <div className="flow-step">
             <strong>{routes.game(featuredGameSlug)}</strong>
             <p>
-              Playable sample game with the full attendee flow, from intro screen to
-              verification state.
+              This route shows the attendee experience: short intro, one question at a
+              time, and a volunteer-ready finish.
             </p>
           </div>
         </div>
@@ -89,8 +90,8 @@ export function LandingPage({ onNavigate }: LandingPageProps) {
 
       <section className="panel sample-games-panel">
         <div className="section-heading">
-          <p className="eyebrow">Playable samples</p>
-          <h2>Open a demo flow without digging through a long list of cards.</h2>
+          <p className="eyebrow">Playable demos</p>
+          <h2>Open the flow you want to review.</h2>
         </div>
         <div className="sample-games-list">
           {games.map((game) => (
@@ -98,8 +99,8 @@ export function LandingPage({ onNavigate }: LandingPageProps) {
               <div className="sample-game-copy">
                 <span className="chip">
                   {game.feedbackMode === "instant_feedback_required"
-                    ? "Required correct answers"
-                    : "Final score reveal"}
+                    ? "Must answer correctly"
+                    : "Score at the end"}
                 </span>
                 <div className="sample-game-heading">
                   <h3>{game.name}</h3>
@@ -111,7 +112,7 @@ export function LandingPage({ onNavigate }: LandingPageProps) {
                 onClick={() => onNavigate(routes.game(game.slug))}
                 type="button"
               >
-                {game.slug === featuredGameSlug ? "Open featured sample" : "Open this sample"}
+                {game.slug === featuredGameSlug ? "Try featured demo" : "Try this demo"}
               </button>
             </article>
           ))}

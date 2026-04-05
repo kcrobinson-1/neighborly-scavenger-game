@@ -78,10 +78,10 @@ export function GamePage({ game, onNavigate }: GamePageProps) {
           onClick={() => onNavigate(routes.home)}
           type="button"
         >
-          Back to product overview
+          Back to demo overview
         </button>
         <span className="chip">
-          {game.slug === featuredGameSlug ? "Featured sample" : "Sample game"}
+          {game.slug === featuredGameSlug ? "Featured demo" : "Demo flow"}
         </span>
       </nav>
 
@@ -178,22 +178,22 @@ function GameIntroPanel({
 }: GameIntroPanelProps) {
   const modeDescription =
     game.feedbackMode === "instant_feedback_required"
-      ? "Pick an answer, submit it, and get it right to unlock a sponsor fact before the next question."
-      : "Pick your answer, submit it, and review your score at the end.";
+      ? "Answer correctly to unlock the next question and a quick sponsor fact."
+      : "See your score after the last question.";
 
   return (
     <section className="panel intro-panel">
-      <span className="chip">Under {game.estimatedMinutes} minutes</span>
-      <h2>Win a {game.raffleLabel}</h2>
+      <span className="chip">About {game.estimatedMinutes} minutes</span>
+      <h2>Finish to earn your {game.raffleLabel}</h2>
       <p>{game.intro}</p>
       <ul className="intro-list">
-        <li>No login</li>
-        <li>One question at a time</li>
+        <li>No sign-in</li>
+        <li>One question on screen at a time</li>
         <li>{modeDescription}</li>
       </ul>
       {startError ? (
         <div className="feedback-banner feedback-banner-error" role="status">
-          <strong>Session unavailable.</strong>
+          <strong>Can't start the quiz right now.</strong>
           <p>{startError}</p>
         </div>
       ) : null}
@@ -205,7 +205,7 @@ function GameIntroPanel({
         }}
         type="button"
       >
-        {isStartingSession ? "Preparing session..." : "Start the game"}
+        {isStartingSession ? "Getting your quiz ready..." : "Start quiz"}
       </button>
     </section>
   );
@@ -265,14 +265,14 @@ function CurrentQuestionPanel({
         />
         {feedbackKind === "incorrect" && feedbackMessage ? (
           <div className="feedback-banner feedback-banner-error" role="status">
-            <strong>Not quite.</strong>
+            <strong>Try again.</strong>
             <p>{feedbackMessage}</p>
           </div>
         ) : null}
         <div className="question-actions">
           {canGoBack ? (
             <button className="text-link question-back-link" onClick={onGoBack} type="button">
-              Back to previous question
+              Back to the previous question
             </button>
           ) : null}
           <button
@@ -365,7 +365,7 @@ function CorrectAnswerPanel({
       <h2>{question.sponsor}</h2>
       <p>{feedbackMessage}</p>
       <button className="primary-button" onClick={onContinue} type="button">
-        {isLastQuestion ? "See results" : "Next question"}
+        {isLastQuestion ? "See your results" : "Continue"}
       </button>
     </section>
   );
@@ -403,6 +403,11 @@ function GameCompletionPanel({
   const shouldShowVerification = isSubmitting || Boolean(completion);
   const shouldShowAnswerReview =
     Boolean(completion) && game.feedbackMode === "final_score_reveal";
+  const completionMessage = completion
+    ? isEntitlementNew
+      ? "You're checked in for the raffle."
+      : "You're still checked in for the raffle. Playing again does not add another ticket."
+    : null;
 
   return (
     <section className="panel completion-panel">
@@ -411,26 +416,26 @@ function GameCompletionPanel({
       >
         {completion
           ? isEntitlementNew
-            ? "Officially complete"
-            : "Retake complete"
+            ? "Raffle entry ready"
+            : "Already checked in"
           : isSubmitting
             ? "Generating proof"
-            : "Needs retry"}
+            : "Try again"}
       </span>
       <h2>
         {completion
-          ? "Show this screen to the volunteer table"
+          ? "Show this screen at the raffle table"
           : isSubmitting
-            ? "Generating your verification code"
-            : "We couldn't finish your verification code"}
+            ? "Generating your check-in code"
+            : "We couldn't load your check-in code"}
       </h2>
       <p>
         {completion
-          ? completion.message
+          ? completionMessage
           : isSubmitting
-            ? "Keep this screen open while we save your completion and issue the volunteer verification code."
+            ? "Keep this screen open while we save your completion and create the volunteer check-in code."
             : completionError ??
-              "Try the completion step again to retrieve your verification code."}
+              "Try again to finish your raffle check-in."}
       </p>
 
       {shouldShowVerification ? (
@@ -441,19 +446,19 @@ function GameCompletionPanel({
         >
           <div className="token-status">
             {isSubmitting ? <span aria-hidden="true" className="token-spinner" /> : null}
-            <span className="token-label">Verification code</span>
+            <span className="token-label">Check-in code</span>
           </div>
-          <strong>{verificationCode ?? "Generating..."}</strong>
+          <strong>{verificationCode ?? "Loading..."}</strong>
           <p className="token-instruction">
             {completion
-              ? "Show this code first at the volunteer table, then scroll for the answer review if needed."
-              : "Please wait here. We will show the volunteer code in this spot as soon as verification is complete."}
+              ? "Show this code to the volunteer before you scroll down to review your answers."
+              : "Please wait here. The volunteer code will appear in this spot as soon as check-in is complete."}
           </p>
           <span className="token-meta">
             {completion
               ? isEntitlementNew
-                ? "This session just earned the raffle entry."
-                : "This session already earned the raffle entry on an earlier attempt."
+                ? "Your raffle entry is now recorded."
+                : "Your earlier raffle entry still counts. This replay does not add another one."
               : "This usually takes just a moment, even on slower service."}
           </span>
         </div>
@@ -462,7 +467,7 @@ function GameCompletionPanel({
       {shouldShowAnswerReview ? (
         <div className="results-block">
           <div className="score-card">
-            <span className="token-label">Score</span>
+            <span className="token-label">Final score</span>
             <strong>
               {score} / {game.questions.length}
             </strong>
@@ -500,7 +505,7 @@ function GameCompletionPanel({
                         : "review-status review-status-incorrect"
                     }
                   >
-                    {isCorrect ? "Correct" : "Needs review"}
+                    {isCorrect ? "Correct" : "Not correct"}
                   </p>
                   {question.sponsorFact ?? question.explanation ? (
                     <p className="answer-review-note">
@@ -522,16 +527,16 @@ function GameCompletionPanel({
               onClick={onRetrySubmission}
               type="button"
             >
-              Retry completion
+              Try again
             </button>
           ) : null}
           {completion && showRetake ? (
             <button className="primary-button" onClick={onRetake} type="button">
-              Retake quiz
+              Play again
             </button>
           ) : null}
           <button className="secondary-button" onClick={onReset} type="button">
-            Restart from intro
+            Start over
           </button>
         </div>
       ) : null}

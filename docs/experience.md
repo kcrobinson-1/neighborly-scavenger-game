@@ -47,6 +47,96 @@ The final state has to be unmistakable so a volunteer can verify it in seconds a
 - Progress should always be visible.
 - Error states should be rare, plain-language, and recoverable in one tap.
 
+## Copy Experience
+
+The product text should behave like a calm event host.
+
+That means the copy should do four jobs well:
+
+1. orient the user quickly
+2. explain the next action plainly
+3. keep the experience feeling short and official
+4. avoid internal product or implementation jargon
+
+### Who The Text Is For
+
+The product has a few distinct reading contexts, and the copy should adapt to each one.
+
+#### Demo Overview
+
+The current `/` route is a demo overview, not the attendee entry point.
+
+The likely reader is:
+
+- an organizer previewing the concept
+- a teammate reviewing the flow
+- a sponsor or volunteer trying to understand what attendees will see
+
+This reader may have little context. The text on the demo overview should:
+
+- say clearly that this is a preview surface
+- explain the product promise in plain language
+- point people into a concrete attendee demo quickly
+- avoid sounding like attendee instructions when the page is really for evaluation
+
+#### Attendee Intro And Quiz Chrome
+
+The real attendee arrives from a QR code, often standing outside, holding a phone with one hand, and giving the experience only a few seconds of patience.
+
+The attendee likely knows:
+
+- the event name
+- that there is some kind of quiz or raffle
+
+The attendee may not know:
+
+- how long the flow takes
+- whether they need an account
+- what happens after they finish
+
+So the intro and shared quiz text should:
+
+- confirm the time commitment immediately
+- make the reward or completion outcome concrete
+- keep every instruction short and directional
+- sound human and confident, not promotional or technical
+
+#### Completion And Volunteer Handoff
+
+The completion state has two readers:
+
+- the attendee who wants to know whether they are done
+- the volunteer who wants to verify completion in seconds
+
+The text here should:
+
+- feel official
+- put the proof state first
+- tell the attendee exactly what to show and where to go
+- keep retake or review language secondary to the raffle handoff
+
+#### Error And Dead-End States
+
+These readers are confused by definition. They may have tapped a bad link, lost the session, or opened the demo in an incomplete environment.
+
+The text should:
+
+- name the problem in plain language
+- avoid blaming the user
+- offer one obvious next step
+- keep recovery language short enough to read under stress
+
+### Desired End State For Product Text
+
+Across the experience, the copy should follow these rules:
+
+- Use demo language on preview surfaces and attendee language on quiz surfaces.
+- Lead with what the user gets or does next, not with internal product framing.
+- Prefer concrete phrases like "Start quiz", "Show this screen at the raffle table", and "Start over" over abstract labels.
+- Keep buttons and helper text action-first and easy to scan from a distance.
+- Use proof-oriented language on completion screens so the handoff feels trustworthy.
+- Keep error messages recoverable first; any development-only setup detail should come after the user-facing explanation.
+
 ## Experience Structure
 
 The attendee-facing experience should be extremely short and linear:

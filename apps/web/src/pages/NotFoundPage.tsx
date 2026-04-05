@@ -11,9 +11,9 @@ export function NotFoundPage({ onNavigate }: NotFoundPageProps) {
   return (
     <section className="not-found-layout panel">
       <span className="chip">Page not found</span>
-      <h1>This route is not part of the sample site yet.</h1>
+      <h1>That page isn't available in this demo.</h1>
       <p>
-        Head back to the product overview or jump straight into the sample game.
+        Go back to the demo overview or jump straight into the attendee flow.
       </p>
       <div className="not-found-actions">
         <button
@@ -21,14 +21,14 @@ export function NotFoundPage({ onNavigate }: NotFoundPageProps) {
           onClick={() => onNavigate(routes.home)}
           type="button"
         >
-          Go home
+          Go to demo overview
         </button>
         <button
           className="secondary-button"
           onClick={() => onNavigate(routes.game(featuredGameSlug))}
           type="button"
         >
-          Open the sample game
+          Open attendee demo
         </button>
       </div>
     </section>

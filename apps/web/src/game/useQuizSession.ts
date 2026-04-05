@@ -197,7 +197,7 @@ function quizReducer(state: QuizState, action: QuizAction): QuizState {
           feedbackKind: "incorrect",
           feedbackMessage:
             action.question.explanation ??
-            "Not quite. Adjust your selection and try again.",
+            "That one is not right yet. Change your answer and try again.",
         };
       }
 
@@ -334,7 +334,7 @@ export function useQuizSession(game: GameConfig) {
             message:
               error instanceof Error
                 ? error.message
-                : "We couldn't finalize your raffle entry right now.",
+                : "We couldn't finish your raffle check-in right now.",
           });
         }
       });

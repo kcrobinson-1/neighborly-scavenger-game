@@ -24,8 +24,8 @@ export function getNextSelection(
 /** Returns the helper copy shown above a question's answer choices. */
 export function getSelectionLabel(question: Question) {
   return question.selectionMode === "multiple"
-    ? "Select all that apply."
-    : "Choose one answer.";
+    ? "Select every answer that fits."
+    : "Choose 1 answer.";
 }
 
 /** Resolves selected option ids back into display labels in the same order. */

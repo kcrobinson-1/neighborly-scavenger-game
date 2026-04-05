@@ -118,12 +118,12 @@ async function captureLandingStates(baseUrl, runDirectory) {
 /** Captures the primary featured sample flow, including back navigation and completion. */
 async function captureFeaturedFlow(page, baseUrl, runDirectory) {
   await openHome(page, baseUrl);
-  await activate(page.getByRole("button", { name: "Play the first sample", exact: true }));
+  await activate(page.getByRole("button", { name: "Try the attendee demo", exact: true }));
   await page.waitForURL(`${baseUrl}/game/first-sample`);
   await page.getByRole("heading", { name: "Madrona Music in the Playfield" }).waitFor();
   await capture(page, runDirectory, "03-featured-intro.png");
 
-  await activate(page.getByRole("button", { name: "Start the game", exact: true }));
+  await activate(page.getByRole("button", { name: "Start quiz", exact: true }));
   await page.getByRole("heading", {
     name: "Which local spot is sponsoring this neighborhood music series question?",
   }).waitFor();
@@ -149,7 +149,7 @@ async function captureFeaturedFlow(page, baseUrl, runDirectory) {
     name: "How should questions appear in the experience?",
   }).waitFor();
 
-  await activate(page.getByRole("button", { name: "Back to previous question", exact: true }));
+  await activate(page.getByRole("button", { name: "Back to the previous question", exact: true }));
   await page.getByRole("heading", {
     name: "What matters most for raffle eligibility in the MVP?",
   }).waitFor();
@@ -166,23 +166,23 @@ async function captureFeaturedFlow(page, baseUrl, runDirectory) {
   }).waitFor();
 
   await clickOptionAndSubmit(page, "That the attendee is officially done");
-  await page.getByRole("heading", { name: "Show this screen to the volunteer table" }).waitFor();
+  await page.getByRole("heading", { name: "Show this screen at the raffle table" }).waitFor();
   await capture(page, runDirectory, "06-featured-completion.png");
 }
 
 /** Captures the incorrect and correct feedback states in the spotlight mode. */
 async function captureSpotlightFlow(page, baseUrl, runDirectory) {
   await openHome(page, baseUrl);
-  await activate(page.getByRole("button", { name: "Open this sample", exact: true }).nth(0));
+  await activate(page.getByRole("button", { name: "Try this demo", exact: true }).nth(0));
   await page.waitForURL(`${baseUrl}/game/sponsor-spotlight`);
   await page.getByRole("heading", { name: "Sponsor Spotlight Challenge" }).waitFor();
-  await activate(page.getByRole("button", { name: "Start the game", exact: true }));
+  await activate(page.getByRole("button", { name: "Start quiz", exact: true }));
   await page.getByRole("heading", {
     name: "Which answer best describes why sponsors appear inside the quiz experience?",
   }).waitFor();
 
   await clickOptionAndSubmit(page, "To interrupt players with ads");
-  await page.getByRole("status").getByText("Not quite.", { exact: true }).waitFor();
+  await page.getByRole("status").getByText("Try again.", { exact: true }).waitFor();
   await capture(page, runDirectory, "07-spotlight-incorrect.png");
 
   await clickOptionAndSubmit(page, "To feel integrated into the neighborhood event");
@@ -193,10 +193,10 @@ async function captureSpotlightFlow(page, baseUrl, runDirectory) {
 /** Captures the multiple-selection state in the checklist sample. */
 async function captureCommunityChecklist(page, baseUrl, runDirectory) {
   await openHome(page, baseUrl);
-  await activate(page.getByRole("button", { name: "Open this sample", exact: true }).nth(1));
+  await activate(page.getByRole("button", { name: "Try this demo", exact: true }).nth(1));
   await page.waitForURL(`${baseUrl}/game/community-checklist`);
   await page.getByRole("heading", { name: "Community Checklist Quiz" }).waitFor();
-  await activate(page.getByRole("button", { name: "Start the game", exact: true }));
+  await activate(page.getByRole("button", { name: "Start quiz", exact: true }));
   await page.getByRole("heading", {
     name: "Which behaviors support a strong neighborhood-event quiz experience?",
   }).waitFor();
@@ -206,9 +206,41 @@ async function captureCommunityChecklist(page, baseUrl, runDirectory) {
   await capture(page, runDirectory, "09-community-multi-select.png");
 }
 
+/** Captures unsupported routes and missing-game fallbacks. */
+async function captureNotFoundStates(page, baseUrl, runDirectory) {
+  await page.goto(`${baseUrl}/not-a-route`, { waitUntil: "networkidle" });
+  await page.getByRole("heading", { name: "That page isn't available in this demo." }).waitFor();
+  await capture(page, runDirectory, "10-not-found-route.png");
+
+  await page.goto(`${baseUrl}/game/not-a-real-sample`, { waitUntil: "networkidle" });
+  await page.getByRole("heading", { name: "That page isn't available in this demo." }).waitFor();
+  await capture(page, runDirectory, "11-missing-game-route.png");
+}
+
+/** Captures the intro-screen start error when pointed at a misconfigured local app. */
+async function captureSessionStartError(errorBaseUrl, runDirectory) {
+  if (!errorBaseUrl) {
+    return;
+  }
+
+  const browser = await chromium.launch({ headless: true });
+  const context = await browser.newContext({
+    ...devices["iPhone 13"],
+  });
+  const page = await context.newPage();
+
+  await page.goto(`${errorBaseUrl}/game/first-sample`, { waitUntil: "networkidle" });
+  await activate(page.getByRole("button", { name: "Start quiz", exact: true }));
+  await page.getByText("Can't start the quiz right now.", { exact: true }).waitFor();
+  await capture(page, runDirectory, "12-session-start-error.png");
+
+  await browser.close();
+}
+
 async function main() {
   const options = parseArgs(process.argv.slice(2));
   const baseUrl = options["base-url"] ?? process.env.UI_REVIEW_BASE_URL ?? defaultBaseUrl;
+  const errorBaseUrl = options["error-base-url"] ?? process.env.UI_REVIEW_ERROR_BASE_URL;
   const runDirectory = resolveRunDirectory(options["output-dir"]);
 
   await captureLandingStates(baseUrl, runDirectory);
@@ -223,8 +255,10 @@ async function main() {
   await captureFeaturedFlow(page, baseUrl, runDirectory);
   await captureSpotlightFlow(page, baseUrl, runDirectory);
   await captureCommunityChecklist(page, baseUrl, runDirectory);
+  await captureNotFoundStates(page, baseUrl, runDirectory);
 
   await browser.close();
+  await captureSessionStartError(errorBaseUrl, runDirectory);
 
   console.log(`UI review artifacts written to ${runDirectory}`);
 }

@@ -84,14 +84,14 @@ function isPrototypeFallbackEnabled() {
 /** Explains how to proceed when local Supabase browser configuration is missing. */
 function getMissingSupabaseConfigMessage() {
   if (!import.meta.env.DEV) {
-    return "Supabase browser configuration is missing.";
+    return "This quiz isn't available right now.";
   }
 
   return [
-    "Supabase browser configuration is missing.",
-    "Set `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY`",
-    "for remote Supabase integration, or explicitly set",
-    "`VITE_ENABLE_LOCAL_PROTOTYPE_FALLBACK=true` for offline-only development.",
+    "This quiz isn't available right now.",
+    "If you're working locally, add `VITE_SUPABASE_URL` and",
+    "`VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY`, or set",
+    "`VITE_ENABLE_LOCAL_PROTOTYPE_FALLBACK=true` to run the local-only prototype flow.",
   ].join(" ");
 }
 
@@ -204,8 +204,8 @@ function getOrCreateLocalPrototypeSessionId() {
 /** Returns the user-facing entitlement copy for a new or reused raffle entry. */
 function buildEntitlementMessage(status: QuizCompletionEntitlement["status"]) {
   return status === "new"
-    ? "You earned your raffle entry."
-    : "You already earned your raffle entry. This retake does not create another ticket.";
+    ? "You're checked in for the raffle."
+    : "You're still checked in for the raffle. Playing again does not add another ticket.";
 }
 
 /** Simulates the backend completion flow when running locally without Supabase. */
@@ -287,7 +287,7 @@ async function handleCompletionResponse(response: Response) {
   if (!response.ok) {
     const errorMessage = await readErrorMessage(
       response,
-      "We couldn't finalize your raffle entry right now.",
+      "We couldn't finish your raffle check-in right now.",
     );
 
     throw Object.assign(new Error(errorMessage), { status: response.status });
@@ -334,7 +334,7 @@ export async function ensureServerSession() {
     throw new Error(
       await readErrorMessage(
         response,
-        "We couldn't prepare your quiz session right now.",
+        "We couldn't get the quiz ready right now.",
       ),
     );
   }
