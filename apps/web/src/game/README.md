@@ -45,7 +45,7 @@ test, and maintain.
 ## Todo Checklist
 
 - [x] Add this README with the working plan and checklist.
-- [ ] Extract quiz session state machine files and matching tests.
+- [x] Extract quiz session state machine files and matching tests.
 - [ ] Extract derived session selectors/helpers and matching tests.
 - [ ] Extract quiz UI components from `GamePage.tsx` and add matching tests.
 - [ ] Add direct `quizUtils` coverage and focused `GamePage` wiring coverage.
