@@ -2,6 +2,7 @@ const {
   ensureDockerRuntime,
   isSupabaseStackRunning,
   logStep,
+  resetLocalSupabaseDatabase,
   run,
   startLocalSupabaseStack,
   stopLocalSupabaseStack,
@@ -20,11 +21,21 @@ function main() {
       startedLocalStack = startLocalSupabaseStack();
     }
 
+    resetLocalSupabaseDatabase();
+
     logStep("Running Edge Function integration tests");
-    run("npm", ["run", "test:functions:integration"]);
+    run("npm", ["run", "test:functions:integration"], {
+      env: {
+        NEIGHBORLY_SKIP_DB_RESET: "1",
+      },
+    });
 
     logStep("Running database tests");
-    run("npm", ["run", "test:db"]);
+    run("npm", ["run", "test:db"], {
+      env: {
+        NEIGHBORLY_SKIP_DB_RESET: "1",
+      },
+    });
   } finally {
     if (startedLocalStack) {
       stopLocalSupabaseStack();

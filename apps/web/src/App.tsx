@@ -1,7 +1,6 @@
 import type { ReactNode } from "react";
 import { LandingPage } from "./pages/LandingPage";
-import { getGameBySlug } from "./data/games";
-import { GamePage } from "./pages/GamePage";
+import { GameRoutePage } from "./pages/GameRoutePage";
 import { NotFoundPage } from "./pages/NotFoundPage";
 import { matchGamePath, routes } from "./routes";
 import { usePathnameNavigation } from "./usePathnameNavigation";
@@ -18,13 +17,7 @@ function getPageContent(pathname: string, navigate: (path: string) => void): Rea
     return <NotFoundPage onNavigate={navigate} />;
   }
 
-  const game = getGameBySlug(matchedGame.slug);
-
-  return game ? (
-    <GamePage game={game} key={game.id} onNavigate={navigate} />
-  ) : (
-    <NotFoundPage onNavigate={navigate} />
-  );
+  return <GameRoutePage key={matchedGame.slug} onNavigate={navigate} slug={matchedGame.slug} />;
 }
 
 /** Root application shell for the web prototype. */

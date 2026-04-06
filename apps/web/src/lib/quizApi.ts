@@ -1,10 +1,18 @@
-import { getGameById, scoreAnswers } from "../../../../shared/game-config";
+import { scoreAnswers } from "../../../../shared/game-config";
+import { getGameById } from "../../../../shared/game-config/sample-fixtures.ts";
 import type {
   QuizCompletionEntitlement,
   QuizCompletionResult,
   SubmitQuizCompletionInput,
 } from "../types/quiz";
 import { createOpaqueId } from "./session";
+import {
+  createSupabaseAuthHeaders,
+  getMissingSupabaseConfigMessage,
+  getSupabaseConfig,
+  isPrototypeFallbackEnabled,
+  readSupabaseErrorMessage,
+} from "./supabaseBrowser";
 
 /** Browser storage key for prototype entitlement records. */
 const localEntitlementStorageKey = "neighborly.local-entitlements.v1";
@@ -29,71 +37,12 @@ type LocalEntitlementsStore = Record<string, LocalEntitlementRecord>;
 type LocalAttemptsStore = Record<string, number>;
 /** Browser-side cache of completion results keyed by request id. */
 type LocalCompletionsStore = Record<string, QuizCompletionResult>;
-/** Minimal error payload shape returned by the edge functions. */
-type QuizApiErrorPayload = {
-  error?: string;
-};
 /** Response shape returned when the backend prepares the signed session. */
 type IssueSessionResponse = {
   issuedNewSession: boolean;
   sessionReady: boolean;
   sessionToken?: string;
 };
-/** Runtime Supabase configuration read from Vite environment variables. */
-type SupabaseConfig = {
-  enabled: boolean;
-  supabaseClientKey: string;
-  supabaseUrl: string;
-};
-
-/** Returns true when a Vite env flag explicitly enables a behavior. */
-function isEnabledFlag(value: string | undefined) {
-  return ["1", "true", "yes", "on"].includes(getEnvironmentValue(value).toLowerCase());
-}
-
-/** Trims environment variables so empty-looking values are treated consistently. */
-function getEnvironmentValue(value: string | undefined) {
-  return value?.trim() ?? "";
-}
-
-/** Returns the browser-side Supabase configuration needed for edge function calls. */
-function getSupabaseConfig(): SupabaseConfig {
-  const supabaseUrl = getEnvironmentValue(import.meta.env.VITE_SUPABASE_URL);
-  const supabasePublishableKey = getEnvironmentValue(
-    import.meta.env.VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY,
-  );
-  const legacyAnonKey = getEnvironmentValue(import.meta.env.VITE_SUPABASE_ANON_KEY);
-  const supabaseClientKey = supabasePublishableKey || legacyAnonKey;
-
-  return {
-    enabled: Boolean(supabaseUrl && supabaseClientKey),
-    supabaseClientKey,
-    supabaseUrl,
-  };
-}
-
-/** Enables the local-only fallback only when explicitly requested in development. */
-function isPrototypeFallbackEnabled() {
-  return (
-    import.meta.env.DEV &&
-    !getSupabaseConfig().enabled &&
-    isEnabledFlag(import.meta.env.VITE_ENABLE_LOCAL_PROTOTYPE_FALLBACK)
-  );
-}
-
-/** Explains how to proceed when local Supabase browser configuration is missing. */
-function getMissingSupabaseConfigMessage() {
-  if (!import.meta.env.DEV) {
-    return "This quiz isn't available right now.";
-  }
-
-  return [
-    "This quiz isn't available right now.",
-    "If you're working locally, add `VITE_SUPABASE_URL` and",
-    "`VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY`, or set",
-    "`VITE_ENABLE_LOCAL_PROTOTYPE_FALLBACK=true` to run the local-only prototype flow.",
-  ].join(" ");
-}
 
 /** Builds a stable storage key for a specific event/session pair. */
 function getStorageKey(eventId: string, prototypeSessionId: string) {
@@ -272,20 +221,10 @@ function buildLocalCompletionResult(
   return result;
 }
 
-/** Extracts a useful error message from an edge-function response body. */
-async function readErrorMessage(response: Response, fallback: string) {
-  try {
-    const payload = (await response.json()) as QuizApiErrorPayload;
-    return payload.error ?? fallback;
-  } catch {
-    return fallback;
-  }
-}
-
 /** Converts the completion response into a typed result or throws a helpful error. */
 async function handleCompletionResponse(response: Response) {
   if (!response.ok) {
-    const errorMessage = await readErrorMessage(
+    const errorMessage = await readSupabaseErrorMessage(
       response,
       "We couldn't finish your raffle check-in right now.",
     );
@@ -302,8 +241,7 @@ function createServerSessionHeaders(supabaseClientKey: string) {
 
   return {
     "Content-Type": "application/json",
-    apikey: supabaseClientKey,
-    Authorization: `Bearer ${supabaseClientKey}`,
+    ...createSupabaseAuthHeaders(supabaseClientKey),
     ...(sessionToken ? { "x-neighborly-session": sessionToken } : {}),
   };
 }
@@ -332,7 +270,7 @@ export async function ensureServerSession() {
 
   if (!response.ok) {
     throw new Error(
-      await readErrorMessage(
+      await readSupabaseErrorMessage(
         response,
         "We couldn't get the quiz ready right now.",
       ),

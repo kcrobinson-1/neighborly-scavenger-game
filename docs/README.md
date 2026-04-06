@@ -12,6 +12,7 @@ If you want:
 - the problem, users, goals, and success criteria, read [product.md](./product.md)
 - the intended attendee and organizer experience, read [experience.md](./experience.md)
 - the current system shape and trust boundaries, read [architecture.md](./architecture.md)
+- the published-content milestone details and tradeoffs, read [database-backed-quiz-content.md](./database-backed-quiz-content.md)
 - the local workflow, validation commands, release flow, or troubleshooting steps, read [dev.md](./dev.md)
 - the testing strategy, coverage priorities, and rollout plan, read [testing.md](./testing.md)
 - the platform ownership model for GitHub, Vercel, and Supabase settings, read [operations.md](./operations.md)
@@ -28,6 +29,9 @@ Use these boundaries to keep the docs tidy:
   UX goals, interaction rules, attendee flow, volunteer flow, and visual direction
 - `docs/architecture.md`
   current implementation shape, runtime flow, data ownership, and trust boundaries
+- `docs/database-backed-quiz-content.md`
+  durable implementation reference for the published-content milestone, including
+  schema decisions, tradeoffs, and deferred follow-up work
 - `docs/dev.md`
   how engineers work in the repo today: setup, validation, release flow, and troubleshooting
 - `docs/testing.md`

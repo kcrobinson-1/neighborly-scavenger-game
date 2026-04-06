@@ -1,12 +1,12 @@
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import {
   type GameConfig,
-  getGameById,
   normalizeSubmittedAnswers,
   scoreAnswers,
   validateSubmittedAnswers,
 } from "../../../shared/game-config.ts";
 import { createCorsHeaders, getAllowedOrigin } from "../_shared/cors.ts";
+import { loadPublishedGameById } from "../_shared/published-game-loader.ts";
 import { readVerifiedSession } from "../_shared/session-cookie.ts";
 
 /** Shape returned by the completion RPC before it is mapped to the API response. */
@@ -46,10 +46,14 @@ type CompletionPersistenceResult = {
 export type CompleteQuizHandlerDependencies = {
   createCorsHeaders: typeof createCorsHeaders;
   getAllowedOrigin: typeof getAllowedOrigin;
-  getGameById: (gameId: string) => GameConfig | undefined;
   getServiceRoleKey: () => string | undefined;
   getSigningSecret: () => string | undefined;
   getSupabaseUrl: () => string | undefined;
+  loadPublishedGameById: (
+    gameId: string,
+    supabaseUrl: string,
+    serviceRoleKey: string,
+  ) => Promise<GameConfig | null>;
   normalizeSubmittedAnswers: typeof normalizeSubmittedAnswers;
   persistCompletion: (
     input: CompletionPersistenceInput,
@@ -87,10 +91,10 @@ async function persistCompletion(
 export const defaultCompleteQuizHandlerDependencies: CompleteQuizHandlerDependencies = {
   createCorsHeaders,
   getAllowedOrigin,
-  getGameById,
   getServiceRoleKey: () => Deno.env.get("SUPABASE_SERVICE_ROLE_KEY"),
   getSigningSecret: () => Deno.env.get("SESSION_SIGNING_SECRET"),
   getSupabaseUrl: () => Deno.env.get("SUPABASE_URL"),
+  loadPublishedGameById,
   normalizeSubmittedAnswers,
   persistCompletion,
   readVerifiedSession,
@@ -222,7 +226,25 @@ export function createCompleteQuizHandler(
       );
     }
 
-    const game = dependencies.getGameById(payload.eventId);
+    let game: GameConfig | null;
+
+    try {
+      game = await dependencies.loadPublishedGameById(
+        payload.eventId,
+        supabaseUrl,
+        serviceRoleKey,
+      );
+    } catch (error: unknown) {
+      return jsonResponse(
+        500,
+        {
+          details: error instanceof Error ? error.message : undefined,
+          error: "We couldn't load this quiz event right now.",
+        },
+        origin,
+        dependencies.createCorsHeaders,
+      );
+    }
 
     if (!game) {
       return jsonResponse(
@@ -245,8 +267,8 @@ export function createCompleteQuizHandler(
     }
 
     // The browser sends answers, but the server owns the authoritative result.
-    // We normalize the payload, recompute score from trusted config, and only
-    // then persist the attempt through the RPC.
+    // We normalize the payload, recompute score from trusted published content,
+    // and only then persist the attempt through the RPC.
     const normalizedAnswers = dependencies.normalizeSubmittedAnswers(game, payload.answers);
     const trustedScore = dependencies.scoreAnswers(game, normalizedAnswers);
 

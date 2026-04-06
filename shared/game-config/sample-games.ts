@@ -1,10 +1,9 @@
 import { featuredGameSlug } from "./constants.ts";
 import type { GameConfig } from "./types.ts";
 
-// The sample games live in a shared module so both the web app and the Supabase
-// functions can read the exact same quiz definitions. That keeps rendering,
-// validation, scoring, and answer review aligned until event content moves into
-// a real organizer-managed data model.
+// These sample games are now explicit fixtures for tests and the browser-only
+// prototype fallback. Published runtime content should come from the database
+// and be mapped into GameConfig through db-content.ts instead.
 
 /** Sample game that demonstrates a standard quiz with final score reveal. */
 const firstSampleGame: GameConfig = {

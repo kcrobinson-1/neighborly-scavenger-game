@@ -16,10 +16,11 @@ The product is intended for community events like concerts, fairs, and neighborh
 This repository currently includes:
 
 - a Vite + React attendee experience prototype
-- a landing page plus sample game routes
+- a landing page plus published demo game routes
+- database-backed published event and quiz content
 - one-question-at-a-time quiz flow with back navigation
 - multiple quiz feedback modes
-- shared quiz content, validation, and scoring logic
+- shared quiz mapping, validation, and scoring logic
 - Supabase-backed browser-session bootstrap
 - Supabase-backed completion verification
 - SQL-backed single raffle entitlement per event/session pair
@@ -37,7 +38,7 @@ The codebase is intentionally small and split by responsibility:
 - `apps/web`
   React attendee experience built with Vite
 - `shared`
-  shared `game-config.ts` entrypoint plus `shared/game-config/` modules for quiz definitions, lookup logic, validation, and scoring
+  shared `game-config.ts` entrypoint plus `shared/game-config/` modules for DB mapping, quiz runtime shape, validation, scoring, and explicit sample fixtures
 - `supabase/functions`
   Edge Functions for session issuance and trusted completion
 - `supabase/migrations`
@@ -63,6 +64,8 @@ The main docs are:
   how the attendee, volunteer, and organizer flows should feel
 - [Architecture Notes](./docs/architecture.md)
   current system shape, trust boundaries, and runtime flow
+- [Database-backed Quiz Content](./docs/database-backed-quiz-content.md)
+  durable implementation reference for the published-content milestone
 - [Development Guide](./docs/dev.md)
   local workflow, validation commands, troubleshooting, and release flow
 - [Testing Strategy](./docs/testing.md)
@@ -96,6 +99,9 @@ npm run dev:web
 
 Use `npm run dev:web:local` if you want a fixed local origin for browser automation.
 
+Published landing-page summaries and `/game/:slug` routes now load from
+Supabase-backed published content in this mode.
+
 If you do not have backend access and only need frontend iteration:
 
 1. Copy [apps/web/.env.example](./apps/web/.env.example) to `apps/web/.env`.
@@ -105,6 +111,9 @@ If you do not have backend access and only need frontend iteration:
 
 3. Leave the Supabase env vars unset.
 4. Start the app with `npm run dev:web` or `npm run dev:web:local`.
+
+In this explicit local-only mode, the app uses shared sample fixtures for both
+route content and completion fallback behavior.
 
 Validation commands:
 
@@ -160,8 +169,8 @@ Operational setting ownership lives in [docs/operations.md](./docs/operations.md
 
 The main remaining gaps before the broader event-ready MVP are:
 
-- database-backed event and quiz content instead of shared hardcoded sample data
-- organizer/admin tooling for editing and publishing events
+- organizer/admin tooling for editing and publishing database-backed events
 - analytics and reporting for starts, completions, and completion time
-- production event publishing and lookup behind direct QR-ready event URLs, while leaving `/` free to stay a marketing or demo surface
+- richer publishing controls such as drafts, previews, or expiry windows for
+  live event URLs
 - stronger anti-abuse controls if live event usage shows browser-session dedupe is insufficient

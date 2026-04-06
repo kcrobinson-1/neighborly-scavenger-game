@@ -3,10 +3,10 @@ import {
   assertExists,
 } from "jsr:@std/assert@1";
 import {
-  getGameById,
   normalizeSubmittedAnswers,
   scoreAnswers,
 } from "../../../shared/game-config.ts";
+import { getGameById } from "../../../shared/game-config/sample-fixtures.ts";
 import {
   createCompleteQuizHandler,
   defaultCompleteQuizHandlerDependencies,
@@ -56,6 +56,7 @@ Deno.test("complete-quiz rejects invalid sessions before touching persistence", 
     getServiceRoleKey: () => "service-role-key",
     getSigningSecret: () => "session-secret",
     getSupabaseUrl: () => "http://127.0.0.1:54321",
+    loadPublishedGameById: async () => sampleGame,
     persistCompletion: async () => {
       persistCalls += 1;
       return { data: null, error: null };
@@ -87,6 +88,7 @@ Deno.test("complete-quiz rejects answers that fail shared validation", async () 
     getServiceRoleKey: () => "service-role-key",
     getSigningSecret: () => "session-secret",
     getSupabaseUrl: () => "http://127.0.0.1:54321",
+    loadPublishedGameById: async () => sampleGame,
     readVerifiedSession: async () => ({
       sessionId: "session-id",
       sessionToken: "session-token",
@@ -109,6 +111,71 @@ Deno.test("complete-quiz rejects answers that fail shared validation", async () 
   assertExists((await response.json()).error);
 });
 
+Deno.test("complete-quiz returns 400 when published content is missing or unpublished", async () => {
+  const handler = createCompleteQuizHandler({
+    ...defaultCompleteQuizHandlerDependencies,
+    getAllowedOrigin: () => "http://127.0.0.1:4173",
+    getServiceRoleKey: () => "service-role-key",
+    getSigningSecret: () => "session-secret",
+    getSupabaseUrl: () => "http://127.0.0.1:54321",
+    loadPublishedGameById: async () => null,
+    readVerifiedSession: async () => ({
+      sessionId: "session-id",
+      sessionToken: "session-token",
+    }),
+  });
+
+  const response = await handler(
+    createOriginRequest("https://example.com", {
+      body: JSON.stringify({
+        answers: { q1: ["a"] },
+        durationMs: 1200,
+        eventId: sampleGame.id,
+        requestId: "req-123",
+      }),
+      method: "POST",
+    }),
+  );
+
+  assertEquals(response.status, 400);
+  assertEquals(await response.json(), { error: "Quiz event was not found." });
+});
+
+Deno.test("complete-quiz returns a 500 when the published content loader fails", async () => {
+  const handler = createCompleteQuizHandler({
+    ...defaultCompleteQuizHandlerDependencies,
+    getAllowedOrigin: () => "http://127.0.0.1:4173",
+    getServiceRoleKey: () => "service-role-key",
+    getSigningSecret: () => "session-secret",
+    getSupabaseUrl: () => "http://127.0.0.1:54321",
+    loadPublishedGameById: async () => {
+      throw new Error("published content query failed");
+    },
+    readVerifiedSession: async () => ({
+      sessionId: "session-id",
+      sessionToken: "session-token",
+    }),
+  });
+
+  const response = await handler(
+    createOriginRequest("https://example.com", {
+      body: JSON.stringify({
+        answers: { q1: ["a"] },
+        durationMs: 1200,
+        eventId: sampleGame.id,
+        requestId: "req-123",
+      }),
+      method: "POST",
+    }),
+  );
+
+  assertEquals(response.status, 500);
+  assertEquals(await response.json(), {
+    details: "published content query failed",
+    error: "We couldn't load this quiz event right now.",
+  });
+});
+
 Deno.test("complete-quiz persists the trusted normalized payload and clamped duration", async () => {
   let capturedInput:
     | {
@@ -127,6 +194,7 @@ Deno.test("complete-quiz persists the trusted normalized payload and clamped dur
     getServiceRoleKey: () => "service-role-key",
     getSigningSecret: () => "session-secret",
     getSupabaseUrl: () => "http://127.0.0.1:54321",
+    loadPublishedGameById: async () => sampleGame,
     persistCompletion: async (input) => {
       capturedInput = input;
 
@@ -216,6 +284,7 @@ Deno.test("complete-quiz returns a 500 when trusted persistence fails", async ()
     getServiceRoleKey: () => "service-role-key",
     getSigningSecret: () => "session-secret",
     getSupabaseUrl: () => "http://127.0.0.1:54321",
+    loadPublishedGameById: async () => sampleGame,
     persistCompletion: async () => ({
       data: null,
       error: { message: "rpc failed" },

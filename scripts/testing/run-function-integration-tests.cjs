@@ -7,6 +7,7 @@ const {
   isSupabaseStackRunning,
   logStep,
   readSupabaseStatus,
+  resetLocalSupabaseDatabase,
   repoRoot,
   startLocalSupabaseStack,
   stopLocalSupabaseStack,
@@ -239,6 +240,10 @@ async function main() {
       logStep("Reusing existing local Supabase stack");
     } else {
       startedLocalStack = startLocalSupabaseStack();
+    }
+
+    if (process.env.NEIGHBORLY_SKIP_DB_RESET !== "1") {
+      resetLocalSupabaseDatabase();
     }
 
     const status = readSupabaseStatus();

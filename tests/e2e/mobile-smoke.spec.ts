@@ -110,7 +110,7 @@ test("shows the not-found fallback for invalid routes and missing game slugs", a
   await page.goto("/game/not-a-real-sample", { waitUntil: "networkidle" });
 
   await expect(
-    page.getByRole("heading", { name: "That page isn't available in this demo." }),
+    page.getByRole("heading", { name: "This quiz isn't available right now." }),
   ).toBeVisible();
-  await expect(page.getByRole("button", { name: "Open attendee demo" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Go to demo overview" })).toBeVisible();
 });

@@ -213,12 +213,12 @@ async function captureNotFoundStates(page, baseUrl, runDirectory) {
   await capture(page, runDirectory, "10-not-found-route.png");
 
   await page.goto(`${baseUrl}/game/not-a-real-sample`, { waitUntil: "networkidle" });
-  await page.getByRole("heading", { name: "That page isn't available in this demo." }).waitFor();
-  await capture(page, runDirectory, "11-missing-game-route.png");
+  await page.getByRole("heading", { name: "This quiz isn't available right now." }).waitFor();
+  await capture(page, runDirectory, "11-unavailable-game-route.png");
 }
 
-/** Captures the intro-screen start error when pointed at a misconfigured local app. */
-async function captureSessionStartError(errorBaseUrl, runDirectory) {
+/** Captures the route-level load error when pointed at a misconfigured local app. */
+async function captureRouteLoadError(errorBaseUrl, runDirectory) {
   if (!errorBaseUrl) {
     return;
   }
@@ -230,9 +230,8 @@ async function captureSessionStartError(errorBaseUrl, runDirectory) {
   const page = await context.newPage();
 
   await page.goto(`${errorBaseUrl}/game/first-sample`, { waitUntil: "networkidle" });
-  await activate(page.getByRole("button", { name: "Start quiz", exact: true }));
-  await page.getByText("Can't start the quiz right now.", { exact: true }).waitFor();
-  await capture(page, runDirectory, "12-session-start-error.png");
+  await page.getByRole("heading", { name: "This quiz couldn't load right now." }).waitFor();
+  await capture(page, runDirectory, "12-route-load-error.png");
 
   await browser.close();
 }
@@ -258,7 +257,7 @@ async function main() {
   await captureNotFoundStates(page, baseUrl, runDirectory);
 
   await browser.close();
-  await captureSessionStartError(errorBaseUrl, runDirectory);
+  await captureRouteLoadError(errorBaseUrl, runDirectory);
 
   console.log(`UI review artifacts written to ${runDirectory}`);
 }

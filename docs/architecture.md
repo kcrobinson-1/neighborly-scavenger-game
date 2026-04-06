@@ -26,9 +26,10 @@ Tooling and local workflow live in `dev.md`. Product intent lives in `product.md
 The current implementation is:
 
 - a React single-page app for the attendee experience
-- a shared TypeScript domain module for quiz content, validation, and scoring
+- Supabase-backed published event content tables for routes and landing-page summaries
+- a shared TypeScript domain module for quiz runtime shape, mapping, validation, and scoring
 - two Supabase edge functions for session bootstrap and trusted completion
-- a Supabase SQL migration that records completion attempts and awards one raffle entitlement per event/session pair
+- Supabase SQL migrations that store published content, record completion attempts, and award one raffle entitlement per event/session pair
 - local browser state during quiz play, with the backend owning the final verification result
 
 The core architectural principle already embodied in the code is:
@@ -64,10 +65,13 @@ grouped into a dedicated `apps/web/src/game/` module:
 - `apps/web/src/usePathnameNavigation.ts`
   Minimal client-side navigation hook built on the History API.
 - `apps/web/src/pages/LandingPage.tsx`
-  Product overview and entry point into sample games.
+  Product overview and entry point into published demo events.
+- `apps/web/src/pages/GameRoutePage.tsx`
+  Async route loader that resolves `/game/:slug` into published content before
+  rendering the quiz shell.
 - `apps/web/src/pages/GamePage.tsx`
-  Route-level shell for the attendee game flow. It bootstraps the session,
-  consumes the quiz hook, and renders quiz panels from the game module.
+  Quiz shell for an already-loaded event. It bootstraps the session, consumes
+  the quiz hook, and renders quiz panels from the game module.
 - `apps/web/src/pages/NotFoundPage.tsx`
   Fallback route.
 - `apps/web/src/game/useQuizSession.ts`
@@ -84,6 +88,11 @@ grouped into a dedicated `apps/web/src/game/` module:
   the route shell.
 - `apps/web/src/lib/quizApi.ts`
   Client-side session bootstrap and completion submission logic, including the local-development fallback.
+- `apps/web/src/lib/quizContentApi.ts`
+  Browser reads for published event summaries and route content.
+- `apps/web/src/lib/supabaseBrowser.ts`
+  Shared browser-side Supabase env, auth-header, and error helpers used by
+  both content reads and function calls.
 - `apps/web/src/lib/session.ts`
   Small client id-generation helpers.
 - `apps/web/src/types/quiz.ts`
@@ -102,18 +111,21 @@ The shared layer now exposes a stable entrypoint plus focused implementation mod
 - `shared/game-config.ts`
   Public compatibility entrypoint for existing imports.
 - `shared/game-config/`
-  Internal shared modules for types, sample games, catalog lookups, validation, and answer/scoring logic.
+  Internal shared modules for types, published-row mapping, explicit sample
+  fixtures, validation, and answer/scoring logic.
 
 Together they contain:
 
-- sample game definitions
 - shared quiz domain types
+- DB-row mapping into `GameConfig`
 - answer normalization
 - scoring
 - submitted-answer validation
-- game lookups by id and slug
+- explicit sample fixtures for tests and the local-only prototype fallback
 
-This is the current source of truth for quiz correctness. The browser uses it to render and review answers, and the backend uses it to validate and score the final submission.
+Published quiz content now lives in Supabase, but this shared layer is still
+the source of truth for the in-memory quiz model and quiz correctness once that
+content has been loaded.
 
 ### Backend Structure
 
@@ -125,22 +137,35 @@ The Supabase side is intentionally small:
   Validates the completion payload, verifies the session credential, computes the trusted score, and calls the database RPC.
 - `supabase/functions/_shared/cors.ts`
   Shared CORS helpers.
+- `supabase/functions/_shared/published-game-loader.ts`
+  Service-role loader that reads one published event from Supabase and maps it
+  into the shared runtime model before trusted validation.
 - `supabase/functions/_shared/session-cookie.ts`
   Session signing and verification helpers shared by both the cookie and header-fallback path.
 - `supabase/migrations/20260403120000_complete_quiz_entitlements.sql`
   Database objects that store completion attempts and ensure only one raffle entitlement is granted per event/session pair.
+- `supabase/migrations/20260406130000_add_published_quiz_content.sql`
+  Published event, question, and option tables plus demo-event backfill and
+  public read policies.
 
 ## What Is Implemented Now
 
-### Shared quiz logic across frontend and backend
+### Database-backed published content with shared runtime logic
 
-Quiz definitions, answer normalization, validation, scoring, and game lookup logic all live in the shared `game-config` module surface.
+Published event, question, and option records now live in Supabase.
+
+Those rows are mapped into the shared `GameConfig` runtime shape before either
+the browser or backend uses them.
 
 That means:
 
-- the frontend renders from the same source that the backend validates
+- the frontend route loads and the backend completion path use the same
+  canonical event content
+- the frontend still renders from the same runtime shape that the backend
+  validates
 - score/review behavior cannot drift from server-side completion logic without a code change
-- sample game data fails fast if ids or answer definitions are inconsistent
+- malformed published content fails fast during mapping and validation instead
+  of becoming an implicit UI-only problem
 
 ### Browser-session trust for the no-login MVP
 
@@ -182,27 +207,43 @@ This capability is implemented in both the shared config model and the `useQuizS
 The current system works like this:
 
 1. A user lands on the frontend hosted on Vercel.
-2. The React app loads and resolves the pathname locally.
-3. When the user starts a game, the browser calls the Supabase `issue-session` edge function.
-4. Supabase returns a signed browser session credential and attempts to set the secure session cookie.
-5. The player completes the quiz entirely in local browser state.
-6. At the end, the browser submits answers, duration, event id, and request id to `complete-quiz`.
-7. The backend verifies the signed session credential, validates answers against the shared `game-config` module, recomputes score, and executes the database RPC.
-8. The RPC records the completion attempt, creates or reuses the raffle entitlement, and returns the official verification data.
-9. The frontend renders the completion screen using that trusted response.
+2. The React app resolves the pathname locally and, for `/game/:slug`, loads the
+   published event content from Supabase with the publishable key.
+3. The landing page likewise reads published demo summaries from Supabase.
+4. Missing or unpublished event slugs render an explicit unavailable state
+   without revealing which case occurred.
+5. When the user starts a game, the browser calls the Supabase `issue-session`
+   edge function.
+6. Supabase returns a signed browser session credential and attempts to set the
+   secure session cookie.
+7. The player completes the quiz entirely in local browser state.
+8. At the end, the browser submits answers, duration, event id, and request id
+   to `complete-quiz`.
+9. The backend verifies the signed session credential, reloads the canonical
+   published event by `eventId`, validates answers against the shared
+   `game-config` runtime model, recomputes score, and executes the database RPC.
+10. The RPC records the completion attempt, creates or reuses the raffle
+    entitlement, and returns the official verification data.
+11. The frontend renders the completion screen using that trusted response.
 
 This flow keeps question-to-question interaction fast while reserving the final trust decision for the backend.
 
 ## Current Backend Surface
 
-The current implementation uses two edge functions:
+The current implementation uses:
 
 - `issue-session`
   Prepares the signed browser session credential used as the trust boundary for the no-login MVP.
 - `complete-quiz`
   Owns final validation, scoring, dedupe, and verification-code return.
+- direct PostgREST reads for published `quiz_events`, `quiz_questions`, and
+  `quiz_question_options`
+  The browser uses the publishable key plus RLS-filtered reads for public event
+  content, while the backend uses the same tables through the service-role key.
 
-No general-purpose REST API exists yet, and that is intentional. The system currently exposes only the endpoints needed by the attendee flow.
+There is still no custom general-purpose application API beyond those bounded
+surfaces, and that is intentional. The system exposes only the reads and
+trusted function endpoints needed by the attendee flow.
 
 ## Data Ownership Today
 
@@ -210,6 +251,7 @@ No general-purpose REST API exists yet, and that is intentional. The system curr
 
 The browser currently owns:
 
+- published summary and event reads for public rendering
 - current question index
 - pending selection state
 - submitted local answers
@@ -221,6 +263,7 @@ The browser currently owns:
 
 Supabase currently owns:
 
+- published event, question, and option records
 - signed browser-session trust
 - final answer validation
 - trusted score calculation
@@ -258,16 +301,6 @@ This keeps deployment repo-driven without requiring hotfixes to start in product
 
 The repository has a working prototype slice, but it does not yet satisfy the full event-ready MVP described in `product.md` and `experience.md`. The major remaining gaps are:
 
-### Database-backed event content
-
-Today, quiz content still lives in the shared `game-config` module.
-
-What is missing:
-
-- event records in the database
-- question/answer/sponsor records in the database
-- published-event reads from the backend instead of hardcoded sample content
-
 ### Organizer/admin tooling
 
 Today, there is no organizer interface.
@@ -290,12 +323,11 @@ What is missing:
 
 ### Production event lookup and publish model
 
-Today, the web app includes a marketing/demo landing page plus sample routes backed by shared sample data. Direct `/game/:slug` links already work for demos, and the home page can remain a marketing or preview surface.
+Today, the web app includes a marketing/demo landing page and direct
+`/game/:slug` routes backed by published event records.
 
 What is missing for live operation:
 
-- published event records backing the QR-targeted URLs
-- route resolution against live event records instead of the sample-game catalog
 - clean handling for draft, expired, or unknown event routes
 - a production path where QR codes open directly into a live event flow without relying on the demo overview
 
@@ -319,8 +351,9 @@ This is an explicit product tradeoff, not an accidental omission.
 The most sensible next architectural steps are:
 
 1. Add a staging or branch-based Supabase promotion path if local verification plus direct-to-production release stops feeling sufficient.
-2. Move event and quiz content into database-backed records while preserving one trusted scoring/validation path.
-3. Add organizer-facing content management and publish controls.
-4. Add lightweight analytics/reporting for live events.
-5. Replace sample-demo route resolution with published event lookup behind direct QR entry URLs, while allowing `/` to remain a marketing or demo surface.
-6. Revisit abuse controls after observing live event behavior.
+2. Add organizer-facing content management and publish controls on top of the
+   published event schema.
+3. Add lightweight analytics/reporting for live events.
+4. Add richer publish behavior such as drafts, previews, or expiry windows if
+   live operations need them.
+5. Revisit abuse controls after observing live event behavior.

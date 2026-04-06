@@ -6,11 +6,11 @@ import {
   gamesBySlug,
   getGameById,
   getGameBySlug,
-} from "../../../shared/game-config.ts";
+} from "../../../shared/game-config/sample-fixtures.ts";
 
 // These lookups back both route resolution and backend event resolution, so a
 // tiny catalog suite buys confidence across the whole stack.
-describe("game catalog", () => {
+describe("sample fixture catalog", () => {
   it("resolves the featured sample game by both id and slug", () => {
     const featuredGame = getGameBySlug(featuredGameSlug);
 

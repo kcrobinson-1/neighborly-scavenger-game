@@ -1,4 +1,9 @@
-import { featuredGameSlug, games } from "../data/games";
+import { useEffect, useState } from "react";
+import { featuredGameSlug } from "../data/games";
+import {
+  listPublishedGameSummaries,
+  type PublishedGameSummary,
+} from "../lib/quizContentApi";
 import { routes } from "../routes";
 
 /** Props for the landing page route. */
@@ -8,6 +13,50 @@ type LandingPageProps = {
 
 /** Demo overview page that introduces the product and sample routes. */
 export function LandingPage({ onNavigate }: LandingPageProps) {
+  const [games, setGames] = useState<PublishedGameSummary[]>([]);
+  const [gamesLoadError, setGamesLoadError] = useState<string | null>(null);
+  const [isLoadingGames, setIsLoadingGames] = useState(true);
+  const [reloadToken, setReloadToken] = useState(0);
+
+  const retryLoadingGames = () => {
+    setIsLoadingGames(true);
+    setGamesLoadError(null);
+    setReloadToken((value) => value + 1);
+  };
+
+  useEffect(() => {
+    let isCancelled = false;
+
+    void listPublishedGameSummaries()
+      .then((summaries) => {
+        if (!isCancelled) {
+          setGames(summaries);
+        }
+      })
+      .catch((error: unknown) => {
+        if (!isCancelled) {
+          setGames([]);
+          setGamesLoadError(
+            error instanceof Error
+              ? error.message
+              : "We couldn't load the published demo events right now.",
+          );
+        }
+      })
+      .finally(() => {
+        if (!isCancelled) {
+          setIsLoadingGames(false);
+        }
+      });
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [reloadToken]);
+
+  const featuredGame = games.find((game) => game.slug === featuredGameSlug);
+  const canOpenFeaturedDemo = Boolean(featuredGame) && !isLoadingGames && !gamesLoadError;
+
   return (
     <section className="landing-layout">
       <header className="landing-hero panel panel-hero">
@@ -24,10 +73,11 @@ export function LandingPage({ onNavigate }: LandingPageProps) {
         <div className="hero-actions">
           <button
             className="primary-button"
+            disabled={!canOpenFeaturedDemo}
             onClick={() => onNavigate(routes.game(featuredGameSlug))}
             type="button"
           >
-            Try the attendee demo
+            {isLoadingGames ? "Loading attendee demo..." : "Try the attendee demo"}
           </button>
           <a className="text-link" href="#how-it-works">
             Jump to demo routes
@@ -93,30 +143,50 @@ export function LandingPage({ onNavigate }: LandingPageProps) {
           <p className="eyebrow">Playable demos</p>
           <h2>Open the flow you want to review.</h2>
         </div>
-        <div className="sample-games-list">
-          {games.map((game) => (
-            <article className="sample-game-row" key={game.slug}>
-              <div className="sample-game-copy">
-                <span className="chip">
-                  {game.feedbackMode === "instant_feedback_required"
-                    ? "Must answer correctly"
-                    : "Score at the end"}
-                </span>
-                <div className="sample-game-heading">
-                  <h3>{game.name}</h3>
-                  <p>{game.summary}</p>
+        {isLoadingGames ? (
+          <p>Loading the published demo events for this overview.</p>
+        ) : null}
+        {gamesLoadError ? (
+          <div className="not-found-actions">
+            <p>{gamesLoadError}</p>
+            <button
+              className="secondary-button"
+              onClick={retryLoadingGames}
+              type="button"
+            >
+              Retry loading demos
+            </button>
+          </div>
+        ) : null}
+        {!isLoadingGames && !gamesLoadError && games.length === 0 ? (
+          <p>No published demo events are available right now.</p>
+        ) : null}
+        {!isLoadingGames && !gamesLoadError && games.length > 0 ? (
+          <div className="sample-games-list">
+            {games.map((game) => (
+              <article className="sample-game-row" key={game.slug}>
+                <div className="sample-game-copy">
+                  <span className="chip">
+                    {game.feedbackMode === "instant_feedback_required"
+                      ? "Must answer correctly"
+                      : "Score at the end"}
+                  </span>
+                  <div className="sample-game-heading">
+                    <h3>{game.name}</h3>
+                    <p>{game.summary}</p>
+                  </div>
                 </div>
-              </div>
-              <button
-                className="secondary-button sample-game-button"
-                onClick={() => onNavigate(routes.game(game.slug))}
-                type="button"
-              >
-                {game.slug === featuredGameSlug ? "Try featured demo" : "Try this demo"}
-              </button>
-            </article>
-          ))}
-        </div>
+                <button
+                  className="secondary-button sample-game-button"
+                  onClick={() => onNavigate(routes.game(game.slug))}
+                  type="button"
+                >
+                  {game.slug === featuredGameSlug ? "Try featured demo" : "Try this demo"}
+                </button>
+              </article>
+            ))}
+          </div>
+        ) : null}
       </section>
     </section>
   );

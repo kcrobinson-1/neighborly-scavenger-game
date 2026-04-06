@@ -1,10 +1,17 @@
 import { describe, expect, it } from "vitest";
-import { validateGames } from "../../../shared/game-config/game-validation.ts";
+import {
+  validateGameConfig,
+  validateGames,
+} from "../../../shared/game-config/game-validation.ts";
 import { createTestGame } from "./fixtures.ts";
 
 // The catalog validates sample data at module load time, so these tests focus
 // on the bad-definition cases that should fail fast before the app boots.
 describe("validateGames", () => {
+  it("accepts a valid standalone game config", () => {
+    expect(() => validateGameConfig(createTestGame())).not.toThrow();
+  });
+
   it("accepts a valid game collection", () => {
     expect(() => validateGames([createTestGame()])).not.toThrow();
   });
@@ -64,6 +71,18 @@ describe("validateGames", () => {
 
     expect(() => validateGames([game])).toThrow(
       'Single-select question "q1" in game "test-game" must have exactly one correct answer.',
+    );
+  });
+
+  it("rejects questions without any options", () => {
+    const game = createTestGame();
+    game.questions[0] = {
+      ...game.questions[0],
+      options: [],
+    };
+
+    expect(() => validateGameConfig(game)).toThrow(
+      'Question "q1" in game "test-game" must include at least one option.',
     );
   });
 

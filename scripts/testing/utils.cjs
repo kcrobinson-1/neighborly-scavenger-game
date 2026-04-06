@@ -13,11 +13,13 @@ function run(command, args, options = {}) {
   const {
     capture = false,
     check = true,
+    env,
   } = options;
 
   const result = spawnSync(command, args, {
     cwd: repoRoot,
     encoding: "utf8",
+    env: env ? { ...process.env, ...env } : process.env,
     stdio: capture ? ["ignore", "pipe", "pipe"] : "inherit",
   });
 
@@ -133,6 +135,11 @@ function startLocalSupabaseStack() {
   }
 }
 
+function resetLocalSupabaseDatabase() {
+  logStep("Resetting local Supabase database to current migrations");
+  run("npx", ["supabase", "db", "reset", "--local", "--no-seed", "--yes"]);
+}
+
 function stopLocalSupabaseStack() {
   logStep("Stopping local Supabase stack");
   run("npx", ["supabase", "stop"], {
@@ -150,6 +157,7 @@ module.exports = {
   isSupabaseStackRunning,
   parseSupabaseStatusOutput,
   readSupabaseStatus,
+  resetLocalSupabaseDatabase,
   logStep,
   repoRoot,
   run,

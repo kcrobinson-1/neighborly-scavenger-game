@@ -1,11 +1,5 @@
-/** Re-export shared quiz configuration so the app can import from a local module path. */
+/** Re-export shared quiz types plus explicit sample fixtures for prototype-only paths. */
 export {
-  featuredGameSlug,
-  games,
-  gamesById,
-  gamesBySlug,
-  getGameById,
-  getGameBySlug,
   type AnswerOption,
   type FeedbackMode,
   type GameConfig,
@@ -13,3 +7,12 @@ export {
   type SelectionMode,
   type SubmittedAnswers,
 } from "../../../../shared/game-config";
+
+export {
+  featuredGameSlug,
+  games,
+  gamesById,
+  gamesBySlug,
+  getGameById,
+  getGameBySlug,
+} from "../../../../shared/game-config/sample-fixtures.ts";

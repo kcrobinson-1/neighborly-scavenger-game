@@ -1,4 +1,3 @@
-export { featuredGameSlug } from "./constants.ts";
 export {
   answersMatch,
   normalizeOptionIds,
@@ -6,8 +5,14 @@ export {
   scoreAnswers,
   validateSubmittedAnswers,
 } from "./answers.ts";
-export { gamesById, gamesBySlug, getGameById, getGameBySlug } from "./catalog.ts";
-export { games } from "./sample-games.ts";
+export {
+  mapPublishedGameRowsToGameConfig,
+  type PublishedGameEventRow,
+  type PublishedGameOptionRow,
+  type PublishedGameQuestionRow,
+  type PublishedGameRows,
+} from "./db-content.ts";
+export { validateGameConfig, validateGames } from "./game-validation.ts";
 export type {
   AnswerOption,
   AnswerValidationResult,
