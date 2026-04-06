@@ -120,6 +120,8 @@ For pull requests into `main`, expect GitHub CI to run the same validation via `
 Do not overstate what was validated.
 
 - If you added a new test command, validation surface, or workflow step, prefer to run it locally before opening or updating a PR.
+- If you added a new top-level validation path, run the integrated repo command that is supposed to cover it, not just the new subcommand in isolation.
+- If a validation command depends on local services or runners, exercise it from a clean start when practical, not only from a warm reused state.
 - If a new validation step cannot be run locally, call out the exact blocker in the handoff and PR description.
 - Do not describe a branch as fully validated if any newly introduced check has not been exercised end to end.
 - If docs describe a test as covering the "real" backend or browser path, make sure the implementation actually does that. If the test runs in fallback or mocked mode, document that precisely.
@@ -129,7 +131,9 @@ Do not overstate what was validated.
 Treat pull requests as reviewable engineering work, not speculative drafts with known unverified edges hidden inside them.
 
 - Before opening or updating a PR, make sure every new script or validation command added by the branch is runnable by a contributor following repo docs.
+- For new test runners or test directories, confirm the existing runners do not accidentally pick them up or conflict with them.
 - If a helper script depends on local tools such as Docker, Deno, Playwright, or the Supabase CLI, either make the script self-checking with clear failure messages or document the setup in the same change.
+- For new helper scripts that start local services or background processes, validate teardown as well as setup so CI cannot hang after the assertions already passed.
 - Prefer fixing local workflow blockers in the repo when reasonable instead of relying on CI to be the first real execution environment.
 - If a PR is intentionally still exploratory, keep it clearly framed as draft work and do not present it as merge-ready.
 
@@ -138,8 +142,10 @@ Treat pull requests as reviewable engineering work, not speculative drafts with 
 When a change touches testing infrastructure, validation commands, CI, or local setup, review it for operational regressions in addition to product regressions.
 
 - make sure new validation commands do not silently depend on undeclared local state
+- make sure new validation commands work from both fresh-start and warm-start local states when that distinction matters
 - make sure browser tests are deterministic about which backend path they exercise
 - make sure helper scripts are safe to rerun and fail with actionable guidance
+- make sure helper scripts emit enough progress logging and bounded timeouts to debug CI stalls
 - make sure CI does not pay heavyweight setup costs earlier than necessary
 - make sure local validation steps do not mutate workspace state in ways that break later commands
 
