@@ -108,7 +108,8 @@ For regular contribution work, install:
 - npm
 - Deno if you need to run the Edge Function checks locally
 - Supabase CLI if you are changing Supabase infrastructure, running database tests, or verifying deploy commands
-- Docker if you need to run the local Supabase stack for database tests
+- a Docker API-compatible runtime if you need to run the local Supabase stack for database tests
+  examples from the Supabase docs include Docker Desktop, OrbStack, Rancher Desktop, and Podman
 - Playwright Chromium if you are running the UI-review capture flow
 
 Install dependencies at the repo root:
@@ -177,10 +178,33 @@ deno check --no-lock supabase/functions/complete-quiz/index.ts
 
 Those commands are also reflected in [`.github/workflows/ci.yml`](../.github/workflows/ci.yml).
 
+For the full local validation flow, use:
+
+```bash
+npm run validate:local
+```
+
+For one-time local test setup, use:
+
+```bash
+npm run test:setup:local
+```
+
+That helper:
+
+- checks that a Docker API-compatible runtime is installed and running
+- checks that Deno is installed
+- installs Playwright Chromium if it is missing
+
+Local tooling note:
+
+- `deno.json` uses manual `nodeModulesDir` mode so `deno check` does not rewrite the main Node workspace packages and break Playwright resolution
+
 Database test note:
 
 - `npm run test:db` runs the pgTAP suite in `supabase/tests/database`
-- it requires the local Supabase stack, so make sure Docker is available and start the stack with `npx supabase start` or `supabase start` first
+- it requires a local Docker-backed Supabase stack
+- the script now starts `npx supabase start` automatically when needed and stops it afterward if it started the stack itself
 
 Broader test strategy guidance, including what should eventually run in PR CI versus local-only iteration, lives in [testing.md](./testing.md).
 
@@ -211,6 +235,14 @@ npm run test:e2e
 ```
 
 That Playwright suite starts the local Vite server in explicit prototype-fallback mode, so it can run without Supabase env vars while still covering direct route load, the featured attendee flow, and the not-found fallbacks.
+
+The Playwright config also clears inherited Supabase browser env vars for that run so local shell config does not silently switch the smoke suite onto a remote backend.
+
+If Chromium is not installed yet, either run `npm run test:setup:local`, `npm run test:e2e:install`, or:
+
+```bash
+npx playwright install chromium
+```
 
 ## Fresh Deployment From A Fork
 

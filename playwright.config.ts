@@ -14,6 +14,10 @@ export default defineConfig({
     command: "npm run dev:web:test",
     env: {
       VITE_ENABLE_LOCAL_PROTOTYPE_FALLBACK: "true",
+      // Force the smoke suite onto the explicit local fallback path so inherited
+      // shell env does not accidentally switch the test onto a remote backend.
+      VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY: "",
+      VITE_SUPABASE_URL: "",
     },
     reuseExistingServer: !process.env.CI,
     url: baseUrl,

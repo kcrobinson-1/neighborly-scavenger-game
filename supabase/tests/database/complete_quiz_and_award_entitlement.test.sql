@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(18);
+select plan(19);
 
 -- Exercise the completion RPC at the database layer because this is where
 -- idempotency, attempt numbering, and single-entitlement enforcement live.

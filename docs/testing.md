@@ -42,10 +42,18 @@ The current setup includes a few deliberate choices that are worth documenting:
   that is enough for the current `quizApi` and hook coverage; `msw` is still a good follow-on option if request mocking grows more complex
 - Playwright smoke tests intentionally run with `VITE_ENABLE_LOCAL_PROTOTYPE_FALLBACK=true`
   this keeps browser smoke coverage deterministic and independent from local Supabase env setup
+- the Playwright config also clears inherited Supabase browser env vars
+  that prevents a contributor's shell config from silently switching the smoke suite onto a remote backend
 - the Playwright mobile project uses Chromium-backed mobile emulation, not WebKit
   the original iPhone device preset implied WebKit, but Chromium is the lower-friction browser target for this repo's local workflow and CI
 - database tests live in `supabase/tests/database` and depend on a local Supabase stack
-  in practice that means Docker must be available locally; CI already handles this by starting Supabase before `npm run test:db`
+  in practice that means a Docker API-compatible runtime must be available locally; the `test:db` script owns Supabase startup in both local runs and CI
+- `npm run test:db` now manages the local stack for contributors
+  it checks Docker, starts `npx supabase start` when needed, runs pgTAP, and only stops the stack afterward if it started it itself
+- `npm run validate:local` is the repo-level local validation shortcut
+  it runs lint, unit tests, Playwright smoke, database tests, web build, and the two Deno checks in one pass
+- `deno.json` keeps `nodeModulesDir` in manual mode
+  that avoids `deno check` rewriting the Node workspace installation in ways that can break Playwright resolution
 
 ## Strategy Summary
 
@@ -70,7 +78,7 @@ The highest-value seams in this repo are:
 - frontend quiz progression and completion retry behavior
 - backend session verification and request validation
 - SQL idempotency and single-entitlement enforcement
-- the real mobile browser flow from intro to verified completion
+- the mobile browser flow from intro to completion screen
 
 ### Prefer one strong test at the right layer over three weak tests at the wrong layer
 
@@ -214,6 +222,8 @@ UX tests should verify:
 - progress and completion states remain understandable
 - direct route loading still works after routing or deploy config changes
 
+The current smoke suite is intentionally a fallback-mode browser check, not a real backend integration test. It proves the attendee UI wiring and route behavior in a real browser, and it should be paired with local Supabase integration coverage for backend trust.
+
 ## When To Mock Supabase
 
 Use mocked Supabase behavior in frontend tests when the goal is to verify browser logic, not backend correctness.
@@ -293,7 +303,8 @@ Run the smallest relevant set while iterating:
 
 Notes:
 
-- `npm run test:db` requires Docker because the local Supabase stack depends on it
+- `npm run test:db` requires a Docker API-compatible runtime because the local Supabase stack depends on it
+- `npm run test:setup:local` is the easiest one-time setup path for local contributors
 - `npm run test:e2e` currently exercises the browser flow in explicit local fallback mode, so it complements rather than replaces real backend integration coverage
 
 ### Pull Request CI
@@ -305,6 +316,8 @@ PR CI currently runs:
 - `npm run test:db`
 - `npm run build:web`
 - `deno check` for both Edge Functions
+
+The database step now owns local Supabase startup itself instead of paying that setup cost before every earlier step in the job.
 
 Keep PR CI focused on fast confidence:
 

@@ -1,20 +1,18 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
 
-/** Uses DOM click activation because the mobile card layout can defeat default actionability checks. */
+/** Scrolls the target into view so Playwright can use its normal actionability checks. */
 async function activate(locator: Locator) {
-  await locator.waitFor();
-  await locator.evaluate((element) => {
-    (element as HTMLElement).click();
-  });
+  await locator.scrollIntoViewIfNeeded();
+  await locator.click();
 }
 
-/** Selects an answer and submits the question in the same way the UI review script does. */
+/** Selects an answer and submits the question with normal browser-like interactions. */
 async function clickOptionAndSubmit(
   page: Page,
   optionLabel: string,
   submitLabel = "Submit answer",
 ) {
-  await activate(page.getByLabel(optionLabel, { exact: true }));
+  await activate(page.getByText(optionLabel, { exact: true }));
   await activate(page.getByRole("button", { exact: true, name: submitLabel }));
 }
 

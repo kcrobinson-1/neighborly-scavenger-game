@@ -14,9 +14,12 @@
     "build:web": "npm --workspace @neighborly/web run build",
     "lint": "eslint apps shared supabase scripts tests",
     "test": "vitest run",
-    "test:db": "npx supabase test db",
+    "test:db": "node scripts/testing/run-db-tests.cjs",
+    "test:e2e:install": "npx playwright install chromium",
+    "test:setup:local": "node scripts/testing/setup-local-testing.cjs",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
+    "validate:local": "node scripts/testing/run-local-validation.cjs",
     "ui:review:capture": "node scripts/ui-review/capture-ui-review.cjs"
   },
   "devDependencies": {

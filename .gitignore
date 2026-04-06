@@ -9,4 +9,5 @@ dist/
 .vercel/
 *.log
 supabase/.temp/
+supabase/.branches/
 tmp/
