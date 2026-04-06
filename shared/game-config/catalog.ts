@@ -21,17 +21,17 @@ function createGameLookup(key: keyof Pick<GameConfig, "id" | "slug">) {
 
 validateGames(games);
 
-/** Lookup table for resolving games by their server-facing id. */
+/** Lookup table for resolving sample fixture games by their server-facing id. */
 export const gamesById: Record<string, GameConfig> = createGameLookup("id");
-/** Lookup table for resolving games by their route slug. */
+/** Lookup table for resolving sample fixture games by their route slug. */
 export const gamesBySlug: Record<string, GameConfig> = createGameLookup("slug");
 
-/** Returns a game config by event id, if one exists. */
+/** Returns a sample fixture by event id, if one exists. */
 export function getGameById(gameId: string) {
   return gamesById[gameId];
 }
 
-/** Returns a game config by route slug, if one exists. */
+/** Returns a sample fixture by route slug, if one exists. */
 export function getGameBySlug(slug: string) {
   return gamesBySlug[slug];
 }

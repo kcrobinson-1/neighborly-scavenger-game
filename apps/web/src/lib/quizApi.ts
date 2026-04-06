@@ -1,4 +1,5 @@
-import { getGameById, scoreAnswers } from "../../../../shared/game-config";
+import { scoreAnswers } from "../../../../shared/game-config";
+import { getGameById } from "../../../../shared/game-config/sample-fixtures.ts";
 import type {
   QuizCompletionEntitlement,
   QuizCompletionResult,

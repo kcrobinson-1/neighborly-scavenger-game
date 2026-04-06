@@ -3,10 +3,10 @@ import {
   assertExists,
 } from "jsr:@std/assert@1";
 import {
-  getGameById,
   normalizeSubmittedAnswers,
   scoreAnswers,
 } from "../../../shared/game-config.ts";
+import { getGameById } from "../../../shared/game-config/sample-fixtures.ts";
 import {
   createCompleteQuizHandler,
   defaultCompleteQuizHandlerDependencies,

@@ -14,8 +14,8 @@ function assertUnique(values: string[], label: string) {
   }
 }
 
-/** Validates a game definition so broken sample data fails fast during startup. */
-function validateGame(game: GameConfig) {
+/** Validates a single game config regardless of where its content originated. */
+export function validateGameConfig(game: GameConfig) {
   if (game.questions.length === 0) {
     throw new Error(`Game "${game.id}" must include at least one question.`);
   }
@@ -26,6 +26,12 @@ function validateGame(game: GameConfig) {
   );
 
   for (const question of game.questions) {
+    if (question.options.length === 0) {
+      throw new Error(
+        `Question "${question.id}" in game "${game.id}" must include at least one option.`,
+      );
+    }
+
     if (question.correctAnswerIds.length === 0) {
       throw new Error(
         `Question "${question.id}" in game "${game.id}" must include at least one correct answer.`,
@@ -58,7 +64,7 @@ function validateGame(game: GameConfig) {
   }
 }
 
-/** Validates a whole game collection before lookups are built and exported. */
+/** Validates a whole game collection before collection-level lookups are built. */
 export function validateGames(games: GameConfig[]) {
   assertUnique(
     games.map((game) => game.id),
@@ -68,5 +74,5 @@ export function validateGames(games: GameConfig[]) {
     games.map((game) => game.slug),
     "game slug",
   );
-  games.forEach(validateGame);
+  games.forEach(validateGameConfig);
 }

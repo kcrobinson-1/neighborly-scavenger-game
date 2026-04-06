@@ -212,7 +212,7 @@ Rationale:
 
 - [x] `docs(database-backed-quiz-content): capture MVP scope and decisions`
 - [x] `feat(supabase): add published quiz content schema and demo backfill`
-- [ ] `refactor(shared): add DB-to-GameConfig mapping and isolate sample fixtures`
+- [x] `refactor(shared): add DB-to-GameConfig mapping and isolate sample fixtures`
 - [ ] `feat(supabase): load canonical published quiz content in complete-quiz`
 - [ ] `feat(web): load game routes and demo summaries from published quiz content`
 - [ ] `docs: finalize durable reference and refresh repo docs`
@@ -253,7 +253,7 @@ Validation implementation note:
 - [x] Run full baseline validation suite on the new branch
 - [x] Add decision doc and commit it
 - [x] Add published content schema and seeded demo events
-- [ ] Add shared DB row mapping and tests
+- [x] Add shared DB row mapping and tests
 - [ ] Add backend published-content loader and switch `complete-quiz`
 - [ ] Add browser published-content reads and async route integration
 - [ ] Update architecture/dev/README docs

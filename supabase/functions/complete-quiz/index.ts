@@ -1,11 +1,11 @@
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import {
   type GameConfig,
-  getGameById,
   normalizeSubmittedAnswers,
   scoreAnswers,
   validateSubmittedAnswers,
 } from "../../../shared/game-config.ts";
+import { getGameById } from "../../../shared/game-config/sample-fixtures.ts";
 import { createCorsHeaders, getAllowedOrigin } from "../_shared/cors.ts";
 import { readVerifiedSession } from "../_shared/session-cookie.ts";
 
