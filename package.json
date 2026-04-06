@@ -10,17 +10,30 @@
   "scripts": {
     "dev:web": "npm --workspace @neighborly/web run dev",
     "dev:web:local": "npm --workspace @neighborly/web run dev -- --host 127.0.0.1 --port 4173",
+    "dev:web:test": "npm --workspace @neighborly/web run dev -- --host 127.0.0.1 --port 4173 --strictPort",
     "build:web": "npm --workspace @neighborly/web run build",
-    "lint": "eslint apps shared supabase scripts",
+    "lint": "eslint apps shared supabase scripts tests",
+    "test": "vitest run",
+    "test:db": "node scripts/testing/run-db-tests.cjs",
+    "test:e2e:install": "npx playwright install chromium",
+    "test:setup:local": "node scripts/testing/setup-local-testing.cjs",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "validate:local": "node scripts/testing/run-local-validation.cjs",
     "ui:review:capture": "node scripts/ui-review/capture-ui-review.cjs"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",
+    "@playwright/test": "^1.59.1",
+    "@supabase/supabase-js": "^2.101.1",
+    "@testing-library/react": "^16.3.0",
     "eslint": "^9.39.4",
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.4.0",
+    "jsdom": "^26.1.0",
     "playwright": "^1.59.1",
-    "typescript-eslint": "^8.58.0"
+    "typescript-eslint": "^8.58.0",
+    "vitest": "^3.2.4"
   }
 }

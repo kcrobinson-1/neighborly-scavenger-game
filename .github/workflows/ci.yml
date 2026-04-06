@@ -8,7 +8,7 @@ on:
 
 jobs:
   validate:
-    name: Lint, Build, and Edge Checks
+    name: Lint, Tests, Build, DB, and Edge Checks
     runs-on: ubuntu-latest
 
     steps:
@@ -26,11 +26,20 @@ jobs:
         with:
           deno-version: v2.x
 
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+
       - name: Install dependencies
         run: npm ci
 
       - name: Lint
         run: npm run lint
+
+      - name: Run unit tests
+        run: npm test
+
+      - name: Run database tests
+        run: npm run test:db
 
       - name: Build web app
         run: npm run build:web

@@ -65,6 +65,8 @@ The main docs are:
   current system shape, trust boundaries, and runtime flow
 - [Development Guide](./docs/dev.md)
   local workflow, validation commands, troubleshooting, and release flow
+- [Testing Strategy](./docs/testing.md)
+  what should be tested across the site, shared logic, Supabase, and UX flows
 - [Operations Guide](./docs/operations.md)
   which settings are repo-managed versus manually maintained across GitHub, Vercel, and Supabase
 
@@ -108,10 +110,17 @@ Validation commands:
 
 ```bash
 npm run lint
+npm test
+npm run test:db
 npm run build:web
 deno check --no-lock supabase/functions/issue-session/index.ts
 deno check --no-lock supabase/functions/complete-quiz/index.ts
 ```
+
+For local contributor setup:
+
+- run `npm run test:setup:local` once to check Docker/Deno and install Playwright Chromium
+- run `npm run validate:local` to execute the full local validation flow, including the database and browser suites
 
 For contributor setup details, local workflow notes, and troubleshooting, use [docs/dev.md](./docs/dev.md).
 
