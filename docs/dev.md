@@ -54,15 +54,19 @@ The main working areas are:
 
 ## Implementation Decisions That Matter During Development
 
-### Shared config before DB-backed content
+### DB-backed content with a shared runtime model
 
-The app currently uses a shared `game-config` module for sample quizzes.
+Published quiz content now lives in Supabase tables, not in the default shared
+sample catalog.
 
-That is intentional because:
+The shared `game-config` module still matters because:
 
-- the frontend needs the content to render the experience
-- the backend needs the same content to validate answers and compute score
-- sharing the module avoids drift while the project is still pre-admin and pre-CMS
+- the frontend and backend both map published rows into the same `GameConfig`
+  runtime shape
+- answer validation and scoring still belong to one shared TypeScript source of
+  truth
+- explicit sample fixtures remain available for tests and the local-only
+  prototype fallback without becoming the standard runtime source
 
 ### Reducer-based quiz session
 
@@ -146,6 +150,9 @@ Notes:
 - if you use remote Supabase locally, the project `ALLOWED_ORIGINS` secret must include your exact local origin
 - `http://127.0.0.1:4173` and `http://localhost:4173` are distinct origins
 - the shared project already allows `http://127.0.0.1:4173`, `http://localhost:4173`, `http://127.0.0.1:5173`, and `http://localhost:5173`
+- landing-page summaries and `/game/:slug` now expect published event rows in
+  the connected Supabase project; the repo migrations seed the current demo
+  events for local and fresh-project setup
 
 ### Frontend-only fallback development
 
@@ -162,6 +169,8 @@ Use this path when you do not have backend access and only need frontend iterati
 Constraint:
 
 - this fallback is development-only and should not be treated as production trust logic
+- it also uses explicit shared sample fixtures rather than the published-content
+  tables
 
 ## Validation Commands
 
@@ -212,6 +221,9 @@ Database test note:
 - `npm run test:db` runs the pgTAP suite in `supabase/tests/database`
 - it requires a local Docker-backed Supabase stack
 - the script now starts `npx supabase start` automatically when needed and stops it afterward if it started the stack itself
+- `npm run test:supabase` now resets the local database to the current repo
+  migrations before running the integration and pgTAP suite so warm local state
+  cannot hide schema drift
 
 Broader test strategy guidance, including what should eventually run in PR CI versus local-only iteration, lives in [testing.md](./testing.md).
 
@@ -234,6 +246,11 @@ Notes:
 - prefer a real browser pass over code-only visual guesses
 - prefer remote Supabase-backed UI review when the env vars are configured locally
 - if you must use the offline fallback, run against the Vite dev server rather than `vite preview`
+- local Supabase-backed route-state review works for published-content loading,
+  but the local `supabase functions serve` gateway may still block the
+  browser-start session bootstrap because it responds to credentialed preflights
+  with wildcard CORS headers; use a configured remote Supabase project when you
+  need a full browser-backed trust-path review
 
 For an assertion-based mobile smoke check, run:
 
@@ -326,10 +343,12 @@ One concrete gotcha already hit in this repo:
 
 The next likely development steps are:
 
-1. Move event and quiz content out of the shared `game-config` module and into database-backed event records.
-2. Add organizer/admin tooling for editing, publishing, and operating events without code changes.
-3. Add lightweight reporting for quiz starts, completions, and timing.
-4. Replace sample/demo routing assumptions with direct event-entry routes suitable for QR distribution.
-5. Decide whether live usage justifies stronger abuse controls than the current browser-session dedupe model.
+1. Add organizer/admin tooling for editing, publishing, and operating
+   database-backed events without code changes.
+2. Add lightweight reporting for quiz starts, completions, and timing.
+3. Add richer event publish controls such as drafts, previews, or expiry
+   windows if operations need them.
+4. Decide whether live usage justifies stronger abuse controls than the current
+   browser-session dedupe model.
 
 For the broader product target, read `product.md` and `experience.md`. For the current implementation shape, read `architecture.md`.

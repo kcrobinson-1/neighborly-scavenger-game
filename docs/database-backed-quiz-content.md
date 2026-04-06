@@ -2,7 +2,7 @@
 
 ## Status
 
-- State: working plan
+- State: implementation reference
 - Branch: `codex/database-backed-quiz-content`
 - Last updated: 2026-04-06
 
@@ -196,58 +196,53 @@ Rationale:
   means sample data remains part of the development story until organizer
   tooling exists.
 
-## Planned Structure
+## Implemented Structure
 
-- `shared/game-config/`
-  keep types plus answer/scoring logic, add DB mapping, move sample content into
-  an explicit fixture path, and document module ownership
-- `supabase/functions/_shared/`
-  add DB-backed published-content loader helpers for trusted backend use
-- `apps/web/src/lib/`
-  split Supabase browser config/read helpers from completion/session helpers
-- `apps/web/src/pages/`
-  keep `GamePage` as the quiz shell, but add route-level async loading behavior
+- `shared/game-config/db-content.ts`
+  maps published Supabase rows into the shared `GameConfig` runtime shape and
+  rejects malformed content
+- `shared/game-config/sample-fixtures.ts`
+  keeps the former sample catalog available only for tests and the explicit
+  local prototype fallback
+- `supabase/functions/_shared/published-game-loader.ts`
+  loads one published event by `eventId` inside the trusted backend path
+- `apps/web/src/lib/supabaseBrowser.ts`
+  centralizes browser-side Supabase env, auth-header, and error helpers
+- `apps/web/src/lib/quizContentApi.ts`
+  owns browser reads for landing-page summaries and `/game/:slug`
+- `apps/web/src/pages/GameRoutePage.tsx`
+  separates route-level published-content loading from the quiz shell in
+  `GamePage.tsx`
 
-## Commit Plan
+## Delivery Sequence
 
-- [x] `docs(database-backed-quiz-content): capture MVP scope and decisions`
-- [x] `feat(supabase): add published quiz content schema and demo backfill`
-- [x] `refactor(shared): add DB-to-GameConfig mapping and isolate sample fixtures`
-- [x] `feat(supabase): load canonical published quiz content in complete-quiz`
-- [x] `feat(web): load game routes and demo summaries from published quiz content`
-- [ ] `docs: finalize durable reference and refresh repo docs`
+Implemented in these reviewable commits:
 
-## Validation Plan
+- `docs(database-backed-quiz-content): capture MVP scope and decisions`
+- `feat(supabase): add published quiz content schema and demo backfill`
+- `refactor(shared): add DB-to-GameConfig mapping and isolate sample fixtures`
+- `feat(supabase): load canonical published quiz content in complete-quiz`
+- `feat(web): load game routes and demo summaries from published quiz content`
+- `docs: finalize durable reference and refresh repo docs`
 
-Baseline before editing:
+## Validation Summary
 
-- [x] `npm run lint`
-- [x] `npm test`
-- [x] `npm run test:functions`
-- [x] `npm run test:supabase`
-- [x] `npm run build:web`
-- [x] `deno check --no-lock supabase/functions/issue-session/index.ts`
-- [x] `deno check --no-lock supabase/functions/complete-quiz/index.ts`
+The milestone was validated with:
 
-Expected per-stage validation:
+- `npm run lint`
+- `npm test`
+- `npm run test:functions`
+- `npm run test:supabase`
+- `npm run build:web`
+- `npm run test:e2e`
+- `deno check --no-lock supabase/functions/issue-session/index.ts`
+- `deno check --no-lock supabase/functions/complete-quiz/index.ts`
 
-- schema/db commit: `npm run test:supabase`
-- shared/backend commits:
-  `npm run lint`, `npm test`, `npm run test:functions`, `npm run test:supabase`,
-  `deno check --no-lock supabase/functions/issue-session/index.ts`,
-  `deno check --no-lock supabase/functions/complete-quiz/index.ts`
-- web commit: previous commands plus `npm run build:web` and `npm run test:e2e`
-- final branch pass: full validation suite plus final self-review
+Validation notes:
 
-Validation implementation note:
-
-- local Supabase validation now needs to reset the local database to the
-  current repo migrations before integration and pgTAP runs so warm local stack
-  state cannot hide new schema changes
-- web-commit validation has been exercised with `npm run lint`, `npm test`,
-  `npm run test:functions`, `npm run test:supabase`, `npm run build:web`,
-  `npm run test:e2e`, `deno check --no-lock supabase/functions/issue-session/index.ts`,
-  and `deno check --no-lock supabase/functions/complete-quiz/index.ts`
+- local Supabase validation now resets the local database to the current repo
+  migrations before integration and pgTAP runs so warm local stack state cannot
+  hide new schema changes
 - UI review captures for this milestone live in
   `tmp/ui-review/20260406-130427-before` and
   `tmp/ui-review/20260406-132240-after`
@@ -255,21 +250,6 @@ Validation implementation note:
   local `supabase functions serve` currently returns wildcard CORS headers for
   credentialed browser preflights, which blocks the browser-start session flow
   during local UI review even though function and integration tests still pass
-
-## Progress Checklist
-
-- [x] Ground in current docs, shared config, web flow, backend flow, and
-      migrations
-- [x] Create dedicated branch
-- [x] Run full baseline validation suite on the new branch
-- [x] Add decision doc and commit it
-- [x] Add published content schema and seeded demo events
-- [x] Add shared DB row mapping and tests
-- [x] Add backend published-content loader and switch `complete-quiz`
-- [x] Add browser published-content reads and async route integration
-- [ ] Update architecture/dev/README docs
-- [x] Run before/after UI review captures
-- [ ] Complete final whole-branch validation and self-review
 
 ## Deferred Future Improvements
 
