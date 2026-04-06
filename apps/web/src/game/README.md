@@ -48,7 +48,7 @@ test, and maintain.
 - [x] Extract quiz session state machine files and matching tests.
 - [x] Extract derived session selectors/helpers and matching tests.
 - [x] Extract quiz UI components from `GamePage.tsx` and add matching tests.
-- [ ] Add direct `quizUtils` coverage and focused `GamePage` wiring coverage.
+- [x] Add direct `quizUtils` coverage and focused `GamePage` wiring coverage.
 - [ ] Finalize this README as a stable module guide.
 - [ ] Update `docs/architecture.md` for the new frontend structure.
 - [ ] Update `docs/testing.md` for the new test layout and coverage.
