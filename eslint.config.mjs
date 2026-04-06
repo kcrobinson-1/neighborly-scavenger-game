@@ -77,4 +77,15 @@ export default [
       "no-undef": "off",
     },
   },
+  {
+    files: ["tests/supabase/functions/**/*.ts"],
+    languageOptions: {
+      globals: {
+        ...globals.deno,
+      },
+    },
+    rules: {
+      "no-undef": "off",
+    },
+  },
 ];
