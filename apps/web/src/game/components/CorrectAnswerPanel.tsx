@@ -1,0 +1,29 @@
+/** Success panel shown between questions in instant-feedback quiz mode. */
+import type { Question } from "../../data/games";
+
+/** Props for the instant-feedback success panel. */
+type CorrectAnswerPanelProps = {
+  feedbackMessage: string;
+  isLastQuestion: boolean;
+  onContinue: () => void;
+  question: Question;
+};
+
+/** Success panel shown in the instant-feedback quiz mode. */
+export function CorrectAnswerPanel({
+  feedbackMessage,
+  isLastQuestion,
+  onContinue,
+  question,
+}: CorrectAnswerPanelProps) {
+  return (
+    <section className="panel completion-panel">
+      <span className="chip chip-success">Correct</span>
+      <h2>{question.sponsor}</h2>
+      <p>{feedbackMessage}</p>
+      <button className="primary-button" onClick={onContinue} type="button">
+        {isLastQuestion ? "See your results" : "Continue"}
+      </button>
+    </section>
+  );
+}

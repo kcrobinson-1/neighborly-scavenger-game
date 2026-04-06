@@ -7,6 +7,6 @@ export default defineConfig({
     // test rollout simple while we build out the rest of the suite.
     environment: "jsdom",
     exclude: ["tests/supabase/functions/**/*.test.ts"],
-    include: ["tests/**/*.test.ts"],
+    include: ["tests/**/*.test.ts", "tests/**/*.test.tsx"],
   },
 });
