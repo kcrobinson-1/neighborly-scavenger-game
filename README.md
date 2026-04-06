@@ -65,6 +65,8 @@ The main docs are:
   current system shape, trust boundaries, and runtime flow
 - [Development Guide](./docs/dev.md)
   local workflow, validation commands, troubleshooting, and release flow
+- [Testing Strategy](./docs/testing.md)
+  what should be tested across the site, shared logic, Supabase, and UX flows
 - [Operations Guide](./docs/operations.md)
   which settings are repo-managed versus manually maintained across GitHub, Vercel, and Supabase
 

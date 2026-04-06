@@ -14,6 +14,8 @@ Use it for:
 
 System shape and data ownership live in `architecture.md`. UX intent lives in `experience.md`. Platform setting ownership lives in `operations.md`.
 
+Testing scope, layer ownership, and rollout priorities live in `testing.md`.
+
 ## Current Tooling
 
 This repo currently uses:
@@ -171,6 +173,8 @@ deno check --no-lock supabase/functions/complete-quiz/index.ts
 ```
 
 Those commands are also reflected in [`.github/workflows/ci.yml`](../.github/workflows/ci.yml).
+
+Broader test strategy guidance, including what should eventually run in PR CI versus local-only iteration, lives in [testing.md](./testing.md).
 
 ## UI Review Workflow
 
