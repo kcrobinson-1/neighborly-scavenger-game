@@ -121,6 +121,14 @@ If you validate the UI by running the app locally and taking screenshots:
 - confirm direct route loading as well as the main click-through flow
 - capture the key states you are reviewing, not just the landing page
 
+If a change modifies UX, layout, interaction flow, or user-facing copy in a meaningful way:
+
+- capture relevant before screenshots before editing when browser automation is feasible
+- capture matching after screenshots after the implementation is complete
+- use the same routes, states, viewport, and scroll context for the before/after pair whenever practical
+- include a before/after comparison in the pull request description, not just a prose summary
+- treat this as part of the expected review flow for UX-facing pull requests, not as an optional polish step
+
 Prefer the reusable capture workflow already in the repo:
 
 - keep reusable automation logic in `scripts/ui-review/`
@@ -154,6 +162,14 @@ The capture script supports future reuse:
 - it accepts `--base-url` when the local app is running on a different origin
 - it accepts `--output-dir` when a task needs a specific artifact location
 
+Recommended UX-change screenshot process:
+
+1. Run the capture flow before making changes and save the images in a dedicated timestamped folder such as `tmp/ui-review/<timestamp>-before/`.
+2. Make the UX change.
+3. Run the same capture flow again and save the images in a separate folder such as `tmp/ui-review/<timestamp>-after/`.
+4. Select the key comparison images for the PR, usually mobile-first screens and any important error, completion, or edge states touched by the change.
+5. Keep the raw screenshots in `tmp/` only; do not move them into tracked repo paths.
+
 Treat screenshot artifacts as temporary analysis output.
 
 - write screenshots under `tmp/`
@@ -165,6 +181,26 @@ Do not let one screenshot run overwrite or mix with another accidentally.
 The default expectation is one timestamped subfolder per run. Only reuse an existing output directory if the task explicitly benefits from overwriting a prior capture set.
 
 Before finishing a UI-review task, make sure you do not leave behind ambiguous mixed runs that make later analysis harder.
+
+## Pull Request Screenshot Process
+
+When a PR should show screenshots, do not satisfy that by committing image artifacts into the repository.
+
+Use this process instead:
+
+1. Capture the images into `tmp/ui-review/` as described above.
+2. Upload only the selected PR images to an external image host so the PR description can reference them by URL.
+3. A working example used in this repo is:
+
+```bash
+curl -F "reqtype=fileupload" -F "fileToUpload=@tmp/ui-review/<run>/<image>.png" \
+  https://catbox.moe/user/api.php
+```
+
+4. Paste the returned image URLs into the PR body with normal Markdown image syntax.
+5. Keep the local screenshots untracked and temporary; do not add them to git, and do not create tracked docs-only image folders just to support the PR description.
+
+This keeps the repo aligned with the rule that generated screenshots live under `tmp/` and are not committed, while still making before/after comparisons visible in review.
 
 ## Self-Review Checklist
 
