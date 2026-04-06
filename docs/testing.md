@@ -324,8 +324,8 @@ Everything beyond that should earn its keep.
 - [x] Add shared-domain tests for `answers.ts`, `game-validation.ts`, and `catalog.ts`.
 - [x] Add frontend tests for `useQuizSession`.
 - [x] Add frontend tests for `quizApi` with mocked network responses and storage.
-- [ ] Add Playwright Test config instead of relying only on the screenshot script.
-- [ ] Add a small mobile smoke suite that covers featured flow, direct route load, and not-found states.
+- [x] Add Playwright Test config instead of relying only on the screenshot script.
+- [x] Add a small mobile smoke suite that covers featured flow, direct route load, and not-found states.
 - [ ] Add local database tests for `complete_quiz_and_award_entitlement`.
 
 ### Soon After

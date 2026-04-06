@@ -197,6 +197,14 @@ Notes:
 - prefer remote Supabase-backed UI review when the env vars are configured locally
 - if you must use the offline fallback, run against the Vite dev server rather than `vite preview`
 
+For an assertion-based mobile smoke check, run:
+
+```bash
+npm run test:e2e
+```
+
+That Playwright suite starts the local Vite server in explicit prototype-fallback mode, so it can run without Supabase env vars while still covering direct route load, the featured attendee flow, and the not-found fallbacks.
+
 ## Fresh Deployment From A Fork
 
 Use this section only when creating a new deployment outside the shared project.

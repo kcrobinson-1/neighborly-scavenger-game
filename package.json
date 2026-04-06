@@ -10,13 +10,16 @@
   "scripts": {
     "dev:web": "npm --workspace @neighborly/web run dev",
     "dev:web:local": "npm --workspace @neighborly/web run dev -- --host 127.0.0.1 --port 4173",
+    "dev:web:test": "npm --workspace @neighborly/web run dev -- --host 127.0.0.1 --port 4173 --strictPort",
     "build:web": "npm --workspace @neighborly/web run build",
     "lint": "eslint apps shared supabase scripts tests",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:e2e": "playwright test",
     "ui:review:capture": "node scripts/ui-review/capture-ui-review.cjs"
   },
   "devDependencies": {
+    "@playwright/test": "^1.59.1",
     "@testing-library/react": "^16.3.0",
     "@eslint/js": "^9.39.4",
     "eslint": "^9.39.4",
