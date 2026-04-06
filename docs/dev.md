@@ -107,7 +107,8 @@ For regular contribution work, install:
 - Node `24.14.1` LTS
 - npm
 - Deno if you need to run the Edge Function checks locally
-- Supabase CLI if you are changing Supabase infrastructure or verifying deploy commands
+- Supabase CLI if you are changing Supabase infrastructure, running database tests, or verifying deploy commands
+- Docker if you need to run the local Supabase stack for database tests
 - Playwright Chromium if you are running the UI-review capture flow
 
 Install dependencies at the repo root:
@@ -168,12 +169,18 @@ The current validation set is:
 ```bash
 npm run lint
 npm test
+npm run test:db
 npm run build:web
 deno check --no-lock supabase/functions/issue-session/index.ts
 deno check --no-lock supabase/functions/complete-quiz/index.ts
 ```
 
 Those commands are also reflected in [`.github/workflows/ci.yml`](../.github/workflows/ci.yml).
+
+Database test note:
+
+- `npm run test:db` runs the pgTAP suite in `supabase/tests/database`
+- it requires the local Supabase stack, so make sure Docker is available and start the stack with `npx supabase start` or `supabase start` first
 
 Broader test strategy guidance, including what should eventually run in PR CI versus local-only iteration, lives in [testing.md](./testing.md).
 

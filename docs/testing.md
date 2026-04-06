@@ -326,7 +326,7 @@ Everything beyond that should earn its keep.
 - [x] Add frontend tests for `quizApi` with mocked network responses and storage.
 - [x] Add Playwright Test config instead of relying only on the screenshot script.
 - [x] Add a small mobile smoke suite that covers featured flow, direct route load, and not-found states.
-- [ ] Add local database tests for `complete_quiz_and_award_entitlement`.
+- [x] Add local database tests for `complete_quiz_and_award_entitlement`.
 
 ### Soon After
 

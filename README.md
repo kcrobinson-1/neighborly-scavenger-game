@@ -111,6 +111,7 @@ Validation commands:
 ```bash
 npm run lint
 npm test
+npm run test:db
 npm run build:web
 deno check --no-lock supabase/functions/issue-session/index.ts
 deno check --no-lock supabase/functions/complete-quiz/index.ts
