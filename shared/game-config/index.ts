@@ -6,6 +6,14 @@ export {
   validateSubmittedAnswers,
 } from "./answers.ts";
 export {
+  mapAuthoringGameDraftContentToGameConfig,
+  parseAuthoringGameDraftContent,
+  validateAuthoringGameDraftContent,
+  type AuthoringGameDraftContent,
+  type AuthoringGameDraftRow,
+  type AuthoringGameVersionRow,
+} from "./draft-content.ts";
+export {
   mapPublishedGameRowsToGameConfig,
   type PublishedGameEventRow,
   type PublishedGameOptionRow,
