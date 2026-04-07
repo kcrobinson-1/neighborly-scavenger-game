@@ -100,6 +100,9 @@ For structural or multi-file work, documentation is part of the execution loop, 
 - maintain or create a local README or equivalent in the relevant area when the change introduces or reorganizes module structure
 - document file responsibilities and intended ownership when the structure is non-obvious
 - update area docs as changes are made so the written structure never lags far behind the code
+- if a repo plan doc tracks phased work, keep its phase status current as implementation lands
+- when a tracked phase is complete in the branch, mark it complete in the relevant plan doc before handoff
+- unless the work is explicitly exploratory, keep each completed phase in a PR-ready state that could merge to `main` without waiting for a later phase
 
 Update `README.md` when:
 

@@ -4,7 +4,8 @@
 
 - State: proposed design
 - Phase 0 status: complete for this document revision
-- Phases 1-5 status: proposed implementation work
+- Phase 1 status: implemented on branch `feat/quiz-authoring-phase-1`
+- Phases 2-5 status: proposed implementation work
 - Last updated: 2026-04-06
 - Owner area: product, UX, web app, shared quiz domain, and Supabase backend
 
@@ -23,6 +24,18 @@ It covers the problem from three hats:
   trust boundary, and published-content flow
 
 It is intentionally a design and execution plan, not an implementation record.
+
+## Plan Maintenance
+
+- Keep this plan synchronized with the code as phased work lands.
+- When a phase is complete in the current branch or merged code, mark that phase
+  complete here instead of leaving it implied.
+- Each phase should end in a reviewable, PR-ready state that can merge into
+  `main` without depending on a later phase, unless the doc explicitly calls out
+  a different expectation.
+- The intended rollout is phase-by-phase. Later phases build on earlier ones,
+  but Phase 1 should be mergeable before Phase 2 starts, Phase 2 before Phase 3,
+  and so on.
 
 ## Why This Is The Next Problem
 
@@ -643,7 +656,9 @@ Status note:
 
 - Phase 0 is complete at the planning level in this document. The items below
   are settled scope decisions, not open questions.
-- Phases 1-5 are still proposed execution work.
+- Phase 1 is complete in the current implementation branch and should be treated
+  as merge-ready on its own.
+- Phases 2-5 are still proposed execution work.
 
 ### Phase 0: Align Product And Scope (Complete)
 
@@ -654,7 +669,7 @@ Deliverables:
 - scheduled publish explicitly deferred
 - post-publish edits remain allowed through draft plus explicit republish
 
-### Phase 1: Shared Domain And Data Model
+### Phase 1: Shared Domain And Data Model (Complete)
 
 Deliverables:
 
@@ -667,6 +682,17 @@ Acceptance criteria:
 
 - a draft can represent every current published event shape
 - server-side validation can reject malformed drafts before publish
+- the phase leaves the repo in a PR-ready state without requiring Phase 2 work
+
+Implementation status:
+
+- implemented on branch `feat/quiz-authoring-phase-1`
+- landed as:
+  - `feat(supabase): add quiz authoring draft and version tables`
+  - `feat(shared): add authoring draft mapping and validation`
+  - `test(authoring): cover draft validation and schema backfill`
+  - `docs(shared): document draft content module`
+- current scope intentionally stops short of auth, admin APIs, or publish flows
 
 ### Phase 2: Auth And Authorization
 
