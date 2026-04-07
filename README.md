@@ -66,6 +66,8 @@ The main docs are:
   current system shape, trust boundaries, and runtime flow
 - [Database-backed Quiz Content](./docs/database-backed-quiz-content.md)
   durable implementation reference for the published-content milestone
+- [Quiz Authoring Plan](./docs/quiz-authoring-plan.md)
+  proposed path for organizer/admin quiz creation, editing, preview, and publish
 - [Development Guide](./docs/dev.md)
   local workflow, validation commands, troubleshooting, and release flow
 - [Testing Strategy](./docs/testing.md)
