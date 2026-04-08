@@ -189,6 +189,9 @@ Do not wait until the end of a large change to discover that the branch drifted.
 Treat pull requests as reviewable engineering work, not speculative drafts with known unverified edges hidden inside them.
 
 - Before opening or updating a PR, make sure every new script or validation command added by the branch is runnable by a contributor following repo docs.
+- In the PR description, state the expected user-behavior difference from the branch in plain language.
+- If the branch changes user behavior, describe what a user can now do differently or what flow now behaves differently.
+- If the branch does not change current user behavior, say that explicitly and describe the groundwork laid for a later stage.
 - For new test runners or test directories, confirm the existing runners do not accidentally pick them up or conflict with them.
 - If a helper script depends on local tools such as Docker, Deno, Playwright, or the Supabase CLI, either make the script self-checking with clear failure messages or document the setup in the same change.
 - For new helper scripts that start local services or background processes, validate teardown as well as setup so CI cannot hang after the assertions already passed.
