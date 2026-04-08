@@ -19,6 +19,7 @@
 }
 
 .landing-layout,
+.admin-layout,
 .game-layout,
 .not-found-layout {
   position: relative;
@@ -32,6 +33,11 @@
 
 .game-layout {
   @include page-width(440px);
+  @include stack(16px);
+}
+
+.admin-layout {
+  @include page-width(720px);
   @include stack(16px);
 }
 

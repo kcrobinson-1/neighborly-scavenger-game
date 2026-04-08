@@ -1,9 +1,10 @@
 /** Application routes supported by the lightweight client-side router. */
-export type AppPath = "/" | `/game/${string}`;
+export type AppPath = "/" | "/admin" | `/game/${string}`;
 
 /** Central route definitions used by the pathname-based client router. */
 export const routes = {
   home: "/" as AppPath,
+  admin: "/admin" as AppPath,
   gamePrefix: "/game",
   game: (slug: string): AppPath =>
     `/game/${encodeURIComponent(slug)}`,

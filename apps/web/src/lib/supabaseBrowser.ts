@@ -1,8 +1,12 @@
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+
 /** Minimal error payload shape returned by Supabase-backed browser requests. */
 type SupabaseBrowserErrorPayload = {
   error?: string;
   message?: string;
 };
+
+let browserSupabaseClient: SupabaseClient | null = null;
 
 /** Runtime Supabase configuration read from Vite environment variables. */
 export type SupabaseConfig = {
@@ -35,6 +39,27 @@ export function getSupabaseConfig(): SupabaseConfig {
     supabaseClientKey,
     supabaseUrl,
   };
+}
+
+/** Returns the shared browser Supabase client used by admin auth and data reads. */
+export function getBrowserSupabaseClient() {
+  const { enabled, supabaseClientKey, supabaseUrl } = getSupabaseConfig();
+
+  if (!enabled) {
+    throw new Error(getMissingSupabaseConfigMessage());
+  }
+
+  if (!browserSupabaseClient) {
+    browserSupabaseClient = createClient(supabaseUrl, supabaseClientKey, {
+      auth: {
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
+        persistSession: true,
+      },
+    });
+  }
+
+  return browserSupabaseClient;
 }
 
 /** Enables the local-only fallback only when explicitly requested in development. */

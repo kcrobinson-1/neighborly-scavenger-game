@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { AdminPage } from "./pages/AdminPage";
 import { LandingPage } from "./pages/LandingPage";
 import { GameRoutePage } from "./pages/GameRoutePage";
 import { NotFoundPage } from "./pages/NotFoundPage";
@@ -9,6 +10,10 @@ import { usePathnameNavigation } from "./usePathnameNavigation";
 function getPageContent(pathname: string, navigate: (path: string) => void): ReactNode {
   if (pathname === routes.home) {
     return <LandingPage onNavigate={navigate} />;
+  }
+
+  if (pathname === routes.admin) {
+    return <AdminPage onNavigate={navigate} />;
   }
 
   const matchedGame = matchGamePath(pathname);

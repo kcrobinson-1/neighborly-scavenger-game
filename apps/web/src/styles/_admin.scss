@@ -1,0 +1,99 @@
+@use "./mixins" as *;
+@use "./tokens" as *;
+
+.admin-panel,
+.admin-copy,
+.admin-state-stack,
+.admin-form,
+.draft-list,
+.draft-row-copy {
+  @include stack(16px);
+}
+
+.admin-copy {
+  gap: 10px;
+}
+
+.admin-copy p,
+.admin-state-stack p,
+.draft-row-meta {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.admin-panel h2,
+.draft-row h3 {
+  margin: 0;
+}
+
+.admin-form {
+  gap: 14px;
+}
+
+.admin-field {
+  @include stack(8px);
+}
+
+.admin-field-label {
+  font-weight: 700;
+  color: var(--text);
+}
+
+.admin-input {
+  width: 100%;
+  padding: 15px 16px;
+  border: 1px solid var(--surface-border);
+  border-radius: $radius-control;
+  background: rgba(255, 252, 245, 0.98);
+  color: var(--text);
+}
+
+.admin-input:focus-visible {
+  outline: $focus-ring;
+  outline-offset: 2px;
+}
+
+.admin-message {
+  margin: 0;
+  padding: 14px 16px;
+  border-radius: $radius-control;
+  font-weight: 600;
+}
+
+.admin-message-error {
+  background: rgba(217, 107, 43, 0.12);
+  color: var(--primary);
+}
+
+.admin-message-success {
+  background: rgba(63, 143, 90, 0.12);
+  color: var(--success);
+}
+
+.admin-signout-button,
+.admin-refresh-button {
+  width: fit-content;
+}
+
+.admin-signed-in-as {
+  font-size: 0.95rem;
+}
+
+.draft-list {
+  gap: 12px;
+}
+
+.draft-row {
+  padding: 18px;
+  border: 1px solid rgba(31, 58, 50, 0.1);
+  border-radius: $radius-card;
+  background: rgba(255, 250, 243, 0.82);
+}
+
+.draft-row-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
