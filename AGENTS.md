@@ -64,16 +64,20 @@ Use the full structured path when the change is multi-file, architectural, refac
 ### Full Structured Path
 
 1. Ground in the current code and docs before making structural decisions.
-2. Write down the execution plan before editing.
+2. Check branch state before editing.
+   If you are on `main`, create or switch to a feature branch before the first repo edit.
+3. Write down the execution plan before editing.
    Use a local README, checklist, or equivalent in the relevant area when the work spans multiple files or steps.
-3. Define the target structure and file responsibilities up front so the refactor is constraint-driven, not improvised file by file.
-4. Execute in small, reversible commits.
+4. Define the target structure and file responsibilities up front so the refactor is constraint-driven, not improvised file by file.
+5. Define the intended commit boundaries up front.
+   For multi-step work, note the planned commit slices before the first code change so implementation does not collapse into one large commit by accident.
+6. Execute in small, reversible commits.
    Each commit should leave the repo working, keep tests aligned with code, and preserve a reviewable intermediate state.
-5. Validate continuously, not just at the end.
+7. Validate continuously, not just at the end.
    Run the relevant checks before each commit and after any risky structural step.
-6. Keep documentation current as the work progresses.
+8. Keep documentation current as the work progresses.
    Do not save README or architecture updates for the very end if the structure is already changing underneath them.
-7. Self-review each commit-sized diff, then self-review the final branch as a whole before handing off or opening a PR.
+9. Self-review each commit-sized diff, then self-review the final branch as a whole before handing off or opening a PR.
 
 If you discover that the current docs no longer describe the code accurately, fix the docs in the same change when practical.
 
@@ -92,6 +96,8 @@ For multi-step work, do not batch everything into one large uncommitted transfor
 - create or maintain a local checklist in the relevant area when it helps track structure, responsibilities, or remaining work
 - update that checklist or README as steps are completed
 - keep intermediate states understandable to the next engineer or agent
+- if the work started from `main`, do not leave implementation only in the working tree on `main`; move it onto a feature branch before substantial edits accumulate
+- if the change spans backend, frontend, tests, and docs, assume it should land as multiple commits unless there is a specific reason not to
 
 ### Versioning And Dependency Discipline
 
