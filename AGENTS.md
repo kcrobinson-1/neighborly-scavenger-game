@@ -91,6 +91,17 @@ For multi-step work, do not batch everything into one large uncommitted transfor
 - update that checklist or README as steps are completed
 - keep intermediate states understandable to the next engineer or agent
 
+### Versioning And Dependency Discipline
+
+Choose versions deliberately when you add or update libraries, actions, CLIs, or other tooling that pulls in libraries.
+
+- prefer current stable versions that are compatible with the repo's runtime and framework constraints
+- do not use floating values such as `latest`, broad unpinned ranges, or moving tags when a reproducible pinned version is practical
+- when an action or tool installs another dependency under the hood, verify the installed version is compatible with the repo and the surrounding runtime
+- when Deno, npm, JSR, GitHub Actions, or other package systems interact, make sure their resolved versions do not drift silently across environments
+- update lockfiles and any version-carrying config in the same change
+- prefer upgrading intentionally with a clear validation pass over opportunistic version bumps mixed into unrelated work
+
 ## Documentation Expectations
 
 Keep documentation synchronized with the implementation.
