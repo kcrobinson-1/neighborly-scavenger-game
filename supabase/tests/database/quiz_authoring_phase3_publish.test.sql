@@ -2,123 +2,48 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(29);
-
-select has_column(
-  'public',
-  'quiz_event_drafts',
-  'last_published_at',
-  'drafts track last publish time'
-);
-
-select has_column(
-  'public',
-  'quiz_event_drafts',
-  'last_published_by',
-  'drafts track last publisher'
-);
-
-select has_column(
-  'public',
-  'quiz_event_drafts',
-  'archived_at',
-  'drafts track archive time'
-);
-
-select has_column(
-  'public',
-  'quiz_event_drafts',
-  'archived_by',
-  'drafts track archive actor'
-);
-
-select has_table(
-  'public',
-  'quiz_event_live_transitions',
-  'live transition audit table exists'
-);
+select plan(24);
 
 select ok(
   exists (
     select 1
     from pg_tables
     where schemaname = 'public'
-      and tablename = 'quiz_event_live_transitions'
+      and tablename = 'quiz_event_audit_log'
       and rowsecurity
   ),
-  'live transition audit table keeps row level security enabled'
+  'quiz_event_audit_log keeps row level security enabled'
 );
 
 select ok(
-  not has_table_privilege('anon', 'public.quiz_event_live_transitions', 'SELECT'),
-  'anon cannot read live transition audit rows'
+  not has_table_privilege('anon', 'public.quiz_event_audit_log', 'SELECT'),
+  'anon cannot read quiz event audit rows'
 );
 
 select ok(
-  not has_table_privilege('authenticated', 'public.quiz_event_live_transitions', 'SELECT'),
-  'authenticated cannot read live transition audit rows directly'
+  not has_table_privilege('authenticated', 'public.quiz_event_audit_log', 'SELECT'),
+  'authenticated users cannot read quiz event audit rows directly'
 );
 
 select ok(
-  has_table_privilege('service_role', 'public.quiz_event_live_transitions', 'SELECT,INSERT,UPDATE,DELETE'),
-  'service_role can manage live transition audit rows'
+  has_table_privilege('service_role', 'public.quiz_event_audit_log', 'SELECT,INSERT'),
+  'service_role can read and insert quiz event audit rows'
 );
 
 select ok(
-  has_function_privilege(
-    'service_role',
-    'public.publish_quiz_event_draft(text, timestamptz, uuid, text)',
-    'EXECUTE'
-  ),
-  'service_role can execute publish_quiz_event_draft'
+  not has_function_privilege('authenticated', 'public.publish_quiz_event_draft(text, uuid)', 'EXECUTE'),
+  'authenticated users cannot execute publish directly'
 );
 
 select ok(
-  not has_function_privilege(
-    'anon',
-    'public.publish_quiz_event_draft(text, timestamptz, uuid, text)',
-    'EXECUTE'
-  ),
-  'anon cannot execute publish_quiz_event_draft'
+  has_function_privilege('service_role', 'public.publish_quiz_event_draft(text, uuid)', 'EXECUTE'),
+  'service_role can execute publish'
 );
 
 select ok(
-  not has_function_privilege(
-    'authenticated',
-    'public.publish_quiz_event_draft(text, timestamptz, uuid, text)',
-    'EXECUTE'
-  ),
-  'authenticated cannot execute publish_quiz_event_draft'
+  has_function_privilege('service_role', 'public.unpublish_quiz_event(text, uuid)', 'EXECUTE'),
+  'service_role can execute unpublish'
 );
-
-select ok(
-  has_function_privilege(
-    'service_role',
-    'public.archive_quiz_event(text, integer, uuid, text)',
-    'EXECUTE'
-  ),
-  'service_role can execute archive_quiz_event'
-);
-
-select ok(
-  not has_function_privilege(
-    'anon',
-    'public.archive_quiz_event(text, integer, uuid, text)',
-    'EXECUTE'
-  ),
-  'anon cannot execute archive_quiz_event'
-);
-
-select ok(
-  not has_function_privilege(
-    'authenticated',
-    'public.archive_quiz_event(text, integer, uuid, text)',
-    'EXECUTE'
-  ),
-  'authenticated cannot execute archive_quiz_event'
-);
-
-set local role service_role;
 
 insert into public.quiz_event_drafts (
   id,
@@ -127,153 +52,270 @@ insert into public.quiz_event_drafts (
   content
 )
 values (
-  'phase3-event',
-  'phase3-event',
-  'Phase 3 Event',
-  '{
-    "id": "phase3-event",
-    "slug": "phase3-event",
-    "name": "Phase 3 Event",
-    "location": "Seattle",
-    "estimatedMinutes": 4,
-    "raffleLabel": "phase ticket",
-    "intro": "Intro for Phase 3.",
-    "summary": "Published from a private draft.",
-    "feedbackMode": "final_score_reveal",
-    "allowBackNavigation": false,
-    "allowRetake": true,
-    "questions": [
-      {
-        "id": "q1",
-        "sponsor": "Sponsor One",
-        "prompt": "First prompt?",
-        "selectionMode": "single",
-        "correctAnswerIds": ["a"],
-        "options": [
-          { "id": "a", "label": "Alpha" },
-          { "id": "b", "label": "Beta" }
-        ],
-        "explanation": "Alpha is correct."
-      },
-      {
-        "id": "q2",
-        "sponsor": "Sponsor Two",
-        "prompt": "Second prompt?",
-        "selectionMode": "multiple",
-        "correctAnswerIds": ["c", "d"],
-        "options": [
-          { "id": "c", "label": "Gamma" },
-          { "id": "d", "label": "Delta" },
-          { "id": "e", "label": "Epsilon" }
-        ],
-        "sponsorFact": "Sponsor fact."
-      }
-    ]
-  }'::jsonb
+  'phase3-publish-event',
+  'phase3-publish',
+  'Phase 3 Publish Event',
+  jsonb_build_object(
+    'id', 'phase3-publish-event',
+    'slug', 'phase3-publish',
+    'name', 'Phase 3 Publish Event',
+    'location', 'Seattle',
+    'estimatedMinutes', 2,
+    'raffleLabel', 'raffle ticket',
+    'intro', 'Intro',
+    'summary', 'Summary',
+    'feedbackMode', 'final_score_reveal',
+    'allowBackNavigation', false,
+    'allowRetake', true,
+    'questions', jsonb_build_array(
+      jsonb_build_object(
+        'id', 'q1',
+        'sponsor', 'Sponsor One',
+        'prompt', 'First prompt?',
+        'selectionMode', 'single',
+        'correctAnswerIds', jsonb_build_array('a'),
+        'explanation', 'Because A is right.',
+        'options', jsonb_build_array(
+          jsonb_build_object('id', 'a', 'label', 'Option A'),
+          jsonb_build_object('id', 'b', 'label', 'Option B')
+        )
+      )
+    )
+  )
 );
 
-create temp table phase3_draft_before as
-select updated_at
-from public.quiz_event_drafts
-where id = 'phase3-event';
+set local role service_role;
 
-create temp table phase3_publish_result as
-select *
-from public.publish_quiz_event_draft(
-  'phase3-event',
-  (select updated_at from phase3_draft_before),
-  '33333333-3333-4333-8333-333333333333',
-  'ai_mcp'
+select results_eq(
+  $$ select event_id, slug, version_number from public.publish_quiz_event_draft('phase3-publish-event', '22222222-2222-4222-8222-222222222222') $$,
+  $$ values ('phase3-publish-event'::text, 'phase3-publish'::text, 1) $$,
+  'publish returns the published event and first version number'
 );
+
+reset role;
 
 select is(
-  (select version_number from phase3_publish_result),
+  (
+    select live_version_number
+    from public.quiz_event_drafts
+    where id = 'phase3-publish-event'
+  ),
   1,
-  'first publish creates version 1'
+  'publish updates the draft live version pointer'
 );
 
 select is(
   (
     select count(*)
     from public.quiz_event_versions
-    where event_id = 'phase3-event'
-      and version_number = 1
-      and published_by = '33333333-3333-4333-8333-333333333333'
+    where event_id = 'phase3-publish-event'
   ),
   1::bigint,
-  'publish creates an immutable version row with the actor'
+  'publish creates one immutable version'
 );
 
 select is(
   (
-    select summary
+    select allow_back_navigation
     from public.quiz_events
-    where id = 'phase3-event'
-      and published_at is not null
+    where id = 'phase3-publish-event'
   ),
-  'Published from a private draft.',
-  'publish upserts the public event projection'
-);
-
-select is(
-  (
-    select string_agg(id || ':' || display_order::text, ',' order by display_order)
-    from public.quiz_questions
-    where event_id = 'phase3-event'
-  ),
-  'q1:1,q2:2',
-  'publish maps question array order into display order'
-);
-
-select is(
-  (
-    select string_agg(id || ':' || display_order::text || ':' || is_correct::text, ',' order by question_id, display_order)
-    from public.quiz_question_options
-    where event_id = 'phase3-event'
-  ),
-  'a:1:true,b:2:false,c:1:true,d:2:true,e:3:false',
-  'publish maps option order and correct-answer membership'
-);
-
-select is(
-  (
-    select live_version_number
-    from public.quiz_event_drafts
-    where id = 'phase3-event'
-      and last_published_by = '33333333-3333-4333-8333-333333333333'
-      and archived_at is null
-  ),
-  1,
-  'publish stamps draft live metadata'
+  false,
+  'publish projects event metadata into public quiz_events'
 );
 
 select is(
   (
     select count(*)
-    from public.quiz_event_live_transitions
-    where event_id = 'phase3-event'
-      and action = 'publish'
-      and version_number = 1
-      and details ->> 'source' = 'ai_mcp'
+    from public.quiz_questions
+    where event_id = 'phase3-publish-event'
   ),
   1::bigint,
-  'publish records an audit transition'
+  'publish projects draft questions into public quiz_questions'
 );
 
-select throws_ok(
-  $$
-    select *
-    from public.publish_quiz_event_draft(
-      'phase3-event',
-      (select updated_at from phase3_draft_before),
-      '33333333-3333-4333-8333-333333333333',
-      'admin_ui'
-    )
-  $$,
-  'P0001',
-  'stale_draft',
-  'publish rejects stale expectedUpdatedAt values'
+select is(
+  (
+    select count(*)
+    from public.quiz_question_options
+    where event_id = 'phase3-publish-event'
+      and question_id = 'q1'
+      and is_correct
+  ),
+  1::bigint,
+  'publish projects correct answer flags into public quiz_question_options'
 );
+
+select is(
+  (
+    select count(*)
+    from public.quiz_event_audit_log
+    where event_id = 'phase3-publish-event'
+      and action = 'publish'
+      and version_number = 1
+      and actor_id = '22222222-2222-4222-8222-222222222222'
+  ),
+  1::bigint,
+  'publish records audit metadata'
+);
+
+update public.quiz_event_drafts
+set
+  name = 'Phase 3 Republished Event',
+  content = jsonb_build_object(
+    'id', 'phase3-publish-event',
+    'slug', 'phase3-publish',
+    'name', 'Phase 3 Republished Event',
+    'location', 'Seattle',
+    'estimatedMinutes', 3,
+    'raffleLabel', 'raffle ticket',
+    'intro', 'Updated intro',
+    'summary', 'Updated summary',
+    'feedbackMode', 'final_score_reveal',
+    'questions', jsonb_build_array(
+      jsonb_build_object(
+        'id', 'q2',
+        'sponsor', 'Sponsor Two',
+        'prompt', 'Second prompt?',
+        'selectionMode', 'multiple',
+        'correctAnswerIds', jsonb_build_array('a', 'c'),
+        'sponsorFact', 'Sponsor fact.',
+        'options', jsonb_build_array(
+          jsonb_build_object('id', 'a', 'label', 'Option A'),
+          jsonb_build_object('id', 'b', 'label', 'Option B'),
+          jsonb_build_object('id', 'c', 'label', 'Option C')
+        )
+      )
+    )
+  )
+where id = 'phase3-publish-event';
+
+set local role service_role;
+
+select results_eq(
+  $$ select event_id, slug, version_number from public.publish_quiz_event_draft('phase3-publish-event', '33333333-3333-4333-8333-333333333333') $$,
+  $$ values ('phase3-publish-event'::text, 'phase3-publish'::text, 2) $$,
+  'republish returns the next version number'
+);
+
+reset role;
+
+select is(
+  (
+    select count(*)
+    from public.quiz_questions
+    where event_id = 'phase3-publish-event'
+      and id = 'q1'
+  ),
+  0::bigint,
+  'republish removes previous projected questions'
+);
+
+select is(
+  (
+    select count(*)
+    from public.quiz_question_options
+    where event_id = 'phase3-publish-event'
+      and question_id = 'q2'
+  ),
+  3::bigint,
+  'republish replaces projected options with the current draft'
+);
+
+set local role service_role;
+
+select results_eq(
+  $$ select event_id from public.unpublish_quiz_event('phase3-publish-event', '44444444-4444-4444-8444-444444444444') $$,
+  $$ values ('phase3-publish-event'::text) $$,
+  'unpublish returns the unpublished event id'
+);
+
+reset role;
+
+set local role anon;
+
+select is(
+  (
+    select count(*)
+    from public.quiz_events
+    where id = 'phase3-publish-event'
+  ),
+  0::bigint,
+  'unpublish hides the event from public reads'
+);
+
+reset role;
+
+select is(
+  (
+    select count(*)
+    from public.quiz_event_versions
+    where event_id = 'phase3-publish-event'
+  ),
+  2::bigint,
+  'unpublish preserves immutable version history'
+);
+
+select is(
+  (
+    select count(*)
+    from public.quiz_event_audit_log
+    where event_id = 'phase3-publish-event'
+      and action = 'unpublish'
+      and actor_id = '44444444-4444-4444-8444-444444444444'
+  ),
+  1::bigint,
+  'unpublish records audit metadata'
+);
+
+insert into public.quiz_event_drafts (
+  id,
+  slug,
+  name,
+  content,
+  live_version_number
+)
+values (
+  'phase3-failed-publish',
+  'phase3-failed-publish',
+  'Phase 3 Failed Publish',
+  jsonb_build_object(
+    'id', 'phase3-failed-publish',
+    'slug', 'phase3-failed-publish',
+    'name', 'Phase 3 Failed Publish',
+    'location', 'Seattle',
+    'estimatedMinutes', 2,
+    'raffleLabel', 'raffle ticket',
+    'intro', 'Intro',
+    'summary', 'Summary',
+    'feedbackMode', 'final_score_reveal',
+    'questions', jsonb_build_array(
+      jsonb_build_object(
+        'id', 'q1',
+        'sponsor', 'Sponsor',
+        'prompt', 'Prompt?',
+        'selectionMode', 'single',
+        'correctAnswerIds', jsonb_build_array('a'),
+        'options', jsonb_build_array(
+          jsonb_build_object('id', 'a', 'label', 'Option A')
+        )
+      )
+    )
+  ),
+  1
+);
+
+insert into public.quiz_event_versions (
+  event_id,
+  version_number,
+  content
+)
+select
+  id,
+  1,
+  content
+from public.quiz_event_drafts
+where id = 'phase3-failed-publish';
 
 insert into public.quiz_events (
   id,
@@ -288,128 +330,86 @@ insert into public.quiz_events (
   published_at
 )
 values (
-  'collision-live-event',
-  'collision-route',
-  'Collision Live Event',
+  'phase3-failed-publish',
+  'phase3-failed-publish',
+  'Phase 3 Failed Publish',
   'Seattle',
   2,
-  'ticket',
+  'raffle ticket',
   'Intro',
   'Summary',
   'final_score_reveal',
   now()
 );
 
-insert into public.quiz_event_drafts (
+insert into public.quiz_questions (
+  event_id,
   id,
-  slug,
-  name,
-  content
+  display_order,
+  sponsor,
+  prompt,
+  selection_mode
 )
 values (
-  'collision-draft-event',
-  'collision-route',
-  'Collision Draft Event',
-  '{
-    "id": "collision-draft-event",
-    "slug": "collision-route",
-    "name": "Collision Draft Event",
-    "location": "Seattle",
-    "estimatedMinutes": 2,
-    "raffleLabel": "ticket",
-    "intro": "Intro",
-    "summary": "Summary",
-    "feedbackMode": "final_score_reveal",
-    "questions": [
-      {
-        "id": "q1",
-        "sponsor": "Sponsor",
-        "prompt": "Prompt?",
-        "selectionMode": "single",
-        "correctAnswerIds": ["a"],
-        "options": [
-          { "id": "a", "label": "A" }
-        ]
-      }
-    ]
-  }'::jsonb
+  'phase3-failed-publish',
+  'q1',
+  1,
+  'Sponsor',
+  'Prompt?',
+  'single'
 );
+
+insert into public.quiz_question_options (
+  event_id,
+  question_id,
+  id,
+  display_order,
+  label,
+  is_correct
+)
+values (
+  'phase3-failed-publish',
+  'q1',
+  'a',
+  1,
+  'Option A',
+  true
+);
+
+update public.quiz_event_drafts
+set content = jsonb_set(content, '{questions,0,selectionMode}', to_jsonb('broken'::text))
+where id = 'phase3-failed-publish';
+
+set local role service_role;
 
 select throws_ok(
-  $$
-    select *
-    from public.publish_quiz_event_draft(
-      'collision-draft-event',
-      (select updated_at from public.quiz_event_drafts where id = 'collision-draft-event'),
-      '33333333-3333-4333-8333-333333333333',
-      'admin_ui'
-    )
-  $$,
-  'P0001',
-  'slug_collision',
-  'publish rejects public route slug collisions'
-);
-
-create temp table phase3_archive_result as
-select *
-from public.archive_quiz_event(
-  'phase3-event',
-  1,
-  '33333333-3333-4333-8333-333333333333',
-  'admin_ui'
-);
-
-select isnt(
-  (select archived_at from phase3_archive_result),
+  $$ select * from public.publish_quiz_event_draft('phase3-failed-publish', '55555555-5555-4555-8555-555555555555') $$,
+  '23514',
   null,
-  'archive returns an archived timestamp'
+  'failed publish raises before committing the public projection'
 );
 
-select is(
-  (
-    select published_at
-    from public.quiz_events
-    where id = 'phase3-event'
-  ),
-  null,
-  'archive hides the public route by clearing published_at'
-);
+reset role;
 
 select is(
   (
     select count(*)
     from public.quiz_event_versions
-    where event_id = 'phase3-event'
+    where event_id = 'phase3-failed-publish'
   ),
   1::bigint,
-  'archive preserves version history'
+  'failed publish does not create a new version'
 );
 
 select is(
   (
-    select count(*)
-    from public.quiz_event_live_transitions
-    where event_id = 'phase3-event'
-      and action = 'archive'
-      and version_number = 1
+    select selection_mode
+    from public.quiz_questions
+    where event_id = 'phase3-failed-publish'
+      and id = 'q1'
   ),
-  1::bigint,
-  'archive records an audit transition'
-);
-
-select throws_ok(
-  $$
-    select *
-    from public.archive_quiz_event(
-      'phase3-event',
-      2,
-      '33333333-3333-4333-8333-333333333333',
-      'admin_ui'
-    )
-  $$,
-  'P0001',
-  'stale_live_version',
-  'archive rejects stale expected live versions'
+  'single',
+  'failed publish leaves existing public questions unchanged'
 );
 
 select * from finish();

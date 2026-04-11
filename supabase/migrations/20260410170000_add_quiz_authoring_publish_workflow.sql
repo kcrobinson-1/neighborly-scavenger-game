@@ -1,31 +1,29 @@
 alter table public.quiz_event_drafts
   add column if not exists last_published_at timestamptz,
-  add column if not exists last_published_by uuid,
-  add column if not exists archived_at timestamptz,
-  add column if not exists archived_by uuid;
+  add column if not exists last_published_by uuid;
 
-create table if not exists public.quiz_event_live_transitions (
-  id uuid primary key default gen_random_uuid(),
+create table if not exists public.quiz_event_audit_log (
+  id bigint generated always as identity primary key,
   event_id text not null,
   action text not null,
+  actor_id uuid,
   version_number integer,
-  actor_user_id uuid,
-  details jsonb not null default '{}'::jsonb,
+  metadata jsonb not null default '{}'::jsonb,
   created_at timestamptz not null default now(),
-  constraint quiz_event_live_transitions_action_check
-    check (action in ('publish', 'archive')),
-  constraint quiz_event_live_transitions_version_number_positive
+  constraint quiz_event_audit_log_action_check
+    check (action in ('publish', 'unpublish')),
+  constraint quiz_event_audit_log_version_number_positive
     check (version_number is null or version_number > 0),
-  constraint quiz_event_live_transitions_details_object
-    check (jsonb_typeof(details) = 'object')
+  constraint quiz_event_audit_log_metadata_object
+    check (jsonb_typeof(metadata) = 'object')
 );
 
-alter table public.quiz_event_live_transitions enable row level security;
+alter table public.quiz_event_audit_log enable row level security;
 
-revoke all on table public.quiz_event_live_transitions
+revoke all on table public.quiz_event_audit_log
   from anon, authenticated;
 
-grant select, insert, update, delete on table public.quiz_event_live_transitions
+grant select, insert on table public.quiz_event_audit_log
   to service_role;
 
 revoke insert, update, delete on table public.quiz_event_drafts
@@ -52,17 +50,13 @@ $$;
 
 create or replace function public.publish_quiz_event_draft(
   p_event_id text,
-  p_expected_updated_at timestamptz,
-  p_actor_user_id uuid,
-  p_source text default 'admin_ui'
+  p_published_by uuid
 )
 returns table (
   event_id text,
+  slug text,
   version_number integer,
-  published_at timestamptz,
-  published_by uuid,
-  live_version_number integer,
-  updated_at timestamptz
+  published_at timestamptz
 )
 language plpgsql
 security definer
@@ -70,15 +64,10 @@ set search_path = public
 as $$
 declare
   v_draft public.quiz_event_drafts%rowtype;
-  v_updated_draft public.quiz_event_drafts%rowtype;
+  v_content jsonb;
   v_next_version integer;
   v_published_at timestamptz := now();
-  v_source text := coalesce(nullif(btrim(p_source), ''), 'admin_ui');
 begin
-  if v_source not in ('admin_ui', 'ai_mcp') then
-    raise exception 'invalid_source';
-  end if;
-
   select *
   into v_draft
   from public.quiz_event_drafts
@@ -89,14 +78,11 @@ begin
     raise exception 'draft_not_found';
   end if;
 
-  if p_expected_updated_at is null
-    or v_draft.updated_at is distinct from p_expected_updated_at then
-    raise exception 'stale_draft';
-  end if;
+  v_content = v_draft.content;
 
-  if v_draft.content ->> 'id' is distinct from v_draft.id
-    or v_draft.content ->> 'slug' is distinct from v_draft.slug
-    or v_draft.content ->> 'name' is distinct from v_draft.name then
+  if v_content ->> 'id' is distinct from v_draft.id
+    or v_content ->> 'slug' is distinct from v_draft.slug
+    or v_content ->> 'name' is distinct from v_draft.name then
     raise exception 'invalid_draft_identity';
   end if;
 
@@ -126,9 +112,9 @@ begin
     v_draft.id,
     v_next_version,
     v_draft.schema_version,
-    v_draft.content,
+    v_content,
     v_published_at,
-    p_actor_user_id
+    p_published_by
   );
 
   insert into public.quiz_events (
@@ -143,35 +129,40 @@ begin
     feedback_mode,
     allow_back_navigation,
     allow_retake,
-    published_at
+    published_at,
+    created_at,
+    updated_at
   )
   values (
     v_draft.id,
     v_draft.slug,
     v_draft.name,
-    v_draft.content ->> 'location',
-    (v_draft.content ->> 'estimatedMinutes')::integer,
-    v_draft.content ->> 'raffleLabel',
-    v_draft.content ->> 'intro',
-    v_draft.content ->> 'summary',
-    v_draft.content ->> 'feedbackMode',
-    coalesce((v_draft.content ->> 'allowBackNavigation')::boolean, true),
-    coalesce((v_draft.content ->> 'allowRetake')::boolean, true),
+    v_content ->> 'location',
+    (v_content ->> 'estimatedMinutes')::integer,
+    v_content ->> 'raffleLabel',
+    v_content ->> 'intro',
+    v_content ->> 'summary',
+    v_content ->> 'feedbackMode',
+    coalesce((v_content ->> 'allowBackNavigation')::boolean, true),
+    coalesce((v_content ->> 'allowRetake')::boolean, true),
+    v_published_at,
+    coalesce(v_draft.created_at, v_published_at),
     v_published_at
   )
   on conflict (id) do update
-  set slug = excluded.slug,
-      name = excluded.name,
-      location = excluded.location,
-      estimated_minutes = excluded.estimated_minutes,
-      raffle_label = excluded.raffle_label,
-      intro = excluded.intro,
-      summary = excluded.summary,
-      feedback_mode = excluded.feedback_mode,
-      allow_back_navigation = excluded.allow_back_navigation,
-      allow_retake = excluded.allow_retake,
-      published_at = excluded.published_at,
-      updated_at = now();
+  set
+    slug = excluded.slug,
+    name = excluded.name,
+    location = excluded.location,
+    estimated_minutes = excluded.estimated_minutes,
+    raffle_label = excluded.raffle_label,
+    intro = excluded.intro,
+    summary = excluded.summary,
+    feedback_mode = excluded.feedback_mode,
+    allow_back_navigation = excluded.allow_back_navigation,
+    allow_retake = excluded.allow_retake,
+    published_at = excluded.published_at,
+    updated_at = excluded.updated_at;
 
   delete from public.quiz_questions
   where quiz_questions.event_id = v_draft.id;
@@ -195,7 +186,7 @@ begin
     question.value ->> 'selectionMode',
     question.value ->> 'explanation',
     question.value ->> 'sponsorFact'
-  from jsonb_array_elements(v_draft.content -> 'questions') with ordinality as question(value, ordinality);
+  from jsonb_array_elements(v_content -> 'questions') with ordinality as question(value, ordinality);
 
   insert into public.quiz_question_options (
     event_id,
@@ -216,59 +207,52 @@ begin
       from jsonb_array_elements_text(question.value -> 'correctAnswerIds') as correct_answer(id)
       where correct_answer.id = option.value ->> 'id'
     )
-  from jsonb_array_elements(v_draft.content -> 'questions') with ordinality as question(value, ordinality)
+  from jsonb_array_elements(v_content -> 'questions') with ordinality as question(value, question_ordinality)
   cross join lateral jsonb_array_elements(question.value -> 'options') with ordinality as option(value, ordinality);
 
   update public.quiz_event_drafts
-  set live_version_number = v_next_version,
-      last_published_at = v_published_at,
-      last_published_by = p_actor_user_id,
-      archived_at = null,
-      archived_by = null
-  where id = v_draft.id
-  returning *
-  into v_updated_draft;
+  set
+    live_version_number = v_next_version,
+    last_published_at = v_published_at,
+    last_published_by = p_published_by
+  where id = v_draft.id;
 
-  insert into public.quiz_event_live_transitions (
+  insert into public.quiz_event_audit_log (
     event_id,
     action,
+    actor_id,
     version_number,
-    actor_user_id,
-    details,
+    metadata,
     created_at
   )
   values (
     v_draft.id,
     'publish',
+    p_published_by,
     v_next_version,
-    p_actor_user_id,
-    jsonb_build_object('source', v_source, 'slug', v_draft.slug),
+    jsonb_build_object(
+      'slug', v_draft.slug,
+      'schemaVersion', v_draft.schema_version
+    ),
     v_published_at
   );
 
   return query
   select
     v_draft.id,
+    v_draft.slug,
     v_next_version,
-    v_published_at,
-    p_actor_user_id,
-    v_updated_draft.live_version_number,
-    v_updated_draft.updated_at;
+    v_published_at;
 end;
 $$;
 
-create or replace function public.archive_quiz_event(
+create or replace function public.unpublish_quiz_event(
   p_event_id text,
-  p_expected_live_version_number integer,
-  p_actor_user_id uuid,
-  p_source text default 'admin_ui'
+  p_actor_id uuid
 )
 returns table (
   event_id text,
-  archived_at timestamptz,
-  archived_by uuid,
-  live_version_number integer,
-  updated_at timestamptz
+  unpublished_at timestamptz
 )
 language plpgsql
 security definer
@@ -276,19 +260,8 @@ set search_path = public
 as $$
 declare
   v_draft public.quiz_event_drafts%rowtype;
-  v_updated_draft public.quiz_event_drafts%rowtype;
-  v_archived_at timestamptz := now();
-  v_source text := coalesce(nullif(btrim(p_source), ''), 'admin_ui');
+  v_unpublished_at timestamptz := now();
 begin
-  if v_source not in ('admin_ui', 'ai_mcp') then
-    raise exception 'invalid_source';
-  end if;
-
-  if p_expected_live_version_number is null
-    or p_expected_live_version_number <= 0 then
-    raise exception 'invalid_expected_live_version';
-  end if;
-
   select *
   into v_draft
   from public.quiz_event_drafts
@@ -299,13 +272,10 @@ begin
     raise exception 'draft_not_found';
   end if;
 
-  if v_draft.live_version_number is distinct from p_expected_live_version_number then
-    raise exception 'stale_live_version';
-  end if;
-
   update public.quiz_events
-  set published_at = null,
-      updated_at = now()
+  set
+    published_at = null,
+    updated_at = v_unpublished_at
   where id = v_draft.id
     and published_at is not null;
 
@@ -313,50 +283,40 @@ begin
     raise exception 'live_event_not_found';
   end if;
 
-  update public.quiz_event_drafts
-  set archived_at = v_archived_at,
-      archived_by = p_actor_user_id
-  where id = v_draft.id
-  returning *
-  into v_updated_draft;
-
-  insert into public.quiz_event_live_transitions (
+  insert into public.quiz_event_audit_log (
     event_id,
     action,
+    actor_id,
     version_number,
-    actor_user_id,
-    details,
+    metadata,
     created_at
   )
   values (
     v_draft.id,
-    'archive',
+    'unpublish',
+    p_actor_id,
     v_draft.live_version_number,
-    p_actor_user_id,
-    jsonb_build_object('source', v_source, 'slug', v_draft.slug),
-    v_archived_at
+    jsonb_build_object('slug', v_draft.slug),
+    v_unpublished_at
   );
 
   return query
   select
     v_draft.id,
-    v_archived_at,
-    p_actor_user_id,
-    v_updated_draft.live_version_number,
-    v_updated_draft.updated_at;
+    v_unpublished_at;
 end;
 $$;
 
-revoke all on function public.publish_quiz_event_draft(text, timestamptz, uuid, text)
+revoke all on function public.publish_quiz_event_draft(text, uuid)
   from public;
-revoke all on function public.archive_quiz_event(text, integer, uuid, text)
+revoke all on function public.unpublish_quiz_event(text, uuid)
   from public;
-revoke all on function public.publish_quiz_event_draft(text, timestamptz, uuid, text)
+revoke all on function public.publish_quiz_event_draft(text, uuid)
   from anon, authenticated;
-revoke all on function public.archive_quiz_event(text, integer, uuid, text)
+revoke all on function public.unpublish_quiz_event(text, uuid)
   from anon, authenticated;
 
-grant execute on function public.publish_quiz_event_draft(text, timestamptz, uuid, text)
+grant execute on function public.publish_quiz_event_draft(text, uuid)
   to service_role;
-grant execute on function public.archive_quiz_event(text, integer, uuid, text)
+grant execute on function public.unpublish_quiz_event(text, uuid)
   to service_role;

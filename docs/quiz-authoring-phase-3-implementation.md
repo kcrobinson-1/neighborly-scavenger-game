@@ -25,8 +25,8 @@ before handoff so it does not drift from the canonical docs.
 
 ## Planned Commit Slices
 
-- [ ] `docs(authoring): document phase 3 execution plan`
-- [ ] `feat(supabase): add quiz authoring transition RPCs and audit log`
+- [x] `docs(authoring): document phase 3 execution plan`
+- [x] `feat(supabase): add quiz authoring transition RPCs and audit log`
 - [ ] `feat(functions): add quiz draft save publish and unpublish endpoints`
 - [ ] `test(authoring): cover draft APIs publish projection and docs`
 
@@ -70,8 +70,8 @@ before handoff so it does not drift from the canonical docs.
 ## Running Status
 
 - [x] Branch selected: `feat/quiz-authoring-phase-3`
-- [ ] Execution checklist committed
-- [ ] Database transition layer implemented
+- [x] Execution checklist committed
+- [x] Database transition layer implemented
 - [ ] Authoring Edge Functions implemented
 - [ ] Browser admin API wrappers implemented
 - [ ] Tests updated and passing
