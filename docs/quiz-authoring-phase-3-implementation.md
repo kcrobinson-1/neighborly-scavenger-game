@@ -73,7 +73,7 @@ before handoff so it does not drift from the canonical docs.
 - [x] Execution checklist committed
 - [x] Database transition layer implemented
 - [x] Authoring Edge Functions implemented
-- [ ] Browser admin API wrappers implemented
+- [x] Browser admin API wrappers implemented
 - [ ] Tests updated and passing
 - [ ] Canonical docs updated
 - [ ] Checklist finalized
