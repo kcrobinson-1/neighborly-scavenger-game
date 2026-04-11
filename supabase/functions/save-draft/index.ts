@@ -219,6 +219,8 @@ export function createSaveDraftHandler(
       serviceRoleKey,
     );
 
+    // Draft table writes are service-role-owned after the admin check so the
+    // browser cannot bypass normalization by writing directly through PostgREST.
     if (error || !data) {
       return jsonResponse(
         error ? getPersistenceStatus(error) : 500,

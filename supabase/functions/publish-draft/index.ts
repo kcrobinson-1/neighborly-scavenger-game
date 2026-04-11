@@ -296,6 +296,8 @@ export function createPublishDraftHandler(
       );
     }
 
+    // Validate in TypeScript before invoking the SQL transition so invalid
+    // drafts fail before the live projection transaction starts.
     const publish = await dependencies.publishDraft(
       payload.eventId,
       admin.userId,

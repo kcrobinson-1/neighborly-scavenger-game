@@ -89,6 +89,8 @@ async function callAuthoringFunction<T>(
     credentials: "include",
     headers: {
       ...createSupabaseAuthHeaders(supabaseClientKey),
+      // Authoring functions need the signed-in admin's JWT, not the publishable
+      // key bearer token used for public PostgREST reads.
       Authorization: `Bearer ${accessToken}`,
       "Content-Type": "application/json",
     },

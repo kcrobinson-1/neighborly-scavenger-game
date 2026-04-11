@@ -26,6 +26,8 @@ revoke all on table public.quiz_event_audit_log
 grant select, insert on table public.quiz_event_audit_log
   to service_role;
 
+-- Draft writes now flow through the authoring Edge Functions so every save can
+-- parse and normalize the JSON payload before the row is persisted.
 revoke insert, update, delete on table public.quiz_event_drafts
   from authenticated;
 
@@ -68,6 +70,8 @@ declare
   v_next_version integer;
   v_published_at timestamptz := now();
 begin
+  -- Lock the draft row so concurrent publishes cannot reuse the same version
+  -- number or interleave public projection updates.
   select *
   into v_draft
   from public.quiz_event_drafts
@@ -167,6 +171,8 @@ begin
   delete from public.quiz_questions
   where quiz_questions.event_id = v_draft.id;
 
+  -- Replace the question and option projection from the draft JSON in this
+  -- function's transaction; any constraint failure rolls the whole publish back.
   insert into public.quiz_questions (
     event_id,
     id,
@@ -262,6 +268,8 @@ declare
   v_draft public.quiz_event_drafts%rowtype;
   v_unpublished_at timestamptz := now();
 begin
+  -- Lock the draft row so unpublish records the live version that was current
+  -- when the public route was hidden.
   select *
   into v_draft
   from public.quiz_event_drafts

@@ -47,6 +47,8 @@ export async function authenticateQuizAdmin(
     };
   }
 
+  // Use the caller's JWT for the allowlist RPC so the existing
+  // `is_quiz_admin()` SQL helper evaluates the same request claims RLS uses.
   const userClient = createClient(supabaseUrl, supabaseClientKey, {
     auth: {
       persistSession: false,
