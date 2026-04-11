@@ -14,7 +14,7 @@ Rules for this checklist:
 
 ## Candidate Tasks
 
-- [ ] Split authoring Edge Function tests by endpoint.
+- [x] Split authoring Edge Function tests by endpoint.
   `tests/supabase/functions/authoring.test.ts` is over 400 lines and now covers
   three independent handlers. Move coverage into focused files such as
   `save-draft.test.ts`, `publish-draft.test.ts`, and `unpublish-event.test.ts`
