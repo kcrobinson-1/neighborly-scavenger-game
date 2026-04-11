@@ -100,7 +100,22 @@ function parseSupabaseStatusOutput(output) {
     throw new Error("Supabase status output did not include the expected JSON payload.");
   }
 
-  return JSON.parse(match[0]);
+  return normalizeSupabaseStatus(JSON.parse(match[0]));
+}
+
+function normalizeSupabaseStatus(status) {
+  if (!status || typeof status !== "object") {
+    return status;
+  }
+
+  if (!status.FUNCTIONS_URL && typeof status.API_URL === "string") {
+    return {
+      ...status,
+      FUNCTIONS_URL: `${status.API_URL.replace(/\/$/, "")}/functions/v1`,
+    };
+  }
+
+  return status;
 }
 
 function readSupabaseStatus() {
