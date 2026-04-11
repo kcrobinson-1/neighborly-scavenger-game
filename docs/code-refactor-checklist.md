@@ -1,0 +1,94 @@
+# Code Refactor Checklist
+
+## Purpose
+
+Track small, non-functional refactor tasks for files that have grown large
+enough that splitting them would improve reviewability and local ownership.
+
+Rules for this checklist:
+
+- keep each task behavior-preserving
+- move tests with the code they cover
+- run the existing validation command for the touched area
+- avoid mixing these cleanups with product or schema behavior changes
+
+## Candidate Tasks
+
+- [x] Split authoring Edge Function tests by endpoint.
+  `tests/supabase/functions/authoring.test.ts` is over 400 lines and now covers
+  three independent handlers. Move coverage into focused files such as
+  `save-draft.test.ts`, `publish-draft.test.ts`, and `unpublish-event.test.ts`
+  while keeping shared test fixtures in a small helper.
+  Validation: `npm run test:functions`.
+
+- [ ] Split the Phase 3 database publish pgTAP coverage by behavior.
+  `supabase/tests/database/quiz_authoring_phase3_publish.test.sql` combines
+  privileges, first publish, republish, unpublish, audit, and failed-publish
+  rollback checks. Split into smaller `.test.sql` files grouped by publish
+  projection, unpublish/audit behavior, and failure/permission behavior.
+  Validation: `npm run test:db`.
+
+- [ ] Extract shared authoring Edge Function HTTP/auth boilerplate.
+  `supabase/functions/save-draft/index.ts`,
+  `supabase/functions/publish-draft/index.ts`, and
+  `supabase/functions/unpublish-event/index.ts` repeat CORS, method,
+  configuration, admin-auth, JSON response, and persistence-error mapping
+  patterns. Add a small shared helper under `supabase/functions/_shared/` so
+  each endpoint file mostly owns payload validation and its persistence call.
+  Validation: `npm run test:functions` plus `deno check --no-lock` for the three
+  authoring functions.
+
+- [ ] Split the admin page shell into state and presentation pieces.
+  `apps/web/src/pages/AdminPage.tsx` is about 340 lines and mixes session
+  orchestration, dashboard loading, sign-in form rendering, status states, and
+  draft-list presentation. Extract a `useAdminDashboard` hook and small
+  presentational components under `apps/web/src/admin/` while preserving the
+  current `/admin` route behavior.
+  Validation: `npm test -- tests/web/pages/AdminPage.test.tsx` and
+  `npm run build:web`.
+
+- [ ] Split authoring draft parsing primitives from draft mapping.
+  `shared/game-config/draft-content.ts` contains JSON parsing primitives,
+  question/option parsing, draft row types, validation, and draft-to-runtime
+  mapping. Move generic JSON expectation helpers and question parsing into
+  focused shared modules so `draft-content.ts` reads as the public authoring
+  contract.
+  Validation: `npm test -- tests/shared/game-config/draft-content.test.ts` and
+  `npm run build:web`.
+
+- [ ] Split browser quiz API local fallback from Supabase transport.
+  `apps/web/src/lib/quizApi.ts` owns local prototype entitlement storage,
+  server-session bootstrap, completion submission, retry handling, and response
+  mapping. Extract local fallback storage/completion into a separate module so
+  the production Supabase path is easier to review.
+  Validation: `npm test -- tests/web/lib/quizApi.test.ts` and
+  `npm run build:web`.
+
+- [ ] Split quiz SCSS by component group.
+  `apps/web/src/styles/_quiz.scss` is over 300 lines and includes styles for the
+  intro, question, feedback, completion, and option controls. Split into focused
+  partials imported by the SCSS entrypoint or a quiz index partial.
+  Validation: `npm run build:web`.
+
+- [ ] Split local Edge Function integration runner by responsibility.
+  `scripts/testing/run-function-integration-tests.cjs` combines process
+  lifecycle, readiness polling, HTTP invocation, test assertions, and teardown.
+  Extract process management and HTTP helpers into `scripts/testing/` utilities
+  so the runner reads as the scenario being tested.
+  Validation: `npm run test:functions:integration`.
+
+- [ ] Split `complete-quiz` handler utilities from request orchestration.
+  `supabase/functions/complete-quiz/index.ts` is over 300 lines and includes
+  persistence types, payload validation, JSON response helpers, and the full
+  handler. Move reusable response/payload/persistence helpers into local or
+  shared modules without changing the public function contract.
+  Validation: `npm run test:functions` and
+  `deno check --no-lock supabase/functions/complete-quiz/index.ts`.
+
+## Large Files To Leave Alone For Now
+
+- `supabase/migrations/20260406130000_add_published_quiz_content.sql` is large
+  because it includes historical seed data. Do not split an already-applied
+  migration just to reduce line count.
+- `shared/game-config/sample-games.ts` is mostly explicit sample content. Split
+  it only when adding or reorganizing sample fixtures for a concrete reason.

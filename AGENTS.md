@@ -53,6 +53,17 @@ Use the lightweight path only when the change is small and low-risk, for example
 
 Use the full structured path when the change is multi-file, architectural, refactor-heavy, or changes tests, validation, documentation, or workflow.
 
+### Scope Guardrails
+
+Treat broad checklist, cleanup, or refactor requests as a queue of PR-sized tasks, not as permission to work through everything in one thread.
+
+- prefer one checklist item, one feature slice, or one tightly related file family per branch and handoff
+- combine multiple items only when they share the same files, the same validation surface, and still produce a small reviewable diff
+- if a user asks for many checklist items at once, record or confirm the sequence, then execute only the first bounded slice unless the user explicitly asks only for planning
+- if the work grows beyond one clean PR, stop after updating the checklist or plan with smaller follow-up tasks
+- stop and report instead of expanding scope when the task starts requiring behavior changes, unrelated production edits, mixed backend/frontend/UI work, or validation outside the originally relevant surface
+- prefer a fresh thread or fresh branch for the next checklist item when the previous slice has been committed and handed off
+
 ### Lightweight Path
 
 1. Read the relevant code and matching docs before editing.
