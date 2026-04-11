@@ -36,8 +36,8 @@ Use these boundaries to keep the docs tidy:
   durable implementation reference for the published-content milestone, including
   schema decisions, tradeoffs, and deferred follow-up work
 - `docs/quiz-authoring-plan.md`
-  proposed product, UX, and engineering plan for organizer/admin quiz creation,
-  editing, preview, and publish workflows
+  product, UX, and engineering plan plus current phase status for
+  organizer/admin quiz creation, editing, preview, and publish workflows
 - `docs/dev.md`
   how engineers work in the repo today: setup, validation, release flow, and troubleshooting
 - `docs/testing.md`

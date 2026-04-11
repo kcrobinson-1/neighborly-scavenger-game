@@ -3,8 +3,8 @@
 ## Purpose
 
 Track Phase 3 execution while adding the admin API and publish workflow. This
-file is active implementation state for this branch and should be finalized
-before handoff so it does not drift from the canonical docs.
+file records the completed branch checklist; durable implementation details now
+live in the canonical README and docs.
 
 ## Scope
 
@@ -28,7 +28,7 @@ before handoff so it does not drift from the canonical docs.
 - [x] `docs(authoring): document phase 3 execution plan`
 - [x] `feat(supabase): add quiz authoring transition RPCs and audit log`
 - [x] `feat(functions): add quiz draft save publish and unpublish endpoints`
-- [ ] `test(authoring): cover draft APIs publish projection and docs`
+- [x] `test(authoring): cover draft APIs publish projection and docs`
 
 ## Target Areas
 
@@ -74,6 +74,6 @@ before handoff so it does not drift from the canonical docs.
 - [x] Database transition layer implemented
 - [x] Authoring Edge Functions implemented
 - [x] Browser admin API wrappers implemented
-- [ ] Tests updated and passing
-- [ ] Canonical docs updated
-- [ ] Checklist finalized
+- [x] Tests updated and passing
+- [x] Canonical docs updated
+- [x] Checklist finalized

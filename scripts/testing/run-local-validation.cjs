@@ -25,6 +25,9 @@ function main() {
     ["Web build", ["npm", ["run", "build:web"]]],
     ["Check issue-session function", ["deno", ["check", "--no-lock", "supabase/functions/issue-session/index.ts"]]],
     ["Check complete-quiz function", ["deno", ["check", "--no-lock", "supabase/functions/complete-quiz/index.ts"]]],
+    ["Check save-draft function", ["deno", ["check", "--no-lock", "supabase/functions/save-draft/index.ts"]]],
+    ["Check publish-draft function", ["deno", ["check", "--no-lock", "supabase/functions/publish-draft/index.ts"]]],
+    ["Check unpublish-event function", ["deno", ["check", "--no-lock", "supabase/functions/unpublish-event/index.ts"]]],
   ];
 
   for (const [label, [command, args]] of steps) {

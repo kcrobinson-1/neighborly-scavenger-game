@@ -661,7 +661,8 @@ Status note:
   on its own.
 - Phase 2 is complete in the current repo and should be treated as merge-ready
   on its own.
-- Phases 3-5 are still proposed execution work.
+- Phase 3 is complete in the current repo as a backend/API milestone.
+- Phases 4-5 are still proposed execution work.
 
 ### Phase 0: Align Product And Scope (Complete)
 
@@ -720,8 +721,8 @@ Implementation status:
   the admin shell and authoring-table RLS
 - RLS now exposes `quiz_event_drafts` and `quiz_event_versions` only to
   allowlisted authenticated admins
-- current scope intentionally stops short of draft save, AI upsert, and publish
-  flows
+- current scope intentionally stopped short of draft save, AI upsert, and
+  publish flows, which are covered by Phase 3
 
 ### Phase 3: Admin APIs And Publish Workflow
 
@@ -730,13 +731,27 @@ Deliverables:
 - authenticated draft read and save path
 - AI/MCP-compatible draft upsert path
 - publish Edge Function
-- unpublish or archive Edge Function
+- unpublish Edge Function
 - audit metadata for live transitions
 
 Acceptance criteria:
 
 - publishing validates and updates the live projection transactionally
 - a failed publish cannot leave partially updated public content
+
+Implementation status:
+
+- implemented in the current repo as backend and API groundwork
+- `save-draft` validates canonical authoring JSON and writes private draft rows
+  for allowlisted admins
+- `publish-draft` validates a draft and calls
+  `public.publish_quiz_event_draft(...)` to update public attendee tables in
+  one transaction
+- `unpublish-event` clears the live event's `published_at` value while keeping
+  draft and version history
+- `quiz_event_audit_log` records publish and unpublish transitions
+- current scope intentionally stops short of the full editor UI, preview route,
+  duplication flow, and AI authoring UI
 
 ### Phase 4: Admin UX MVP
 
@@ -752,15 +767,18 @@ Deliverables:
 
 Acceptance criteria:
 
-- a trusted admin can create and publish a quiz without touching the codebase
+- a trusted admin can create and publish a quiz through the admin UI without
+  touching the codebase
 - the draft versus live state is obvious in the UI
 
 ### Phase 5: Migration, Validation, And Docs
 
 Deliverables:
 
-- backfill of current demo events into the authoring system
-- tests for auth, draft save, publish, and projection updates
+- continued backfill and migration verification as later authoring UI surfaces
+  land
+- tests for the completed admin UI workflows, preview behavior, and any AI
+  authoring entry points
 - docs updates across `README.md`, `docs/architecture.md`, and `docs/dev.md`
 
 Acceptance criteria:
@@ -780,7 +798,9 @@ When implementation starts, expect at least:
 - `npm run test:supabase`
 - `deno check --no-lock supabase/functions/issue-session/index.ts`
 - `deno check --no-lock supabase/functions/complete-quiz/index.ts`
-- additional authoring-specific function checks for any new Edge Functions
+- `deno check --no-lock supabase/functions/save-draft/index.ts`
+- `deno check --no-lock supabase/functions/publish-draft/index.ts`
+- `deno check --no-lock supabase/functions/unpublish-event/index.ts`
 - browser-based UI review for the admin flow and the unchanged attendee flow
 
 ## What Success Looks Like
