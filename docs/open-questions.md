@@ -33,14 +33,15 @@ here in the same change.
 
 ## Authoring And Publishing
 
-- What is the first authenticated admin model for quiz authoring?
-  The repo now has draft/version groundwork in `shared/game-config` and
-  `supabase/migrations`, but it does not yet define the auth provider,
-  authorization rules, or admin entrypoint for the first real authoring UI.
-- Do organizers need soft unpublish, expiry, or scheduled publish behavior, or
-  is explicit publish-only enough for the first operational release?
-  Current public runtime behavior is based on published rows, and the authoring
-  plan intentionally defers richer publish controls.
+- What authenticated roles are needed after the first global quiz-admin
+  allowlist?
+  The current authoring model uses Supabase Auth plus `public.quiz_admin_users`
+  for all admin access. It does not yet define organizer-scoped roles,
+  event-level permissions, or non-admin collaborator access.
+- Do organizers need expiry, scheduled publish, or friendlier inactive-event
+  behavior beyond immediate unpublish?
+  The current backend supports explicit publish and unpublish by clearing
+  `quiz_events.published_at`, but richer lifecycle controls are still deferred.
 - How renameable should event slugs be after QR codes have been printed?
   Stable slugs matter operationally, but the repo does not yet define whether
   post-publish slug changes should be forbidden, redirected, or simply allowed.

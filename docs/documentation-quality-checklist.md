@@ -30,7 +30,7 @@ Use it as:
   the work lands on `main`.
 - [x] Keep docs/testing status and todo sections aligned with the actual test
   surface in the repo.
-- [ ] Keep milestone-plan phase status current as later authoring phases land.
+- [x] Keep milestone-plan phase status current as later authoring phases land.
 - [ ] Fold milestone-specific implementation notes back into canonical docs when
   those notes stop being active execution references.
 

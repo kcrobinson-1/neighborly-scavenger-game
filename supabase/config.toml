@@ -5,3 +5,12 @@ verify_jwt = false
 
 [functions.issue-session]
 verify_jwt = false
+
+[functions.save-draft]
+verify_jwt = false
+
+[functions.publish-draft]
+verify_jwt = false
+
+[functions.unpublish-event]
+verify_jwt = false

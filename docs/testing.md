@@ -27,6 +27,9 @@ Today the repo validates with:
 - `npm run build:web`
 - `deno check --no-lock supabase/functions/issue-session/index.ts`
 - `deno check --no-lock supabase/functions/complete-quiz/index.ts`
+- `deno check --no-lock supabase/functions/save-draft/index.ts`
+- `deno check --no-lock supabase/functions/publish-draft/index.ts`
+- `deno check --no-lock supabase/functions/unpublish-event/index.ts`
 - `npm run ui:review:capture` for screenshot-based browser review
 
 That baseline is now a real first-wave strategy, not just static validation. The repo already has focused shared-domain tests, frontend behavior tests, a mobile Playwright smoke suite, pgTAP coverage for the completion RPC, Deno coverage for the Edge Function trust boundary, and a real local Supabase integration test for the full session-plus-completion path.

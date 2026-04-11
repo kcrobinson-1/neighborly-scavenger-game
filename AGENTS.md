@@ -77,7 +77,10 @@ Use the full structured path when the change is multi-file, architectural, refac
    Run the relevant checks before each commit and after any risky structural step.
 8. Keep documentation current as the work progresses.
    Do not save README or architecture updates for the very end if the structure is already changing underneath them.
-9. Self-review each commit-sized diff, then self-review the final branch as a whole before handing off or opening a PR.
+9. Before handoff, delete temporary execution-plan/checklist docs or convert
+   them into durable reference docs. Do not leave running-state planning docs in
+   the repo after their phase has landed.
+10. Self-review each commit-sized diff, then self-review the final branch as a whole before handing off or opening a PR.
 
 If you discover that the current docs no longer describe the code accurately, fix the docs in the same change when practical.
 
@@ -95,6 +98,8 @@ For multi-step work, do not batch everything into one large uncommitted transfor
 
 - create or maintain a local checklist in the relevant area when it helps track structure, responsibilities, or remaining work
 - update that checklist or README as steps are completed
+- remove or finalize that checklist before handoff so canonical docs, not
+  stale running state, describe the implemented system
 - keep intermediate states understandable to the next engineer or agent
 - if the work started from `main`, do not leave implementation only in the working tree on `main`; move it onto a feature branch before substantial edits accumulate
 - if the change spans backend, frontend, tests, and docs, assume it should land as multiple commits unless there is a specific reason not to
@@ -156,6 +161,8 @@ Update inline comments and function/type documentation when:
 - behavior changes in a non-obvious way
 - new logic would be hard to understand without context
 - a documented function, type, or data structure changes meaningfully
+- phase implementation adds new trust, persistence, migration, or workflow
+  boundaries that a future maintainer would otherwise need to infer from tests
 
 Do not add comments that merely restate the code.
 

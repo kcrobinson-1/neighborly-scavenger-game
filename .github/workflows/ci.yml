@@ -57,3 +57,12 @@ jobs:
 
       - name: Check complete-quiz function
         run: deno check --no-lock supabase/functions/complete-quiz/index.ts
+
+      - name: Check save-draft function
+        run: deno check --no-lock supabase/functions/save-draft/index.ts
+
+      - name: Check publish-draft function
+        run: deno check --no-lock supabase/functions/publish-draft/index.ts
+
+      - name: Check unpublish-event function
+        run: deno check --no-lock supabase/functions/unpublish-event/index.ts

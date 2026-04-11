@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(26);
+select plan(25);
 
 select ok(
   exists (
@@ -63,8 +63,23 @@ select ok(
 );
 
 select ok(
-  has_table_privilege('authenticated', 'public.quiz_event_drafts', 'SELECT,INSERT,UPDATE,DELETE'),
-  'authenticated has the draft table privileges needed for admin RLS access'
+  has_table_privilege('authenticated', 'public.quiz_event_drafts', 'SELECT'),
+  'authenticated can read authoring drafts through admin RLS'
+);
+
+select ok(
+  not has_table_privilege('authenticated', 'public.quiz_event_drafts', 'INSERT'),
+  'authenticated cannot insert drafts directly'
+);
+
+select ok(
+  not has_table_privilege('authenticated', 'public.quiz_event_drafts', 'UPDATE'),
+  'authenticated cannot update drafts directly'
+);
+
+select ok(
+  not has_table_privilege('authenticated', 'public.quiz_event_drafts', 'DELETE'),
+  'authenticated cannot delete drafts directly'
 );
 
 select ok(
@@ -165,7 +180,7 @@ select is(
   'authenticated admin can read all draft versions'
 );
 
-select lives_ok(
+select throws_ok(
   $$
     insert into public.quiz_event_drafts (id, slug, name, content)
     values (
@@ -197,36 +212,9 @@ select lives_ok(
       )
     )
   $$,
-  'authenticated admin can insert drafts'
-);
-
-select is(
-  (
-    select last_saved_by::text
-    from public.quiz_event_drafts
-    where id = 'admin-test-event'
-  ),
-  '22222222-2222-4222-8222-222222222222',
-  'admin draft insert stamps last_saved_by from the auth session'
-);
-
-select lives_ok(
-  $$
-    update public.quiz_event_drafts
-    set name = 'Updated Admin Test Event'
-    where id = 'admin-test-event'
-  $$,
-  'authenticated admin can update drafts'
-);
-
-select is(
-  (
-    select last_saved_by::text
-    from public.quiz_event_drafts
-    where id = 'admin-test-event'
-  ),
-  '22222222-2222-4222-8222-222222222222',
-  'admin draft update keeps the authenticated audit attribution'
+  '42501',
+  null,
+  'authenticated admin cannot insert drafts directly'
 );
 
 select throws_ok(
@@ -245,11 +233,6 @@ select throws_ok(
   '42501',
   null,
   'authenticated admin cannot insert versions'
-);
-
-select lives_ok(
-  $$ delete from public.quiz_event_drafts where id = 'admin-test-event' $$,
-  'authenticated admin can delete drafts'
 );
 
 select * from finish();

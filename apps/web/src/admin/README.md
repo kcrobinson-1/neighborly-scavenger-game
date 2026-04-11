@@ -14,6 +14,7 @@ It is responsible for:
 ## Boundaries
 
 - keep login/session concerns here, not inside attendee pages
-- keep draft reads and admin RPC calls in `src/lib/adminQuizApi.ts`
+- keep draft reads, admin RPC calls, and authoring function calls in
+  `src/lib/adminQuizApi.ts`
 - keep quiz correctness and publish validation out of this module; those remain
   shared/backend responsibilities

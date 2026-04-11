@@ -172,7 +172,9 @@ If you also need the admin route locally:
 
 1. make sure Supabase Auth redirect URLs include your local `/admin` origin
 2. add your normalized email to `public.quiz_admin_users` in the connected project
-3. open `/admin` after starting `npm run dev:web` or `npm run dev:web:local`
+3. make sure the `save-draft`, `publish-draft`, and `unpublish-event` Edge
+   Functions are deployed when testing authoring writes against a remote project
+4. open `/admin` after starting `npm run dev:web` or `npm run dev:web:local`
 
 ### Frontend-only fallback development
 
@@ -206,6 +208,9 @@ npm run test:supabase
 npm run build:web
 deno check --no-lock supabase/functions/issue-session/index.ts
 deno check --no-lock supabase/functions/complete-quiz/index.ts
+deno check --no-lock supabase/functions/save-draft/index.ts
+deno check --no-lock supabase/functions/publish-draft/index.ts
+deno check --no-lock supabase/functions/unpublish-event/index.ts
 ```
 
 Those commands are also reflected in [`.github/workflows/ci.yml`](../.github/workflows/ci.yml).
@@ -304,6 +309,9 @@ npx supabase secrets set SESSION_SIGNING_SECRET=your-long-random-secret
 npx supabase secrets set ALLOWED_ORIGINS=http://127.0.0.1:4173,http://localhost:4173,http://127.0.0.1:5173,http://localhost:5173,https://your-production-web-origin.example
 npx supabase functions deploy issue-session
 npx supabase functions deploy complete-quiz
+npx supabase functions deploy save-draft
+npx supabase functions deploy publish-draft
+npx supabase functions deploy unpublish-event
 ```
 
 Then set these frontend env vars locally and in your Vercel project:
@@ -371,8 +379,8 @@ One concrete gotcha already hit in this repo:
 
 The next likely development steps are:
 
-1. Add draft save, editing, and publish tooling on top of the new admin auth
-   and authorization path.
+1. Add the full admin editing, duplication, preview, and AI-assisted authoring
+   UI on top of the authoring APIs.
 2. Add lightweight reporting for quiz starts, completions, and timing.
 3. Add richer event publish controls such as drafts, previews, or expiry
    windows if operations need them.

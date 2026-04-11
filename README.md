@@ -8,7 +8,8 @@ The current product shape is:
 - complete a fast 5-7 question experience
 - see local sponsors woven into the game
 - finish with a backend-verified raffle-entry confirmation state
-- admins can sign in at `/admin` to verify private draft-authoring access
+- admins can sign in at `/admin` to verify private draft-authoring access and
+  use authenticated authoring APIs
 
 The product is intended for community events like concerts, fairs, and neighborhood markets, where the experience needs to be fast, outdoor-friendly, and easy to run without technical overhead.
 
@@ -20,12 +21,14 @@ This repository currently includes:
 - a landing page plus published demo game routes
 - database-backed published event and quiz content
 - a Supabase Auth-backed admin shell for private draft access at `/admin`
+- authenticated admin APIs for draft save, publish, and unpublish operations
 - one-question-at-a-time quiz flow with back navigation
 - multiple quiz feedback modes
 - shared quiz mapping, validation, and scoring logic
 - Supabase-backed browser-session bootstrap
 - Supabase-backed completion verification
 - SQL-backed single raffle entitlement per event/session pair
+- SQL-backed draft publishing that transactionally updates public quiz content
 
 The current prototype is usable for engineering validation and local/demo testing, but it is not yet the full event-ready MVP described in the product and UX docs.
 
@@ -113,7 +116,7 @@ Use `npm run dev:web:local` if you want a fixed local origin for browser automat
 Published landing-page summaries and `/game/:slug` routes now load from
 Supabase-backed published content in this mode.
 
-The admin authoring shell at `/admin` also requires:
+The admin authoring shell and authoring APIs also require:
 
 - Supabase Auth redirect URLs that include your local `/admin` origin
 - your admin email to be present in `public.quiz_admin_users`
@@ -146,6 +149,9 @@ npm run test:supabase
 npm run build:web
 deno check --no-lock supabase/functions/issue-session/index.ts
 deno check --no-lock supabase/functions/complete-quiz/index.ts
+deno check --no-lock supabase/functions/save-draft/index.ts
+deno check --no-lock supabase/functions/publish-draft/index.ts
+deno check --no-lock supabase/functions/unpublish-event/index.ts
 ```
 
 For local contributor setup:
@@ -192,7 +198,7 @@ Operational setting ownership lives in [docs/operations.md](./docs/operations.md
 
 The main remaining gaps before the broader event-ready MVP are:
 
-- draft editing, AI-assisted authoring, and publish controls for database-backed events
+- full admin draft editing, duplication, preview, and AI-assisted authoring UI
 - analytics and reporting for starts, completions, and completion time
 - richer publishing controls such as drafts, previews, or expiry windows for
   live event URLs

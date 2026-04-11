@@ -30,7 +30,8 @@ The current implementation is:
 - Supabase-backed published event content tables for routes and landing-page summaries
 - private authoring draft and admin-allowlist tables protected by RLS
 - a shared TypeScript domain module for quiz runtime shape, mapping, validation, and scoring
-- two Supabase edge functions for session bootstrap and trusted completion
+- Supabase edge functions for session bootstrap, trusted completion, and
+  authenticated authoring transitions
 - Supabase SQL migrations that store published content, record completion attempts, and award one raffle entitlement per event/session pair
 - local browser state during quiz play, with the backend owning the final verification result
 
@@ -94,8 +95,8 @@ grouped into a dedicated `apps/web/src/game/` module:
 - `apps/web/src/lib/quizApi.ts`
   Client-side session bootstrap and completion submission logic, including the local-development fallback.
 - `apps/web/src/lib/adminQuizApi.ts`
-  Browser auth, admin-status RPC, and private draft reads for the authoring
-  shell.
+  Browser auth, admin-status RPC, private draft reads, and authenticated
+  authoring function calls.
 - `apps/web/src/lib/quizContentApi.ts`
   Browser reads for published event summaries and route content.
 - `apps/web/src/lib/supabaseBrowser.ts`
@@ -145,6 +146,18 @@ The Supabase side is intentionally small:
   Creates or reuses the signed browser session credential.
 - `supabase/functions/complete-quiz/index.ts`
   Validates the completion payload, verifies the session credential, computes the trusted score, and calls the database RPC.
+- `supabase/functions/save-draft/index.ts`
+  Authenticated admin endpoint that validates canonical draft content and saves
+  it to the private draft table.
+- `supabase/functions/publish-draft/index.ts`
+  Authenticated admin endpoint that validates a draft and calls the
+  service-role publish RPC.
+- `supabase/functions/unpublish-event/index.ts`
+  Authenticated admin endpoint that hides a live event without deleting draft or
+  version history.
+- `supabase/functions/_shared/admin-auth.ts`
+  Shared Supabase Auth JWT and quiz-admin allowlist verification for authoring
+  endpoints.
 - `supabase/functions/_shared/cors.ts`
   Shared CORS helpers.
 - `supabase/functions/_shared/published-game-loader.ts`
@@ -163,6 +176,9 @@ The Supabase side is intentionally small:
 - `supabase/migrations/20260407103000_add_quiz_authoring_auth.sql`
   Admin allowlist table, admin-status RPC, authoring RLS policies, and draft
   audit stamping.
+- `supabase/migrations/20260410170000_add_quiz_authoring_publish_workflow.sql`
+  Authoring audit log plus service-role publish and unpublish RPCs that update
+  the public runtime projection transactionally.
 
 ## What Is Implemented Now
 
@@ -229,9 +245,18 @@ Today that route:
 - lists private draft events for allowlisted admins
 - keeps non-admin authenticated users out of the draft data path
 
-This intentionally stops short of draft editing or publishing. The current goal
-is to prove the auth boundary and private data access before adding write and
-publish flows.
+The visible admin page is still intentionally minimal, but the backend API
+surface now supports the next authoring step:
+
+- `save-draft` writes validated private draft JSON for allowlisted admins
+- `publish-draft` validates the draft and updates the public event, question,
+  and option tables through one database transaction
+- `unpublish-event` clears the public event's `published_at` value while
+  preserving private draft and version history
+- `quiz_event_audit_log` records publish and unpublish transitions
+
+The current scope still stops short of a full editor, question builder,
+preview route, duplication flow, or AI authoring UI.
 
 ## Runtime Request Flow
 
@@ -274,6 +299,17 @@ The current implementation uses:
 - direct authenticated PostgREST reads for private `quiz_event_drafts`
   The admin shell loads draft summaries through the authenticated browser
   session plus RLS.
+- `save-draft`
+  Authenticates the Supabase user, checks the quiz-admin allowlist, validates
+  canonical draft content, and writes private draft rows with service-role
+  privileges.
+- `publish-draft`
+  Authenticates an admin, revalidates the draft through shared quiz logic, and
+  calls `public.publish_quiz_event_draft(...)` to update live public content in
+  one transaction.
+- `unpublish-event`
+  Authenticates an admin and calls `public.unpublish_quiz_event(...)` to hide a
+  live event without deleting authoring history.
 - `public.is_quiz_admin()`
   Security-definer SQL helper that turns the current authenticated email/user
   context into one shared allowlist decision for both the admin UI and RLS.
@@ -297,11 +333,13 @@ The browser currently owns:
 - local progress state during a run
 - development-only fallback completion data when Supabase env vars are absent
 
-### Backend-Owned At Completion
+### Backend-Owned For Completion And Authoring
 
 Supabase currently owns:
 
 - published event, question, and option records
+- private authoring drafts, immutable versions, and audit rows
+- draft save, publish, and unpublish transitions
 - signed browser-session trust
 - final answer validation
 - trusted score calculation
@@ -348,8 +386,8 @@ authoring product.
 
 What is missing:
 
-- draft editing and duplication without code changes
-- publishing and unpublishing events
+- full draft editing, duplication, and preview UI without code changes
+- AI-assisted authoring entry points in the admin experience
 - managing sponsor attribution and question content beyond draft visibility
 
 ### Analytics and reporting
@@ -392,8 +430,8 @@ This is an explicit product tradeoff, not an accidental omission.
 The most sensible next architectural steps are:
 
 1. Add a staging or branch-based Supabase promotion path if local verification plus direct-to-production release stops feeling sufficient.
-2. Add organizer-facing draft editing and publish controls on top of the new
-   admin auth path.
+2. Add organizer-facing draft editing, duplication, preview, and AI-assisted UI
+   on top of the new admin API path.
 3. Add lightweight analytics/reporting for live events.
 4. Add richer publish behavior such as drafts, previews, or expiry windows if
    live operations need them.
