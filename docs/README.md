@@ -48,6 +48,9 @@ Use these boundaries to keep the docs tidy:
   unresolved decisions that should stay explicit instead of being guessed in canonical docs
 - `docs/documentation-quality-checklist.md`
   recurring documentation maintenance checklist and quality-improvement plan
+- `docs/code-refactor-checklist.md`
+  small behavior-preserving refactor tasks for oversized files that have clear
+  split points
 
 ## Editing Rule Of Thumb
 
