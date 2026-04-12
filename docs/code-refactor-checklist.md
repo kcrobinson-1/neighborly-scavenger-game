@@ -70,8 +70,8 @@ Rules for this checklist:
   Validation: `npm run build:web`.
 
 - [x] Split local Edge Function integration runner by responsibility.
-  Extracted process lifecycle helpers and JSON HTTP diagnostics into
-  `scripts/testing/` utilities so
+  Extracted process lifecycle, readiness polling, completion retry, and JSON
+  HTTP diagnostics into `scripts/testing/` utilities so
   `scripts/testing/run-function-integration-tests.cjs` reads as the trusted
   Edge Function scenario being tested.
   Validation: `npm run test:functions:integration`.

@@ -1,8 +1,24 @@
 const { spawn } = require("node:child_process");
+const path = require("node:path");
 
-const { repoRoot } = require("./utils.cjs");
+const { fs, repoRoot } = require("./utils.cjs");
 
 const serveShutdownTimeoutMs = 5_000;
+
+function writeFunctionsServeEnvFile(envFilePath, { allowedOrigins, sessionSigningSecret }) {
+  fs.mkdirSync(path.dirname(envFilePath), { recursive: true });
+
+  // The local Edge Functions runtime injects the reserved SUPABASE_* values
+  // itself, so the env file only needs the repo-owned trust configuration.
+  fs.writeFileSync(
+    envFilePath,
+    [
+      `SESSION_SIGNING_SECRET=${sessionSigningSecret}`,
+      `ALLOWED_ORIGINS=${allowedOrigins.join(",")}`,
+      "",
+    ].join("\n"),
+  );
+}
 
 function startFunctionsServe(envFilePath) {
   const child = spawn(
@@ -89,4 +105,5 @@ async function stopFunctionsServe(serveProcess) {
 module.exports = {
   startFunctionsServe,
   stopFunctionsServe,
+  writeFunctionsServeEnvFile,
 };
