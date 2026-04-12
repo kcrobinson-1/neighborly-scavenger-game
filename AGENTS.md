@@ -75,6 +75,35 @@ and report instead of proceeding if the implementation appears to require
 changing product behavior, public contracts, persistence semantics, authorization
 rules, routing, generated artifacts, or unrelated production code.
 
+### Feature-Time Cleanup And Refactor Debt Capture
+
+Feature work should leave the touched code coherent, but it should not expand
+into opportunistic refactors that are not required for the feature.
+
+During implementation:
+
+- prefer small local cleanup when it directly improves the feature diff, reduces
+  immediate duplication, or prevents confusing ownership in the touched files
+- do not restructure unrelated code just because nearby code could be cleaner
+- do not block a feature on broad cleanup unless the existing structure makes
+  the feature hard to implement safely
+- if a file or module becomes noticeably harder to review because of the
+  feature, decide whether a small extraction belongs in the same PR
+- if the cleanup is useful but not necessary for the feature, record it as a
+  bounded follow-up in `docs/code-refactor-checklist.md`
+
+Before handoff, run a post-implementation structure review:
+
+- identify any touched file that grew large, mixed responsibilities, duplicated
+  logic, or became harder to test because of the change
+- fix the issue in the same PR only when it is small, directly related, and does
+  not obscure the feature being implemented
+- otherwise add a checklist item with the specific file or module, the concrete
+  responsibility problem, the desired target shape, and the minimum validation
+  command
+- do not add checklist items for cosmetic preferences, speculative abstraction,
+  or general "clean up this area" work
+
 ### Pre-Edit Gate
 
 Before editing for any non-trivial task:

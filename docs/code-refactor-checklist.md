@@ -11,6 +11,14 @@ Rules for this checklist:
 - move tests with the code they cover
 - run the existing validation command for the touched area
 - avoid mixing these cleanups with product or schema behavior changes
+- add a task only when the issue was observed while implementing or reviewing
+  real work
+- name the exact file or module, the concrete responsibility problem, the
+  desired target shape, and the minimum validation command
+- keep each task small enough for one focused PR
+- do not add tasks for cosmetic preferences, speculative abstraction, or general
+  cleanup without clear reviewability, correctness, ownership, duplication, or
+  future-change-cost value
 
 ## Candidate Tasks
 
