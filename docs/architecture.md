@@ -158,6 +158,9 @@ The Supabase side is intentionally small:
 - `supabase/functions/_shared/admin-auth.ts`
   Shared Supabase Auth JWT and quiz-admin allowlist verification for authoring
   endpoints.
+- `supabase/functions/_shared/authoring-http.ts`
+  Shared CORS, method, configuration, admin-auth, and JSON response handling
+  for authenticated authoring endpoints.
 - `supabase/functions/_shared/cors.ts`
   Shared CORS helpers.
 - `supabase/functions/_shared/published-game-loader.ts`

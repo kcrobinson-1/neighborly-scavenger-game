@@ -27,7 +27,7 @@ Rules for this checklist:
   behavior, unpublish/audit behavior, and failure/permission behavior.
   Validation: `npm run test:db`.
 
-- [ ] Extract shared authoring Edge Function HTTP/auth boilerplate.
+- [x] Extract shared authoring Edge Function HTTP/auth boilerplate.
   `supabase/functions/save-draft/index.ts`,
   `supabase/functions/publish-draft/index.ts`, and
   `supabase/functions/unpublish-event/index.ts` repeat CORS, method,

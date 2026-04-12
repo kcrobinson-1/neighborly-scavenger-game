@@ -85,6 +85,11 @@ Before editing for any non-trivial task:
   or switch to an appropriately named feature branch first
 - read the relevant docs, tests, and neighboring implementation before deciding
   the target shape
+- confirm the requested change is expected to be positive value for the codebase:
+  it should reduce real risk, duplication, confusion, operational friction, or
+  product/user pain enough to justify its diff and review cost
+- stop and report instead of editing if the change appears needless, mostly
+  cosmetic, or likely to introduce more noise than value
 - run the task's specified baseline validation commands before editing when the
   prompt or checklist names them
 - if a required baseline validation fails before edits, stop and report the
@@ -164,6 +169,9 @@ complete, prove that the requested target shape was actually achieved.
   explain the blocker
 - if validation passes but the target shape is not met, treat the task as
   incomplete
+- if the refactor does not clearly improve reviewability, ownership, risk
+  reduction, or future change cost, stop and report instead of marking it
+  complete
 
 ### Stop-And-Report Conditions
 
@@ -172,6 +180,8 @@ Stop and report instead of continuing when any of these happen:
 - the worktree has unrelated uncommitted changes that could be mixed into the
   task
 - required baseline validation fails before edits
+- the requested change appears needless, mostly cosmetic, or likely to introduce
+  more noise than value after reviewing the current code and docs
 - the requested bounded task starts expanding into unrelated frontend, backend,
   database, workflow, dependency, or documentation changes
 - a behavior-preserving task appears to require behavior changes
@@ -311,6 +321,9 @@ Do not wait until the end of a large change to discover that the branch drifted.
 Treat pull requests as reviewable engineering work, not speculative drafts with known unverified edges hidden inside them.
 
 - Before opening or updating a PR, make sure every new script or validation command added by the branch is runnable by a contributor following repo docs.
+- In the PR description, explain why the change is worth merging: name the
+  concrete maintainability, correctness, user, or operational value that
+  outweighs the added diff and review cost.
 - In the PR description, state the expected user-behavior difference from the branch in plain language.
 - If the branch changes user behavior, describe what a user can now do differently or what flow now behaves differently.
 - If the branch does not change current user behavior, say that explicitly and describe the groundwork laid for a later stage.
@@ -434,6 +447,9 @@ Before finishing, review your own work for:
 - stale comments or stale docs
 - missing validation
 - accessibility or usability regressions in the mobile flow
+- whether the final change is still positive value for the codebase and should
+  be merged, rather than being needless churn or adding noise that offsets its
+  benefit
 
 For any bounded checklist or refactor task, also confirm:
 

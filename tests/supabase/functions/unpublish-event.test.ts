@@ -5,6 +5,7 @@ import {
 } from "../../../supabase/functions/unpublish-event/index.ts";
 import {
   adminUserId,
+  createAuthoringHttpDependencies,
   createAuthoringRequest,
   sampleDraft,
 } from "./authoring-helpers.ts";
@@ -13,21 +14,21 @@ Deno.test("unpublish-event rejects authenticated non-admin users before persiste
   let unpublishCalls = 0;
   const handler = createUnpublishEventHandler({
     ...defaultUnpublishEventHandlerDependencies,
-    authenticateQuizAdmin: async () => ({
-      error: "This account is not allowlisted for quiz authoring.",
-      status: "forbidden",
+    authoringHttp: createAuthoringHttpDependencies({
+      authenticateQuizAdmin: async () => ({
+        error: "This account is not allowlisted for quiz authoring.",
+        status: "forbidden",
+      }),
     }),
-    getAllowedOrigin: () => "http://127.0.0.1:4173",
-    getServiceRoleKey: () => "service-role-key",
-    getSupabaseClientKey: () => "publishable-key",
-    getSupabaseUrl: () => "http://127.0.0.1:54321",
     unpublishEvent: async () => {
       unpublishCalls += 1;
       return { data: null, error: null };
     },
   });
 
-  const response = await handler(createAuthoringRequest({ eventId: sampleDraft.id }));
+  const response = await handler(
+    createAuthoringRequest({ eventId: sampleDraft.id }),
+  );
 
   assertEquals(response.status, 403);
   assertEquals(await response.json(), {
@@ -45,14 +46,12 @@ Deno.test("unpublish-event calls only the unpublish RPC for admin users", async 
     | null = null;
   const handler = createUnpublishEventHandler({
     ...defaultUnpublishEventHandlerDependencies,
-    authenticateQuizAdmin: async () => ({
-      status: "ok",
-      userId: adminUserId,
+    authoringHttp: createAuthoringHttpDependencies({
+      authenticateQuizAdmin: async () => ({
+        status: "ok",
+        userId: adminUserId,
+      }),
     }),
-    getAllowedOrigin: () => "http://127.0.0.1:4173",
-    getServiceRoleKey: () => "service-role-key",
-    getSupabaseClientKey: () => "publishable-key",
-    getSupabaseUrl: () => "http://127.0.0.1:54321",
     unpublishEvent: async (eventId, actorUserId) => {
       capturedInput = {
         actorUserId,
@@ -69,7 +68,9 @@ Deno.test("unpublish-event calls only the unpublish RPC for admin users", async 
     },
   });
 
-  const response = await handler(createAuthoringRequest({ eventId: sampleDraft.id }));
+  const response = await handler(
+    createAuthoringRequest({ eventId: sampleDraft.id }),
+  );
 
   assertEquals(response.status, 200);
   assertEquals(await response.json(), {

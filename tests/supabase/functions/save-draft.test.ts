@@ -1,7 +1,4 @@
-import {
-  assertEquals,
-  assertExists,
-} from "jsr:@std/assert@1";
+import { assertEquals, assertExists } from "jsr:@std/assert@1";
 import {
   createSaveDraftHandler,
   defaultSaveDraftHandlerDependencies,
@@ -9,6 +6,7 @@ import {
 } from "../../../supabase/functions/save-draft/index.ts";
 import {
   adminUserId,
+  createAuthoringHttpDependencies,
   createAuthoringRequest,
   sampleDraft,
 } from "./authoring-helpers.ts";
@@ -24,20 +22,20 @@ Deno.test("validateDraftSavePayload requires a content property", () => {
 Deno.test("save-draft rejects missing admin authentication", async () => {
   const handler = createSaveDraftHandler({
     ...defaultSaveDraftHandlerDependencies,
-    authenticateQuizAdmin: async () => ({
-      error: "Admin authentication is required.",
-      status: "unauthenticated",
+    authoringHttp: createAuthoringHttpDependencies({
+      authenticateQuizAdmin: async () => ({
+        error: "Admin authentication is required.",
+        status: "unauthenticated",
+      }),
     }),
-    getAllowedOrigin: () => "http://127.0.0.1:4173",
-    getServiceRoleKey: () => "service-role-key",
-    getSupabaseClientKey: () => "publishable-key",
-    getSupabaseUrl: () => "http://127.0.0.1:54321",
     saveDraft: async () => {
       throw new Error("saveDraft should not be called");
     },
   });
 
-  const response = await handler(createAuthoringRequest({ content: sampleDraft }));
+  const response = await handler(
+    createAuthoringRequest({ content: sampleDraft }),
+  );
 
   assertEquals(response.status, 401);
   assertEquals(await response.json(), {
@@ -48,20 +46,20 @@ Deno.test("save-draft rejects missing admin authentication", async () => {
 Deno.test("save-draft rejects authenticated non-admin users", async () => {
   const handler = createSaveDraftHandler({
     ...defaultSaveDraftHandlerDependencies,
-    authenticateQuizAdmin: async () => ({
-      error: "This account is not allowlisted for quiz authoring.",
-      status: "forbidden",
+    authoringHttp: createAuthoringHttpDependencies({
+      authenticateQuizAdmin: async () => ({
+        error: "This account is not allowlisted for quiz authoring.",
+        status: "forbidden",
+      }),
     }),
-    getAllowedOrigin: () => "http://127.0.0.1:4173",
-    getServiceRoleKey: () => "service-role-key",
-    getSupabaseClientKey: () => "publishable-key",
-    getSupabaseUrl: () => "http://127.0.0.1:54321",
     saveDraft: async () => {
       throw new Error("saveDraft should not be called");
     },
   });
 
-  const response = await handler(createAuthoringRequest({ content: sampleDraft }));
+  const response = await handler(
+    createAuthoringRequest({ content: sampleDraft }),
+  );
 
   assertEquals(response.status, 403);
   assertEquals(await response.json(), {
@@ -73,14 +71,12 @@ Deno.test("save-draft rejects malformed draft content before persistence", async
   let saveCalls = 0;
   const handler = createSaveDraftHandler({
     ...defaultSaveDraftHandlerDependencies,
-    authenticateQuizAdmin: async () => ({
-      status: "ok",
-      userId: adminUserId,
+    authoringHttp: createAuthoringHttpDependencies({
+      authenticateQuizAdmin: async () => ({
+        status: "ok",
+        userId: adminUserId,
+      }),
     }),
-    getAllowedOrigin: () => "http://127.0.0.1:4173",
-    getServiceRoleKey: () => "service-role-key",
-    getSupabaseClientKey: () => "publishable-key",
-    getSupabaseUrl: () => "http://127.0.0.1:54321",
     saveDraft: async () => {
       saveCalls += 1;
       return { data: null, error: null };
@@ -110,14 +106,12 @@ Deno.test("save-draft upserts the normalized draft and returns a safe summary", 
     | null = null;
   const handler = createSaveDraftHandler({
     ...defaultSaveDraftHandlerDependencies,
-    authenticateQuizAdmin: async () => ({
-      status: "ok",
-      userId: adminUserId,
+    authoringHttp: createAuthoringHttpDependencies({
+      authenticateQuizAdmin: async () => ({
+        status: "ok",
+        userId: adminUserId,
+      }),
     }),
-    getAllowedOrigin: () => "http://127.0.0.1:4173",
-    getServiceRoleKey: () => "service-role-key",
-    getSupabaseClientKey: () => "publishable-key",
-    getSupabaseUrl: () => "http://127.0.0.1:54321",
     saveDraft: async (input) => {
       capturedInput = input;
 
@@ -134,7 +128,9 @@ Deno.test("save-draft upserts the normalized draft and returns a safe summary", 
     },
   });
 
-  const response = await handler(createAuthoringRequest({ content: sampleDraft }));
+  const response = await handler(
+    createAuthoringRequest({ content: sampleDraft }),
+  );
 
   assertEquals(response.status, 200);
   assertEquals(await response.json(), {
@@ -153,14 +149,12 @@ Deno.test("save-draft upserts the normalized draft and returns a safe summary", 
 Deno.test("save-draft reports slug conflicts as 409", async () => {
   const handler = createSaveDraftHandler({
     ...defaultSaveDraftHandlerDependencies,
-    authenticateQuizAdmin: async () => ({
-      status: "ok",
-      userId: adminUserId,
+    authoringHttp: createAuthoringHttpDependencies({
+      authenticateQuizAdmin: async () => ({
+        status: "ok",
+        userId: adminUserId,
+      }),
     }),
-    getAllowedOrigin: () => "http://127.0.0.1:4173",
-    getServiceRoleKey: () => "service-role-key",
-    getSupabaseClientKey: () => "publishable-key",
-    getSupabaseUrl: () => "http://127.0.0.1:54321",
     saveDraft: async () => ({
       data: null,
       error: {
@@ -170,7 +164,9 @@ Deno.test("save-draft reports slug conflicts as 409", async () => {
     }),
   });
 
-  const response = await handler(createAuthoringRequest({ content: sampleDraft }));
+  const response = await handler(
+    createAuthoringRequest({ content: sampleDraft }),
+  );
 
   assertEquals(response.status, 409);
   assertEquals(await response.json(), {
