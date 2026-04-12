@@ -64,6 +64,34 @@ Treat broad checklist, cleanup, or refactor requests as a queue of PR-sized task
 - stop and report instead of expanding scope when the task starts requiring behavior changes, unrelated production edits, mixed backend/frontend/UI work, or validation outside the originally relevant surface
 - prefer a fresh thread or fresh branch for the next checklist item when the previous slice has been committed and handed off
 
+When a prompt identifies a specific checklist item, issue, file family, feature
+slice, or validation command, treat that as the active boundary. Do not work on
+adjacent cleanup, nearby checklist items, opportunistic dependency upgrades, or
+unrelated docs unless they are necessary to keep the requested change correct
+and validated.
+
+If the requested task is behavior-preserving, keep it behavior-preserving. Stop
+and report instead of proceeding if the implementation appears to require
+changing product behavior, public contracts, persistence semantics, authorization
+rules, routing, generated artifacts, or unrelated production code.
+
+### Pre-Edit Gate
+
+Before editing for any non-trivial task:
+
+- make sure the worktree does not contain unrelated uncommitted changes; if it
+  does, stop and ask how to proceed
+- make sure you are not doing substantial implementation work on `main`; create
+  or switch to an appropriately named feature branch first
+- read the relevant docs, tests, and neighboring implementation before deciding
+  the target shape
+- run the task's specified baseline validation commands before editing when the
+  prompt or checklist names them
+- if a required baseline validation fails before edits, stop and report the
+  failure instead of changing files
+- if no baseline command is specified, identify the smallest relevant validation
+  surface before editing and run it when practical
+
 ### Lightweight Path
 
 1. Read the relevant code and matching docs before editing.
@@ -114,6 +142,50 @@ For multi-step work, do not batch everything into one large uncommitted transfor
 - keep intermediate states understandable to the next engineer or agent
 - if the work started from `main`, do not leave implementation only in the working tree on `main`; move it onto a feature branch before substantial edits accumulate
 - if the change spans backend, frontend, tests, and docs, assume it should land as multiple commits unless there is a specific reason not to
+
+### Refactor Completion Proof
+
+For checklist, cleanup, split, extraction, or other behavior-preserving refactor
+tasks, passing tests is necessary but not sufficient. Before marking the task
+complete, prove that the requested target shape was actually achieved.
+
+- define the target shape before editing, including what responsibilities should
+  remain in the original file or module and what responsibilities should move
+- verify the final diff against every concrete clause in the checklist item or
+  prompt, not just against the task title
+- report the final responsibility split in the handoff for any split or
+  extraction task
+- include before/after size or ownership evidence when file size, reviewability,
+  or local ownership is the reason for the task
+- do not mark a checklist item complete merely because some helper was extracted
+  or some code moved; the remaining code must match the requested shape
+- if substantial duplicated logic, mixed responsibilities, or unclear ownership
+  remains, either finish the refactor or leave the checklist item open and
+  explain the blocker
+- if validation passes but the target shape is not met, treat the task as
+  incomplete
+
+### Stop-And-Report Conditions
+
+Stop and report instead of continuing when any of these happen:
+
+- the worktree has unrelated uncommitted changes that could be mixed into the
+  task
+- required baseline validation fails before edits
+- the requested bounded task starts expanding into unrelated frontend, backend,
+  database, workflow, dependency, or documentation changes
+- a behavior-preserving task appears to require behavior changes
+- the change would alter public API contracts, status codes, response bodies,
+  database schema or semantics, authentication or authorization rules, routing,
+  or production platform configuration outside the stated scope
+- preserving coverage would require deleting or weakening assertions instead of
+  moving, updating, or adding equivalent coverage
+- the task becomes larger than one clean reviewable PR
+- the target shape cannot be met without a broader design decision
+
+When stopping, leave the worktree clean when practical. If stopping after
+partial edits, clearly identify the touched files, what remains incomplete, and
+whether any validation was run.
 
 ### Versioning And Dependency Discipline
 
@@ -215,12 +287,15 @@ For pull requests into `main`, expect GitHub CI to run the same validation via `
 
 Do not overstate what was validated.
 
+- Run the validation commands named by the task or checklist before handoff.
 - If you added a new test command, validation surface, or workflow step, prefer to run it locally before opening or updating a PR.
 - If you added a new top-level validation path, run the integrated repo command that is supposed to cover it, not just the new subcommand in isolation.
 - If a validation command depends on local services or runners, exercise it from a clean start when practical, not only from a warm reused state.
 - If a new validation step cannot be run locally, call out the exact blocker in the handoff and PR description.
 - Do not describe a branch as fully validated if any newly introduced check has not been exercised end to end.
 - If docs describe a test as covering the "real" backend or browser path, make sure the implementation actually does that. If the test runs in fallback or mocked mode, document that precisely.
+- If baseline validation failed and the task was stopped before edits, report
+  that as a baseline failure, not as a failed implementation.
 
 ### Continuous Validation
 
@@ -359,6 +434,17 @@ Before finishing, review your own work for:
 - stale comments or stale docs
 - missing validation
 - accessibility or usability regressions in the mobile flow
+
+For any bounded checklist or refactor task, also confirm:
+
+- the final diff stays inside the requested scope
+- the checklist item or prompt can be mapped to concrete changed files
+- any checklist status change is backed by target-shape evidence, not only by
+  passing tests
+- the handoff says whether behavior changed; for behavior-preserving tasks, the
+  answer should be "no" or should explain why the task stopped
+- the handoff lists validation actually run, files changed, follow-up tasks
+  added, and any remaining risk or blocker
 
 For UI changes, confirm:
 
