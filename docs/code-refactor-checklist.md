@@ -37,12 +37,11 @@ Rules for this checklist:
   Validation: `npm run test:functions` plus `deno check --no-lock` for the three
   authoring functions.
 
-- [ ] Split the admin page shell into state and presentation pieces.
-  `apps/web/src/pages/AdminPage.tsx` is about 340 lines and mixes session
-  orchestration, dashboard loading, sign-in form rendering, status states, and
-  draft-list presentation. Extract a `useAdminDashboard` hook and small
-  presentational components under `apps/web/src/admin/` while preserving the
-  current `/admin` route behavior.
+- [x] Split the admin page shell into state and presentation pieces.
+  `apps/web/src/pages/AdminPage.tsx` now stays a thin route adapter. Admin
+  session orchestration, dashboard loading, magic-link form state, sign-out
+  state, status rendering, and draft-list presentation live in focused modules
+  under `apps/web/src/admin/`.
   Validation: `npm test -- tests/web/pages/AdminPage.test.tsx` and
   `npm run build:web`.
 

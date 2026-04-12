@@ -70,8 +70,8 @@ grouped into a dedicated `apps/web/src/game/` module:
 - `apps/web/src/pages/LandingPage.tsx`
   Product overview and entry point into published demo events.
 - `apps/web/src/pages/AdminPage.tsx`
-  Minimal authoring access shell for `/admin`, including magic-link sign-in,
-  allowlist status, and private draft listing.
+  Thin route adapter for `/admin` that composes the admin module and keeps
+  route navigation at the page boundary.
 - `apps/web/src/pages/GameRoutePage.tsx`
   Async route loader that resolves `/game/:slug` into published content before
   rendering the quiz shell.
@@ -105,7 +105,8 @@ grouped into a dedicated `apps/web/src/game/` module:
 - `apps/web/src/lib/session.ts`
   Small client id-generation helpers.
 - `apps/web/src/admin/`
-  Admin-session hook and local module documentation for the `/admin` route.
+  Admin-session and dashboard hooks plus small presentational components for
+  magic-link sign-in, status states, and private draft listing on `/admin`.
 - `apps/web/src/types/quiz.ts`
   Client-side types for completion payloads and results.
 - `apps/web/src/data/games.ts`
