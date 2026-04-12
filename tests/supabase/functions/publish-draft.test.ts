@@ -1,13 +1,11 @@
-import {
-  assertEquals,
-  assertExists,
-} from "jsr:@std/assert@1";
+import { assertEquals, assertExists } from "jsr:@std/assert@1";
 import {
   createPublishDraftHandler,
   defaultPublishDraftHandlerDependencies,
 } from "../../../supabase/functions/publish-draft/index.ts";
 import {
   adminUserId,
+  createAuthoringHttpDependencies,
   createAuthoringRequest,
   sampleDraft,
 } from "./authoring-helpers.ts";
@@ -15,21 +13,21 @@ import {
 Deno.test("publish-draft rejects missing drafts", async () => {
   const handler = createPublishDraftHandler({
     ...defaultPublishDraftHandlerDependencies,
-    authenticateQuizAdmin: async () => ({
-      status: "ok",
-      userId: adminUserId,
+    authoringHttp: createAuthoringHttpDependencies({
+      authenticateQuizAdmin: async () => ({
+        status: "ok",
+        userId: adminUserId,
+      }),
     }),
-    getAllowedOrigin: () => "http://127.0.0.1:4173",
-    getServiceRoleKey: () => "service-role-key",
-    getSupabaseClientKey: () => "publishable-key",
-    getSupabaseUrl: () => "http://127.0.0.1:54321",
     loadDraft: async () => ({ data: null, error: null }),
     publishDraft: async () => {
       throw new Error("publishDraft should not be called");
     },
   });
 
-  const response = await handler(createAuthoringRequest({ eventId: "missing" }));
+  const response = await handler(
+    createAuthoringRequest({ eventId: "missing" }),
+  );
 
   assertEquals(response.status, 400);
   assertEquals(await response.json(), {
@@ -42,14 +40,12 @@ Deno.test("publish-draft rejects invalid draft content before publishing", async
   let publishCalls = 0;
   const handler = createPublishDraftHandler({
     ...defaultPublishDraftHandlerDependencies,
-    authenticateQuizAdmin: async () => ({
-      status: "ok",
-      userId: adminUserId,
+    authoringHttp: createAuthoringHttpDependencies({
+      authenticateQuizAdmin: async () => ({
+        status: "ok",
+        userId: adminUserId,
+      }),
     }),
-    getAllowedOrigin: () => "http://127.0.0.1:4173",
-    getServiceRoleKey: () => "service-role-key",
-    getSupabaseClientKey: () => "publishable-key",
-    getSupabaseUrl: () => "http://127.0.0.1:54321",
     loadDraft: async () => ({
       data: {
         content: {
@@ -68,7 +64,9 @@ Deno.test("publish-draft rejects invalid draft content before publishing", async
     },
   });
 
-  const response = await handler(createAuthoringRequest({ eventId: sampleDraft.id }));
+  const response = await handler(
+    createAuthoringRequest({ eventId: sampleDraft.id }),
+  );
 
   assertEquals(response.status, 400);
   assertExists((await response.json()).details);
@@ -84,14 +82,12 @@ Deno.test("publish-draft calls the transactional RPC after admin and shared vali
     | null = null;
   const handler = createPublishDraftHandler({
     ...defaultPublishDraftHandlerDependencies,
-    authenticateQuizAdmin: async () => ({
-      status: "ok",
-      userId: adminUserId,
+    authoringHttp: createAuthoringHttpDependencies({
+      authenticateQuizAdmin: async () => ({
+        status: "ok",
+        userId: adminUserId,
+      }),
     }),
-    getAllowedOrigin: () => "http://127.0.0.1:4173",
-    getServiceRoleKey: () => "service-role-key",
-    getSupabaseClientKey: () => "publishable-key",
-    getSupabaseUrl: () => "http://127.0.0.1:54321",
     loadDraft: async () => ({
       data: {
         content: sampleDraft,
@@ -119,7 +115,9 @@ Deno.test("publish-draft calls the transactional RPC after admin and shared vali
     },
   });
 
-  const response = await handler(createAuthoringRequest({ eventId: sampleDraft.id }));
+  const response = await handler(
+    createAuthoringRequest({ eventId: sampleDraft.id }),
+  );
 
   assertEquals(response.status, 200);
   assertEquals(await response.json(), {
@@ -137,14 +135,12 @@ Deno.test("publish-draft calls the transactional RPC after admin and shared vali
 Deno.test("publish-draft reports slug collisions as 409", async () => {
   const handler = createPublishDraftHandler({
     ...defaultPublishDraftHandlerDependencies,
-    authenticateQuizAdmin: async () => ({
-      status: "ok",
-      userId: adminUserId,
+    authoringHttp: createAuthoringHttpDependencies({
+      authenticateQuizAdmin: async () => ({
+        status: "ok",
+        userId: adminUserId,
+      }),
     }),
-    getAllowedOrigin: () => "http://127.0.0.1:4173",
-    getServiceRoleKey: () => "service-role-key",
-    getSupabaseClientKey: () => "publishable-key",
-    getSupabaseUrl: () => "http://127.0.0.1:54321",
     loadDraft: async () => ({
       data: {
         content: sampleDraft,
@@ -162,7 +158,9 @@ Deno.test("publish-draft reports slug collisions as 409", async () => {
     }),
   });
 
-  const response = await handler(createAuthoringRequest({ eventId: sampleDraft.id }));
+  const response = await handler(
+    createAuthoringRequest({ eventId: sampleDraft.id }),
+  );
 
   assertEquals(response.status, 409);
   assertEquals(await response.json(), {
