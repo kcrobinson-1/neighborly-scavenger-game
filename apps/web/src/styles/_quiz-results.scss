@@ -1,0 +1,40 @@
+@use "./mixins" as *;
+@use "./tokens" as *;
+
+.results-block {
+  margin: 10px 0 18px;
+}
+
+.score-card {
+  @include stack(8px);
+  @include surface-card(
+    $background: rgba(227, 178, 60, 0.14),
+    $border: rgba(227, 178, 60, 0.26)
+  );
+}
+
+.score-card strong {
+  font-size: clamp(1.5rem, 7vw, 2.2rem);
+}
+
+.answer-review-card {
+  @include stack(10px);
+  @include surface-card();
+}
+
+.review-status {
+  font-weight: 700;
+}
+
+.review-status-correct {
+  color: var(--success);
+}
+
+.review-status-incorrect {
+  color: var(--primary);
+}
+
+.answer-review-note {
+  color: var(--muted);
+  line-height: 1.5;
+}

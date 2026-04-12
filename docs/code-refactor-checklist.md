@@ -70,10 +70,11 @@ Rules for this checklist:
   Validation: `npm test -- tests/web/lib/quizApi.test.ts` and
   `npm run build:web`.
 
-- [ ] Split quiz SCSS by component group.
-  `apps/web/src/styles/_quiz.scss` is over 300 lines and includes styles for the
-  intro, question, feedback, completion, and option controls. Split into focused
-  partials imported by the SCSS entrypoint or a quiz index partial.
+- [x] Split quiz SCSS by component group.
+  `apps/web/src/styles/_quiz.scss` now stays a quiz style index partial.
+  Focused quiz partials own panel, control, progress, shared flow layout,
+  question/option, feedback, question-action, result/review, completion-token,
+  focus, and motion styles.
   Validation: `npm run build:web`.
 
 - [x] Split local Edge Function integration runner by responsibility.

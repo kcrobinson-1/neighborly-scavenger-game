@@ -1,0 +1,8 @@
+@use "./mixins" as *;
+
+.option-input:focus-visible + .option-button,
+.primary-button:focus-visible,
+.secondary-button:focus-visible,
+.text-link:focus-visible {
+  @include focus-ring;
+}

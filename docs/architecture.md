@@ -114,7 +114,8 @@ grouped into a dedicated `apps/web/src/game/` module:
 - `apps/web/src/styles.scss`
   Frontend styling entrypoint.
 - `apps/web/src/styles/`
-  SCSS partials for tokens, mixins, layout, landing-page UI, quiz UI, and responsive rules.
+  SCSS partials for tokens, mixins, layout, landing-page UI, focused quiz UI
+  component groups, admin UI, and responsive rules.
 
 ### Shared Domain Structure
 

@@ -1,0 +1,24 @@
+@use "./mixins" as *;
+@use "./tokens" as *;
+
+.feedback-banner {
+  @include stack(6px);
+  margin-top: 18px;
+  padding: 16px;
+  border-radius: $radius-control;
+}
+
+.feedback-banner strong,
+.answer-review-card h3 {
+  margin: 0;
+}
+
+.feedback-banner p,
+.answer-review-card p {
+  margin: 0;
+}
+
+.feedback-banner-error {
+  background: rgba(217, 107, 43, 0.12);
+  border: 1px solid rgba(217, 107, 43, 0.24);
+}

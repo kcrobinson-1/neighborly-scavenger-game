@@ -1,0 +1,56 @@
+@use "./mixins" as *;
+@use "./tokens" as *;
+
+.option-fieldset {
+  margin: 0;
+  padding: 0;
+  border: none;
+  min-inline-size: 0;
+}
+
+.option-choice {
+  position: relative;
+  display: block;
+}
+
+.option-choice-selected .option-button {
+  background: rgba(47, 111, 143, 0.18);
+  border-color: rgba(47, 111, 143, 0.56);
+  box-shadow: $shadow-selected;
+}
+
+.option-choice-selected::after {
+  content: "Selected";
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  padding: 4px 8px;
+  border-radius: $radius-pill;
+  background: rgba(47, 111, 143, 0.14);
+  color: var(--secondary);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.option-input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.option-button {
+  display: block;
+  min-height: 64px;
+  padding: 18px 20px;
+  text-align: left;
+  background: $color-white-panel;
+  color: var(--text);
+  border: 1px solid rgba(31, 58, 50, 0.12);
+}
+
+.selection-hint {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+}

@@ -1,0 +1,20 @@
+.submit-button {
+  margin-top: 2px;
+
+  &:disabled {
+    cursor: not-allowed;
+    transform: none;
+    background: rgba(31, 58, 50, 0.18);
+    box-shadow: none;
+  }
+}
+
+.question-secondary-action {
+  min-width: 0;
+}
+
+.question-back-link {
+  justify-self: start;
+  padding: 0;
+  font-size: 0.95rem;
+}

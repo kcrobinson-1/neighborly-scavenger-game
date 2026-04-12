@@ -1,0 +1,23 @@
+@use "./mixins" as *;
+
+.options,
+.question-form,
+.option-fieldset,
+.question-actions,
+.completion-actions,
+.results-block,
+.answer-review-list {
+  @include stack(14px);
+}
+
+.options {
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.question-form,
+.option-fieldset,
+.question-actions,
+.completion-actions {
+  gap: 16px;
+}

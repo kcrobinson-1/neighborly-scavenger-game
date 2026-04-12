@@ -1,0 +1,22 @@
+@use "./mixins" as *;
+
+.intro-panel p,
+.completion-panel p {
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.intro-panel h2,
+.question-panel h2,
+.completion-panel h2 {
+  margin: 0;
+  font-size: clamp(1.45rem, 4vw, 2rem);
+  line-height: 1.06;
+}
+
+.intro-list {
+  @include stack(8px);
+  margin: 0 0 22px;
+  padding-left: 18px;
+  color: var(--muted);
+}
