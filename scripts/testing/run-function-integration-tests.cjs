@@ -1,6 +1,11 @@
-const { spawn } = require("node:child_process");
 const path = require("node:path");
 
+const { startFunctionsServe, stopFunctionsServe } = require("./function-runtime.cjs");
+const {
+  assertHttpStatus,
+  formatHttpResult,
+  invokeJson,
+} = require("./http-json.cjs");
 const {
   ensureDockerRuntime,
   fs,
@@ -8,7 +13,6 @@ const {
   logStep,
   readSupabaseStatus,
   resetLocalSupabaseDatabase,
-  repoRoot,
   startLocalSupabaseStack,
   stopLocalSupabaseStack,
   tmpRoot,
@@ -17,7 +21,7 @@ const {
 const lockPath = `${tmpRoot}/test-functions-integration.lock`;
 const serveEnvPath = path.join(tmpRoot, "test-functions.env");
 const serveReadyTimeoutMs = 20_000;
-const serveShutdownTimeoutMs = 5_000;
+const completionAttemptCount = 3;
 const sessionSigningSecret = "local-trust-path-test-secret";
 const allowedOrigin = "http://127.0.0.1:4173";
 
@@ -56,99 +60,6 @@ function writeServeEnvFile() {
       "",
     ].join("\n"),
   );
-}
-
-function startFunctionsServe() {
-  const child = spawn(
-    "npx",
-    ["supabase", "functions", "serve", "--env-file", serveEnvPath],
-    {
-      cwd: repoRoot,
-      detached: process.platform !== "win32",
-      env: process.env,
-      stdio: ["ignore", "pipe", "pipe"],
-    },
-  );
-
-  let output = "";
-
-  const appendOutput = (chunk) => {
-    output += chunk.toString();
-  };
-
-  child.stdout.on("data", appendOutput);
-  child.stderr.on("data", appendOutput);
-
-  return {
-    child,
-    getOutput() {
-      return output.trim();
-    },
-  };
-}
-
-function signalFunctionsServe(serveProcess, signal) {
-  if (!serveProcess || serveProcess.exitCode !== null) {
-    return;
-  }
-
-  try {
-    if (process.platform !== "win32" && serveProcess.pid) {
-      process.kill(-serveProcess.pid, signal);
-      return;
-    }
-  } catch {
-    // Fall back to signaling the direct child process below.
-  }
-
-  try {
-    serveProcess.kill(signal);
-  } catch {
-    // Ignore already-exited processes during shutdown cleanup.
-  }
-}
-
-async function stopFunctionsServe(serveProcess) {
-  if (!serveProcess || serveProcess.killed || serveProcess.exitCode !== null) {
-    return;
-  }
-
-  const closed = new Promise((resolve) => {
-    serveProcess.once("close", resolve);
-  });
-
-  signalFunctionsServe(serveProcess, "SIGTERM");
-
-  const timedClose = Promise.race([
-    closed,
-    new Promise((resolve) => setTimeout(resolve, serveShutdownTimeoutMs)),
-  ]);
-
-  await timedClose;
-
-  if (serveProcess.exitCode !== null) {
-    return;
-  }
-
-  signalFunctionsServe(serveProcess, "SIGKILL");
-  serveProcess.stdout?.destroy();
-  serveProcess.stderr?.destroy();
-
-  await Promise.race([
-    closed,
-    new Promise((resolve) => setTimeout(resolve, 1_000)),
-  ]);
-}
-
-async function invokeJson(url, init) {
-  const response = await fetch(url, init);
-  const text = await response.text();
-  const body = text ? JSON.parse(text) : null;
-
-  return {
-    body,
-    response,
-  };
 }
 
 async function waitForServeReady(status, serveRuntime) {
@@ -206,9 +117,61 @@ async function waitForServeReady(status, serveRuntime) {
   );
 }
 
-function assert(condition, message) {
+async function waitForCompleteQuizReady(status, serveRuntime) {
+  const deadline = Date.now() + serveReadyTimeoutMs;
+  const baseHeaders = {
+    Authorization: `Bearer ${status.PUBLISHABLE_KEY}`,
+    "Content-Type": "application/json",
+    apikey: status.PUBLISHABLE_KEY,
+    origin: allowedOrigin,
+  };
+  let lastFailureDetails = "";
+
+  while (Date.now() < deadline) {
+    if (serveRuntime.child.exitCode !== null) {
+      throw new Error(
+        [
+          "`supabase functions serve` exited before complete-quiz became ready.",
+          "If another functions runtime is already bound to the local Supabase ports, stop it and rerun this command.",
+          serveRuntime.getOutput(),
+        ].filter(Boolean).join("\n\n"),
+      );
+    }
+
+    try {
+      const completeQuiz = await invokeJson(`${status.FUNCTIONS_URL}/complete-quiz`, {
+        body: JSON.stringify(buildCompletionPayload(`warmup-${Date.now()}`)),
+        headers: baseHeaders,
+        method: "POST",
+      });
+
+      if (
+        completeQuiz.response.status === 401 &&
+        completeQuiz.body?.error === "Session is missing or invalid."
+      ) {
+        return;
+      }
+
+      lastFailureDetails = formatHttpResult(completeQuiz);
+    } catch (error) {
+      lastFailureDetails = error instanceof Error ? error.message : String(error);
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 250));
+  }
+
+  throw new Error(
+    [
+      "Timed out waiting for `supabase functions serve` to return a ready complete-quiz response.",
+      lastFailureDetails,
+      serveRuntime.getOutput(),
+    ].filter(Boolean).join("\n\n"),
+  );
+}
+
+function assertWithContext(condition, message, context) {
   if (!condition) {
-    throw new Error(message);
+    throw new Error(`${message}\n${context}`);
   }
 }
 
@@ -226,6 +189,50 @@ function buildCompletionPayload(requestId) {
     eventId: "madrona-music-2026",
     requestId,
   };
+}
+
+function shouldRetryCompletion(result) {
+  return [500, 502, 503, 504].includes(result.response.status);
+}
+
+async function invokeCompletionWithRetry(label, url, init) {
+  let lastResult = null;
+  let lastError = null;
+
+  for (let attempt = 1; attempt <= completionAttemptCount; attempt += 1) {
+    try {
+      lastResult = await invokeJson(url, init);
+      lastError = null;
+    } catch (error) {
+      lastError = error;
+
+      if (attempt === completionAttemptCount) {
+        break;
+      }
+
+      logStep(
+        `${label} request failed; retrying after local Edge Function warmup (${attempt}/${completionAttemptCount})`,
+      );
+      await new Promise((resolve) => setTimeout(resolve, 500 * attempt));
+      continue;
+    }
+
+    if (!shouldRetryCompletion(lastResult) || attempt === completionAttemptCount) {
+      return lastResult;
+    }
+
+    logStep(
+      `${label} returned ${lastResult.response.status}; retrying after local Edge Function warmup (${attempt}/${completionAttemptCount})`,
+    );
+    await new Promise((resolve) => setTimeout(resolve, 500 * attempt));
+  }
+
+  if (lastResult) {
+    return lastResult;
+  }
+
+  const errorMessage = lastError instanceof Error ? lastError.message : String(lastError);
+  throw new Error(`${label} request failed after ${completionAttemptCount} attempts.\n${errorMessage}`);
 }
 
 async function main() {
@@ -255,7 +262,7 @@ async function main() {
     writeServeEnvFile();
 
     logStep("Starting local Edge Functions runtime");
-    const serveRuntime = startFunctionsServe();
+    const serveRuntime = startFunctionsServe(serveEnvPath);
 
     try {
       const baseHeaders = {
@@ -272,42 +279,71 @@ async function main() {
 
       const setCookieHeader = issueSession.response.headers.get("set-cookie");
 
-      assert(setCookieHeader, "Expected issue-session to return Set-Cookie.");
+      assertWithContext(
+        setCookieHeader,
+        "Expected issue-session to return Set-Cookie.",
+        formatHttpResult(issueSession),
+      );
 
       const cookieHeader = setCookieHeader.split(";")[0];
 
-      logStep("Completing the quiz with the cookie transport");
-      const cookieCompletion = await invokeJson(`${status.FUNCTIONS_URL}/complete-quiz`, {
-        body: JSON.stringify(buildCompletionPayload(requestId)),
-        headers: {
-          ...baseHeaders,
-          cookie: cookieHeader,
-        },
-        method: "POST",
-      });
+      logStep("Warming the complete-quiz function before the trusted completion");
+      await waitForCompleteQuizReady(status, serveRuntime);
 
-      assert(cookieCompletion.response.status === 200, "Expected complete-quiz to accept the signed cookie.");
-      assert(cookieCompletion.body?.score === 6, "Expected the trusted completion score to be recomputed as 6.");
-      assert(cookieCompletion.body?.raffleEligible === true, "Expected the first completion to earn the raffle entry.");
+      logStep("Completing the quiz with the cookie transport");
+      const cookieCompletion = await invokeCompletionWithRetry(
+        "Cookie completion",
+        `${status.FUNCTIONS_URL}/complete-quiz`,
+        {
+          body: JSON.stringify(buildCompletionPayload(requestId)),
+          headers: {
+            ...baseHeaders,
+            cookie: cookieHeader,
+          },
+          method: "POST",
+        },
+      );
+
+      assertHttpStatus(cookieCompletion, 200, "Expected complete-quiz to accept the signed cookie.");
+      assertWithContext(
+        cookieCompletion.body?.score === 6,
+        "Expected the trusted completion score to be recomputed as 6.",
+        formatHttpResult(cookieCompletion),
+      );
+      assertWithContext(
+        cookieCompletion.body?.raffleEligible === true,
+        "Expected the first completion to earn the raffle entry.",
+        formatHttpResult(cookieCompletion),
+      );
 
       logStep("Retrying the same completion via the explicit session header fallback");
-      const repeatedCompletion = await invokeJson(`${status.FUNCTIONS_URL}/complete-quiz`, {
-        body: JSON.stringify(buildCompletionPayload(requestId)),
-        headers: {
-          ...baseHeaders,
-          "x-neighborly-session": issueSession.body.sessionToken,
+      const repeatedCompletion = await invokeCompletionWithRetry(
+        "Header fallback completion",
+        `${status.FUNCTIONS_URL}/complete-quiz`,
+        {
+          body: JSON.stringify(buildCompletionPayload(requestId)),
+          headers: {
+            ...baseHeaders,
+            "x-neighborly-session": issueSession.body.sessionToken,
+          },
+          method: "POST",
         },
-        method: "POST",
-      });
+      );
 
-      assert(repeatedCompletion.response.status === 200, "Expected complete-quiz to accept the explicit session header fallback.");
-      assert(
+      assertHttpStatus(
+        repeatedCompletion,
+        200,
+        "Expected complete-quiz to accept the explicit session header fallback.",
+      );
+      assertWithContext(
         repeatedCompletion.body?.completionId === cookieCompletion.body?.completionId,
         "Expected the retry path to be idempotent for the same request id.",
+        formatHttpResult(repeatedCompletion),
       );
-      assert(
+      assertWithContext(
         repeatedCompletion.body?.attemptNumber === 1,
         "Expected the retry path not to increment the attempt number for the same request id.",
+        formatHttpResult(repeatedCompletion),
       );
     } finally {
       logStep("Stopping local Edge Functions runtime");

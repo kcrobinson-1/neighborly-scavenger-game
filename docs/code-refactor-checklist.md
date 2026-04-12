@@ -69,11 +69,11 @@ Rules for this checklist:
   partials imported by the SCSS entrypoint or a quiz index partial.
   Validation: `npm run build:web`.
 
-- [ ] Split local Edge Function integration runner by responsibility.
-  `scripts/testing/run-function-integration-tests.cjs` combines process
-  lifecycle, readiness polling, HTTP invocation, test assertions, and teardown.
-  Extract process management and HTTP helpers into `scripts/testing/` utilities
-  so the runner reads as the scenario being tested.
+- [x] Split local Edge Function integration runner by responsibility.
+  Extracted process lifecycle helpers and JSON HTTP diagnostics into
+  `scripts/testing/` utilities so
+  `scripts/testing/run-function-integration-tests.cjs` reads as the trusted
+  Edge Function scenario being tested.
   Validation: `npm run test:functions:integration`.
 
 - [ ] Split `complete-quiz` handler utilities from request orchestration.
