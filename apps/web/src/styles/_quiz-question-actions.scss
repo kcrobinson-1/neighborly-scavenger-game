@@ -1,10 +1,12 @@
+@use "./tokens" as *;
+
 .submit-button {
   margin-top: 2px;
 
   &:disabled {
     cursor: not-allowed;
     transform: none;
-    background: rgba(31, 58, 50, 0.18);
+    background: $color-text-disabled-surface;
     box-shadow: none;
   }
 }

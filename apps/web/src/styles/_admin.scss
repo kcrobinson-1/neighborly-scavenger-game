@@ -11,7 +11,7 @@
 }
 
 .admin-copy {
-  gap: 10px;
+  gap: $space-4;
 }
 
 .admin-copy p,
@@ -28,15 +28,15 @@
 }
 
 .admin-form {
-  gap: 14px;
+  gap: $space-6;
 }
 
 .admin-field {
-  @include stack(8px);
+  @include stack($space-3);
 }
 
 .admin-field-label {
-  font-weight: 700;
+  font-weight: $font-weight-bold;
   color: var(--text);
 }
 
@@ -45,7 +45,7 @@
   padding: 15px 16px;
   border: 1px solid var(--surface-border);
   border-radius: $radius-control;
-  background: rgba(255, 252, 245, 0.98);
+  background: $color-admin-input-surface;
   color: var(--text);
 }
 
@@ -56,18 +56,18 @@
 
 .admin-message {
   margin: 0;
-  padding: 14px 16px;
+  padding: $space-6 $space-7;
   border-radius: $radius-control;
-  font-weight: 600;
+  font-weight: $font-weight-semibold;
 }
 
 .admin-message-error {
-  background: rgba(217, 107, 43, 0.12);
+  background: $color-primary-surface;
   color: var(--primary);
 }
 
 .admin-message-success {
-  background: rgba(63, 143, 90, 0.12);
+  background: $color-success-surface-muted;
   color: var(--success);
 }
 
@@ -81,19 +81,19 @@
 }
 
 .draft-list {
-  gap: 12px;
+  gap: $space-5;
 }
 
 .draft-row {
-  padding: 18px;
-  border: 1px solid rgba(31, 58, 50, 0.1);
+  padding: $space-8;
+  border: 1px solid $color-border-muted;
   border-radius: $radius-card;
-  background: rgba(255, 250, 243, 0.82);
+  background: $color-draft-row-surface;
 }
 
 .draft-row-header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 12px;
+  gap: $space-5;
 }

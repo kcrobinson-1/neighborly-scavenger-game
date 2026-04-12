@@ -12,8 +12,8 @@
 
 .primary-button,
 .secondary-button {
-  padding: 16px 18px;
-  font-weight: 700;
+  padding: $space-7 $space-8;
+  font-weight: $font-weight-bold;
 }
 
 .primary-button {
@@ -23,7 +23,7 @@
 }
 
 .secondary-button {
-  background: rgba(47, 111, 143, 0.14);
+  background: $color-secondary-surface-strong;
   color: var(--secondary);
 }
 
@@ -35,7 +35,7 @@
   border: none;
   background: transparent;
   color: var(--secondary);
-  font-weight: 700;
+  font-weight: $font-weight-bold;
   text-decoration: none;
   @include interactive-control;
 }

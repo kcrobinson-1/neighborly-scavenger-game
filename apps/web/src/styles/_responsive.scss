@@ -20,7 +20,7 @@
   }
 
   .topbar-compact {
-    gap: 10px;
+    gap: $space-4;
   }
 
   .progress-copy {
@@ -28,11 +28,11 @@
   }
 
   .panel {
-    padding: 18px;
+    padding: $space-8;
     border-radius: $radius-panel-mobile;
   }
 
   .sample-game-row {
-    padding: 16px;
+    padding: $space-7;
   }
 }

@@ -2,36 +2,36 @@
 @use "./tokens" as *;
 
 .token-block {
-  @include stack(8px);
+  @include stack($space-3);
   justify-content: center;
-  min-height: 184px;
+  min-height: $token-block-min-height;
   margin: 8px 0 18px;
   @include surface-card(
     $background: $color-white-tint,
-    $border: rgba(63, 143, 90, 0.18)
+    $border: $color-success-border
   );
   background:
-    linear-gradient(135deg, rgba(63, 143, 90, 0.16), rgba(47, 111, 143, 0.1)),
+    linear-gradient(135deg, $color-success-surface, $color-secondary-surface),
     $color-white-tint;
 }
 
 .token-block-pending {
-  border-color: rgba(47, 111, 143, 0.24);
+  border-color: $color-secondary-border-pending;
   background:
-    linear-gradient(135deg, rgba(47, 111, 143, 0.12), rgba(227, 178, 60, 0.12)),
+    linear-gradient(135deg, $color-secondary-surface-pending, $color-accent-surface-pending),
     $color-white-tint;
 }
 
 .token-status {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: $space-4;
 }
 
 .token-spinner {
-  width: 16px;
-  height: 16px;
-  border: 2px solid rgba(47, 111, 143, 0.18);
+  width: $token-spinner-size;
+  height: $token-spinner-size;
+  border: 2px solid $color-secondary-border-subtle;
   border-top-color: var(--secondary);
   border-radius: 50%;
   animation: token-spin 0.9s linear infinite;
@@ -46,7 +46,7 @@
 .token-instruction {
   margin: 0;
   color: var(--text);
-  font-weight: 600;
+  font-weight: $font-weight-semibold;
   line-height: 1.5;
 }
 

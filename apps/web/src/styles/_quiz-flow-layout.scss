@@ -1,4 +1,5 @@
 @use "./mixins" as *;
+@use "./tokens" as *;
 
 .options,
 .question-form,
@@ -11,7 +12,7 @@
 }
 
 .options {
-  gap: 12px;
+  gap: $space-5;
   margin-top: 20px;
 }
 
@@ -19,5 +20,5 @@
 .option-fieldset,
 .question-actions,
 .completion-actions {
-  gap: 16px;
+  gap: $space-7;
 }

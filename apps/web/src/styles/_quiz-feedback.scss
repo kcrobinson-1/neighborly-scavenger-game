@@ -2,9 +2,9 @@
 @use "./tokens" as *;
 
 .feedback-banner {
-  @include stack(6px);
+  @include stack($space-2);
   margin-top: 18px;
-  padding: 16px;
+  padding: $space-7;
   border-radius: $radius-control;
 }
 
@@ -19,6 +19,6 @@
 }
 
 .feedback-banner-error {
-  background: rgba(217, 107, 43, 0.12);
-  border: 1px solid rgba(217, 107, 43, 0.24);
+  background: $color-primary-surface;
+  border: 1px solid $color-primary-border;
 }

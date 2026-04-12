@@ -14,8 +14,8 @@
 }
 
 .option-choice-selected .option-button {
-  background: rgba(47, 111, 143, 0.18);
-  border-color: rgba(47, 111, 143, 0.56);
+  background: $color-secondary-surface-selected;
+  border-color: $color-secondary-border-selected;
   box-shadow: $shadow-selected;
 }
 
@@ -24,12 +24,12 @@
   position: absolute;
   top: 12px;
   right: 14px;
-  padding: 4px 8px;
+  padding: $space-1 $space-3;
   border-radius: $radius-pill;
-  background: rgba(47, 111, 143, 0.14);
+  background: $color-secondary-surface-strong;
   color: var(--secondary);
   font-size: 0.72rem;
-  font-weight: 700;
+  font-weight: $font-weight-bold;
   letter-spacing: 0.02em;
 }
 
@@ -41,12 +41,12 @@
 
 .option-button {
   display: block;
-  min-height: 64px;
-  padding: 18px 20px;
+  min-height: $control-min-height;
+  padding: $space-8 $space-9;
   text-align: left;
   background: $color-white-panel;
   color: var(--text);
-  border: 1px solid rgba(31, 58, 50, 0.12);
+  border: 1px solid $color-border;
 }
 
 .selection-hint {

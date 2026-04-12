@@ -2,9 +2,9 @@
 
 .progress-track {
   overflow: hidden;
-  height: 10px;
+  height: $progress-track-height;
   border-radius: $radius-pill;
-  background: rgba(31, 58, 50, 0.1);
+  background: $color-border-muted;
 }
 
 .progress-fill {
