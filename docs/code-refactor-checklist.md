@@ -93,11 +93,16 @@ Rules for this checklist:
   Edge Function scenario being tested.
   Validation: `npm run test:functions:integration`.
 
-- [ ] Split `complete-quiz` handler utilities from request orchestration.
+- [x] Split `complete-quiz` handler utilities from request orchestration.
   `supabase/functions/complete-quiz/index.ts` is over 300 lines and includes
   persistence types, payload validation, JSON response helpers, and the full
   handler. Move reusable response/payload/persistence helpers into local or
   shared modules without changing the public function contract.
+  Extracted local `dependencies.ts`, `payload.ts`, `persistence.ts`, and
+  `response.ts` modules so `index.ts` now stays focused on request
+  orchestration and compatibility exports. The handler entrypoint dropped from
+  325 lines to 200 lines without changing response bodies, status codes, RPC
+  parameters, or validation behavior.
   Validation: `npm run test:functions` and
   `deno check --no-lock supabase/functions/complete-quiz/index.ts`.
 

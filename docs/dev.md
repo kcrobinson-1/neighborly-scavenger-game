@@ -342,6 +342,38 @@ The intended release path is:
 5. Let Vercel Git integration publish the frontend from the merged commit.
 6. Let [`.github/workflows/release.yml`](../.github/workflows/release.yml) apply production Supabase migrations and deploy production Edge Functions from that same repo state.
 
+### Pull Request Body Requirements
+
+Pull requests use [`.github/pull_request_template.md`](../.github/pull_request_template.md)
+as the required review shape.
+
+Before creating or updating a PR from the CLI, write the body to a temporary
+file and run:
+
+```bash
+npm run check:pr-body -- tmp/pr-body.md
+```
+
+The check only verifies that the required readiness sections are present. The
+author is still responsible for making the content accurate.
+
+Every PR body should include:
+
+- why the change is worth merging, with concrete maintainability, correctness,
+  user, or operational value
+- the expected user-behavior difference, or an explicit statement that current
+  user behavior does not change
+- contract and scope notes, especially for APIs, response bodies, persistence,
+  authentication, authorization, routing, schema, generated artifacts, and
+  production configuration
+- target-shape evidence for behavior-preserving refactors and checklist work
+- documentation updates or why none were needed
+- exact validation commands run and any checks that could not be run
+- remaining risk, blockers, or follow-up work
+
+CI runs the same heading check for pull requests so missing sections are caught
+even when a PR is opened outside the CLI workflow.
+
 The release workflow currently expects these GitHub Actions secrets:
 
 - `SUPABASE_ACCESS_TOKEN`

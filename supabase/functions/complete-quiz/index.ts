@@ -1,170 +1,29 @@
-import { createClient } from "jsr:@supabase/supabase-js@2.101.1";
+import { type GameConfig } from "../../../shared/game-config.ts";
 import {
-  type GameConfig,
-  normalizeSubmittedAnswers,
-  scoreAnswers,
-  validateSubmittedAnswers,
-} from "../../../shared/game-config.ts";
-import { createCorsHeaders, getAllowedOrigin } from "../_shared/cors.ts";
-import { loadPublishedGameById } from "../_shared/published-game-loader.ts";
-import { readVerifiedSession } from "../_shared/session-cookie.ts";
+  type CompleteQuizHandlerDependencies,
+  defaultCompleteQuizHandlerDependencies,
+} from "./dependencies.ts";
+import { validateCompletionPayload } from "./payload.ts";
+import { jsonResponse } from "./response.ts";
 
-/** Shape returned by the completion RPC before it is mapped to the API response. */
-export type CompletionRpcRow = {
-  attempt_number: number;
-  completion_id: string;
-  entitlement_created_at: string;
-  entitlement_status: "existing" | "new";
-  message: string;
-  raffle_eligible: boolean;
-  score: number;
-  verification_code: string;
-};
-
-/** Request payload accepted by the completion endpoint. */
-export type CompletionRequestBody = {
-  answers: Record<string, string[]>;
-  durationMs: number;
-  eventId: string;
-  requestId: string;
-};
-
-type CompletionPersistenceInput = {
-  durationMs: number;
-  eventId: string;
-  normalizedAnswers: Record<string, string[]>;
-  requestId: string;
-  sessionId: string;
-  trustedScore: number;
-};
-
-type CompletionPersistenceResult = {
-  data: CompletionRpcRow | null;
-  error: { message: string } | null;
-};
-
-export type CompleteQuizHandlerDependencies = {
-  createCorsHeaders: typeof createCorsHeaders;
-  getAllowedOrigin: typeof getAllowedOrigin;
-  getServiceRoleKey: () => string | undefined;
-  getSigningSecret: () => string | undefined;
-  getSupabaseUrl: () => string | undefined;
-  loadPublishedGameById: (
-    gameId: string,
-    supabaseUrl: string,
-    serviceRoleKey: string,
-  ) => Promise<GameConfig | null>;
-  normalizeSubmittedAnswers: typeof normalizeSubmittedAnswers;
-  persistCompletion: (
-    input: CompletionPersistenceInput,
-    supabaseUrl: string,
-    serviceRoleKey: string,
-  ) => Promise<CompletionPersistenceResult>;
-  readVerifiedSession: typeof readVerifiedSession;
-  scoreAnswers: typeof scoreAnswers;
-  validateSubmittedAnswers: typeof validateSubmittedAnswers;
-};
-
-async function persistCompletion(
-  input: CompletionPersistenceInput,
-  supabaseUrl: string,
-  serviceRoleKey: string,
-): Promise<CompletionPersistenceResult> {
-  const supabase = createClient(supabaseUrl, serviceRoleKey, {
-    auth: {
-      persistSession: false,
-    },
-  });
-
-  return await supabase
-    .rpc("complete_quiz_and_award_entitlement", {
-      p_client_session_id: input.sessionId,
-      p_duration_ms: input.durationMs,
-      p_event_id: input.eventId,
-      p_request_id: input.requestId,
-      p_score: input.trustedScore,
-      p_submitted_answers: input.normalizedAnswers,
-    })
-    .single<CompletionRpcRow>();
-}
-
-export const defaultCompleteQuizHandlerDependencies: CompleteQuizHandlerDependencies = {
-  createCorsHeaders,
-  getAllowedOrigin,
-  getServiceRoleKey: () => Deno.env.get("SUPABASE_SERVICE_ROLE_KEY"),
-  getSigningSecret: () => Deno.env.get("SESSION_SIGNING_SECRET"),
-  getSupabaseUrl: () => Deno.env.get("SUPABASE_URL"),
-  loadPublishedGameById,
-  normalizeSubmittedAnswers,
-  persistCompletion,
-  readVerifiedSession,
-  scoreAnswers,
-  validateSubmittedAnswers,
-};
-
-/** Creates a JSON response with the shared CORS policy applied. */
-function jsonResponse(
-  status: number,
-  body: Record<string, unknown>,
-  origin: string | null,
-  createCorsHeaders: CompleteQuizHandlerDependencies["createCorsHeaders"],
-) {
-  return new Response(JSON.stringify(body), {
-    headers: {
-      ...createCorsHeaders(origin),
-      "Content-Type": "application/json",
-    },
-    status,
-  });
-}
-
-/** Type guard for the answers object sent by the browser. */
-function isAnswersRecord(value: unknown): value is Record<string, string[]> {
-  if (typeof value !== "object" || value === null || Array.isArray(value)) {
-    return false;
-  }
-
-  return Object.values(value).every(
-    (optionIds) =>
-      Array.isArray(optionIds) &&
-      optionIds.every((optionId) => typeof optionId === "string"),
-  );
-}
-
-/** Validates and normalizes the completion request payload. */
-export function validateCompletionPayload(payload: unknown): CompletionRequestBody | null {
-  if (typeof payload !== "object" || payload === null) {
-    return null;
-  }
-
-  const candidate = payload as Partial<CompletionRequestBody>;
-
-  const eventId =
-    typeof candidate.eventId === "string" ? candidate.eventId.trim() : "";
-  const requestId =
-    typeof candidate.requestId === "string" ? candidate.requestId.trim() : "";
-
-  if (
-    typeof candidate.durationMs !== "number" ||
-    !Number.isFinite(candidate.durationMs) ||
-    eventId.length === 0 ||
-    requestId.length === 0 ||
-    !isAnswersRecord(candidate.answers)
-  ) {
-    return null;
-  }
-
-  return {
-    answers: candidate.answers,
-    durationMs: candidate.durationMs,
-    eventId,
-    requestId,
-  };
-}
+export {
+  type CompleteQuizHandlerDependencies,
+  defaultCompleteQuizHandlerDependencies,
+} from "./dependencies.ts";
+export type {
+  CompletionPersistenceInput,
+  CompletionPersistenceResult,
+  CompletionRpcRow,
+} from "./persistence.ts";
+export {
+  type CompletionRequestBody,
+  validateCompletionPayload,
+} from "./payload.ts";
 
 /** Builds the request handler used by the trusted completion function. */
 export function createCompleteQuizHandler(
-  dependencies: CompleteQuizHandlerDependencies = defaultCompleteQuizHandlerDependencies,
+  dependencies: CompleteQuizHandlerDependencies =
+    defaultCompleteQuizHandlerDependencies,
 ) {
   return async (request: Request) => {
     const origin = dependencies.getAllowedOrigin(request);
@@ -173,7 +32,12 @@ export function createCompleteQuizHandler(
     // raffle entitlements. The signed cookie is the main trust primitive, and the
     // origin gate keeps that cookie flow scoped to the product's own surfaces.
     if (!origin) {
-      return jsonResponse(403, { error: "Origin not allowed." }, null, dependencies.createCorsHeaders);
+      return jsonResponse(
+        403,
+        { error: "Origin not allowed." },
+        null,
+        dependencies.createCorsHeaders,
+      );
     }
 
     if (request.method === "OPTIONS") {
@@ -191,7 +55,9 @@ export function createCompleteQuizHandler(
       );
     }
 
-    const payload = validateCompletionPayload(await request.json().catch(() => null));
+    const payload = validateCompletionPayload(
+      await request.json().catch(() => null),
+    );
 
     if (!payload) {
       return jsonResponse(
@@ -215,7 +81,10 @@ export function createCompleteQuizHandler(
       );
     }
 
-    const session = await dependencies.readVerifiedSession(request, signingSecret);
+    const session = await dependencies.readVerifiedSession(
+      request,
+      signingSecret,
+    );
 
     if (!session) {
       return jsonResponse(
@@ -255,7 +124,10 @@ export function createCompleteQuizHandler(
       );
     }
 
-    const validation = dependencies.validateSubmittedAnswers(game, payload.answers);
+    const validation = dependencies.validateSubmittedAnswers(
+      game,
+      payload.answers,
+    );
 
     if (!validation.ok) {
       return jsonResponse(
@@ -269,7 +141,10 @@ export function createCompleteQuizHandler(
     // The browser sends answers, but the server owns the authoritative result.
     // We normalize the payload, recompute score from trusted published content,
     // and only then persist the attempt through the RPC.
-    const normalizedAnswers = dependencies.normalizeSubmittedAnswers(game, payload.answers);
+    const normalizedAnswers = dependencies.normalizeSubmittedAnswers(
+      game,
+      payload.answers,
+    );
     const trustedScore = dependencies.scoreAnswers(game, normalizedAnswers);
 
     const { data, error } = await dependencies.persistCompletion(

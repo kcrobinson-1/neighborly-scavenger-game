@@ -147,7 +147,13 @@ The Supabase side is intentionally small:
 - `supabase/functions/issue-session/index.ts`
   Creates or reuses the signed browser session credential.
 - `supabase/functions/complete-quiz/index.ts`
-  Validates the completion payload, verifies the session credential, computes the trusted score, and calls the database RPC.
+  Orchestrates trusted completion requests: origin and method gates, session
+  verification, published content loading, shared validation and scoring, and
+  final response mapping.
+- `supabase/functions/complete-quiz/`
+  Local helper modules for completion payload parsing, JSON responses,
+  dependency wiring, and service-role RPC persistence used by the handler and
+  function tests.
 - `supabase/functions/save-draft/index.ts`
   Authenticated admin endpoint that validates canonical draft content and saves
   it to the private draft table.
