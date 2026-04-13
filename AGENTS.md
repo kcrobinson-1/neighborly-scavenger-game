@@ -4,6 +4,23 @@ This file gives repository-specific guidance to AI coding agents working in this
 
 Use it as a practical checklist for making changes that stay aligned with the current architecture, documentation, and product stage.
 
+## Development Workflow Source Of Truth
+
+For any repository change beyond a trivial read-only answer, treat
+`docs/dev.md` as the development workflow source of truth.
+
+Before editing, read the relevant `docs/dev.md` sections for:
+
+- local setup and environment assumptions
+- validation commands
+- Supabase, Deno, Vercel, and Playwright workflow notes
+- release and pull request expectations
+- troubleshooting for the area being changed
+
+`AGENTS.md` defines agent behavior and decision discipline. `docs/dev.md`
+defines the current contributor workflow. Follow both. If they conflict, stop
+and report the conflict instead of guessing.
+
 ## Purpose
 
 This repository currently contains a prototype-to-MVP attendee quiz experience:
