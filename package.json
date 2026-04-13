@@ -23,7 +23,6 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "validate:local": "node scripts/testing/run-local-validation.cjs",
-    "check:pr-body": "node scripts/github/check-pr-body.cjs",
     "ui:review:capture": "node scripts/ui-review/capture-ui-review.cjs"
   },
   "devDependencies": {
