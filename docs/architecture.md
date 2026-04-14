@@ -256,7 +256,9 @@ Today that route:
 - checks a private email allowlist through `public.is_quiz_admin()`
 - shows an event-centered workspace for private draft events visible to
   allowlisted admins
-- supports direct read-only event selection under `/admin/events/:eventId`
+- supports direct event selection under `/admin/events/:eventId`
+- lets admins create starter drafts and duplicate existing private drafts
+  through the authenticated draft save path
 - keeps non-admin authenticated users out of the draft data path
 
 The browser requests magic links with an explicit `/admin` redirect on the
@@ -264,8 +266,8 @@ current origin. Supabase Auth dashboard settings still have to allow that URL,
 and the project Site URL should match the deployed web origin so email links do
 not fall back to a local default.
 
-The visible admin page is still read-only, but the backend API surface now
-supports the next authoring step:
+The visible admin page can create and duplicate private drafts, but the backend
+API surface owns validation and persistence:
 
 - `save-draft` writes validated private draft JSON for allowlisted admins
 - `publish-draft` validates the draft and updates the public event, question,
@@ -275,7 +277,7 @@ supports the next authoring step:
 - `quiz_event_audit_log` records publish and unpublish transitions
 
 The current scope still stops short of a full editor, question builder,
-preview route, duplication flow, or AI authoring UI.
+preview route, publish controls in the UI, or AI authoring UI.
 
 ## Runtime Request Flow
 
@@ -400,12 +402,12 @@ The repository has a working prototype slice, but it does not yet satisfy the fu
 
 ### Organizer/admin tooling
 
-Today, the repo has a read-only organizer/admin event workspace, but not a full
-authoring product.
+Today, the repo has an organizer/admin event workspace for private draft
+orientation plus create and duplicate actions, but not a full authoring product.
 
 What is missing:
 
-- full draft editing, duplication, and preview UI without code changes
+- full draft editing and preview UI without code changes
 - AI-assisted authoring entry points in the admin experience
 - managing sponsor attribution and question content beyond draft visibility
 

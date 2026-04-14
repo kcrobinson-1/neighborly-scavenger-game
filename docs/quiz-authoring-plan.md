@@ -818,7 +818,7 @@ Implementation status:
 - `/admin/events/:eventId` selects one private draft summary for orientation
   without enabling editing
 - create, duplicate, edit, preview, publish, unpublish, and AI-assisted entry
-  points remain deferred to later Phase 4 subphases
+  points were deferred to later Phase 4 subphases when this phase landed
 
 Implementation decisions:
 
@@ -855,9 +855,38 @@ Acceptance criteria:
 - slug collisions and save failures are surfaced without creating live content
 - the events list refreshes or updates after successful draft creation
 
+Implementation status:
+
+- implemented in the current repo as create and duplicate actions in the
+  authenticated `/admin` event workspace
+- successful create and duplicate saves update the visible draft-summary list
+  from the `save-draft` response and navigate to `/admin/events/:eventId` for
+  the new draft
+- create and duplicate failures leave the current list and selected route
+  unchanged while surfacing an admin-facing error message
+- event details editing, question editing, preview, publish, unpublish, and
+  AI-assisted draft entry remain deferred to later Phase 4 subphases
+
+Implementation decisions:
+
+- Use a valid starter draft template with placeholder event details and one
+  single-select placeholder question because the canonical draft save path
+  rejects empty drafts.
+- Generate readable client-side draft ids and slugs with a short unique suffix
+  and avoid obvious collisions with the currently visible drafts; the backend
+  remains authoritative for validation and uniqueness.
+- Duplicate only private draft content loaded through the authenticated draft
+  read path, then replace id, slug, and name before saving through
+  `save-draft`.
+- Keep duplicated drafts unpublished by not copying live-version metadata and
+  not calling publish from this phase.
+- Use one-at-a-time admin mutation state so create and duplicate actions cannot
+  overlap or race local list updates.
+
 Suggested validation:
 
 - `npm test -- tests/web/pages/AdminPage.test.tsx`
+- `npm test -- tests/web/admin/draftCreation.test.ts`
 - `npm test -- tests/web/lib/adminQuizApi.test.ts`
 - `npm run build:web`
 - browser UI review for create and duplicate paths when Supabase admin
@@ -904,10 +933,15 @@ Acceptance criteria:
 - question ordering, correct-answer selection, and validation messages survive
   save and reload
 - malformed question changes cannot be published accidentally through the UI
+- existing event create and duplicate flows keep page-level regression coverage
+  while question delete behavior is added
 
 Suggested validation:
 
 - focused frontend tests for question editing behavior
+- Phase 4.2 create and duplicate regression tests, including successful create,
+  successful duplicate, load/save failures, local list updates, and
+  post-create/post-duplicate navigation
 - `npm test -- tests/web/lib/adminQuizApi.test.ts`
 - `npm run build:web`
 - browser UI review of add, reorder, delete, and save flows

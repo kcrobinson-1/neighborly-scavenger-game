@@ -22,8 +22,11 @@ export function AdminPage({ onNavigate, selectedEventId }: AdminPageProps) {
     >
       <AdminDashboardContent
         dashboardState={adminDashboard.dashboardState}
+        draftMutationState={adminDashboard.draftMutationState}
         emailInput={adminDashboard.emailInput}
         magicLinkState={adminDashboard.magicLinkState}
+        onCreateDraft={adminDashboard.createDraft}
+        onDuplicateDraft={adminDashboard.duplicateDraft}
         onEmailInputChange={adminDashboard.setEmailInput}
         onNavigate={onNavigate}
         onRetryDashboard={adminDashboard.retryDashboard}

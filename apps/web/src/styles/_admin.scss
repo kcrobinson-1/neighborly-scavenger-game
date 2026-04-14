@@ -73,6 +73,11 @@
   color: var(--success);
 }
 
+.admin-message-info {
+  background: $color-secondary-surface;
+  color: var(--secondary);
+}
+
 .admin-signout-button,
 .admin-inline-button,
 .admin-refresh-button {

@@ -1,8 +1,12 @@
 import type { DraftEventSummary } from "../lib/adminQuizApi";
 import { routes } from "../routes";
+import type { AdminDraftMutationState } from "./useAdminDashboard";
 
 type AdminEventWorkspaceProps = {
+  draftMutationState: AdminDraftMutationState;
   drafts: DraftEventSummary[];
+  onCreateDraft: () => Promise<DraftEventSummary | null>;
+  onDuplicateDraft: (eventId: string) => Promise<DraftEventSummary | null>;
   onNavigate: (path: string) => void;
   onRefresh: () => void;
   selectedEventId?: string;
@@ -37,9 +41,22 @@ function formatCount(count: number, singularLabel: string, pluralLabel = `${sing
   return `${count} ${label}`;
 }
 
-/** Read-only event workspace for the first admin UX phase. */
+function isDraftMutationPending(state: AdminDraftMutationState) {
+  return state.status === "creating" || state.status === "duplicating";
+}
+
+function getMutationMessageClass(state: AdminDraftMutationState) {
+  return state.status === "error"
+    ? "admin-message admin-message-error"
+    : "admin-message admin-message-info";
+}
+
+/** Event workspace for draft orientation plus create and duplicate actions. */
 export function AdminEventWorkspace({
+  draftMutationState,
   drafts,
+  onCreateDraft,
+  onDuplicateDraft,
   onNavigate,
   onRefresh,
   selectedEventId,
@@ -48,6 +65,23 @@ export function AdminEventWorkspace({
     ? drafts.find((draft) => draft.id === selectedEventId)
     : null;
   const counts = getEventCounts(drafts);
+  const isMutationPending = isDraftMutationPending(draftMutationState);
+
+  const handleCreateDraft = async () => {
+    const savedDraft = await onCreateDraft();
+
+    if (savedDraft) {
+      onNavigate(routes.adminEvent(savedDraft.id));
+    }
+  };
+
+  const handleDuplicateDraft = async (eventId: string) => {
+    const savedDraft = await onDuplicateDraft(eventId);
+
+    if (savedDraft) {
+      onNavigate(routes.adminEvent(savedDraft.id));
+    }
+  };
 
   if (selectedEventId && !selectedDraft) {
     return (
@@ -70,6 +104,10 @@ export function AdminEventWorkspace({
   }
 
   if (selectedDraft) {
+    const isDuplicatingSelectedDraft =
+      draftMutationState.status === "duplicating" &&
+      draftMutationState.eventId === selectedDraft.id;
+
     return (
       <div className="admin-workspace-detail">
         <div className="admin-workspace-heading">
@@ -77,7 +115,7 @@ export function AdminEventWorkspace({
             <p className="eyebrow">Selected event</p>
             <h3>{selectedDraft.name}</h3>
           </div>
-          <span className="chip">Read-only workspace</span>
+          <span className="chip">Draft actions</span>
         </div>
         <p>Status: {getStatusLabel(selectedDraft)}</p>
         <p>Slug: {selectedDraft.slug}</p>
@@ -93,13 +131,27 @@ export function AdminEventWorkspace({
           {selectedDraft.liveVersionNumber ? (
             <button
               className="secondary-button"
+              disabled={isMutationPending}
               onClick={() => onNavigate(routes.game(selectedDraft.slug))}
               type="button"
             >
               Open live quiz
             </button>
           ) : null}
+          <button
+            className="secondary-button"
+            disabled={isMutationPending}
+            onClick={() => void handleDuplicateDraft(selectedDraft.id)}
+            type="button"
+          >
+            {isDuplicatingSelectedDraft ? "Duplicating..." : "Duplicate draft"}
+          </button>
         </div>
+        {draftMutationState.status !== "idle" ? (
+          <p className={getMutationMessageClass(draftMutationState)}>
+            {draftMutationState.message}
+          </p>
+        ) : null}
       </div>
     );
   }
@@ -117,13 +169,29 @@ export function AdminEventWorkspace({
       </div>
       <div className="admin-toolbar">
         <button
+          className="primary-button"
+          disabled={isMutationPending}
+          onClick={() => void handleCreateDraft()}
+          type="button"
+        >
+          {draftMutationState.status === "creating"
+            ? "Creating draft..."
+            : "Create draft"}
+        </button>
+        <button
           className="secondary-button admin-refresh-button"
+          disabled={isMutationPending}
           onClick={onRefresh}
           type="button"
         >
           Refresh events
         </button>
       </div>
+      {draftMutationState.status !== "idle" ? (
+        <p className={getMutationMessageClass(draftMutationState)}>
+          {draftMutationState.message}
+        </p>
+      ) : null}
       <div className="draft-list">
         {drafts.length ? (
           drafts.map((draft) => (
@@ -153,12 +221,24 @@ export function AdminEventWorkspace({
                 {draft.liveVersionNumber ? (
                   <button
                     className="secondary-button"
+                    disabled={isMutationPending}
                     onClick={() => onNavigate(routes.game(draft.slug))}
                     type="button"
                   >
                     Open live quiz
                   </button>
                 ) : null}
+                <button
+                  className="secondary-button"
+                  disabled={isMutationPending}
+                  onClick={() => void handleDuplicateDraft(draft.id)}
+                  type="button"
+                >
+                  {draftMutationState.status === "duplicating" &&
+                  draftMutationState.eventId === draft.id
+                    ? "Duplicating..."
+                    : "Duplicate draft"}
+                </button>
               </div>
             </article>
           ))

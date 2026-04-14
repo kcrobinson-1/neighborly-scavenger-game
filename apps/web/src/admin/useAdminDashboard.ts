@@ -2,10 +2,16 @@ import { type FormEvent, useEffect, useState } from "react";
 import {
   getQuizAdminStatus,
   listDraftEventSummaries,
+  loadDraftEvent,
   requestAdminMagicLink,
+  saveDraftEvent,
   signOutAdmin,
   type DraftEventSummary,
 } from "../lib/adminQuizApi";
+import {
+  createDuplicatedDraftContent,
+  createStarterDraftContent,
+} from "./draftCreation";
 import { useAdminSession } from "./useAdminSession";
 
 export type AdminDashboardState =
@@ -19,6 +25,26 @@ export type AdminMagicLinkState = {
   message: string | null;
   status: "idle" | "error" | "pending" | "success";
 };
+
+export type AdminDraftMutationState =
+  | { message: null; status: "idle" }
+  | { message: string; status: "creating" }
+  | { eventId: string; message: string; status: "duplicating" }
+  | { message: string; status: "error" | "success" };
+
+function getErrorMessage(error: unknown, fallbackMessage: string) {
+  return error instanceof Error ? error.message : fallbackMessage;
+}
+
+function mergeDraftSummary(
+  drafts: DraftEventSummary[],
+  savedDraft: DraftEventSummary,
+) {
+  return [
+    savedDraft,
+    ...drafts.filter((draft) => draft.id !== savedDraft.id),
+  ];
+}
 
 /** Coordinates /admin auth, allowlist, draft loading, and form actions. */
 export function useAdminDashboard() {
@@ -34,15 +60,22 @@ export function useAdminDashboard() {
   const [reloadToken, setReloadToken] = useState(0);
   const [signOutError, setSignOutError] = useState<string | null>(null);
   const [isSigningOut, setIsSigningOut] = useState(false);
+  const [draftMutationState, setDraftMutationState] =
+    useState<AdminDraftMutationState>({
+      message: null,
+      status: "idle",
+    });
 
   useEffect(() => {
     if (sessionState.status !== "signed_in") {
       setDashboardState({ status: "idle" });
+      setDraftMutationState({ message: null, status: "idle" });
       return;
     }
 
     let isCancelled = false;
 
+    setDraftMutationState({ message: null, status: "idle" });
     setDashboardState({
       email: sessionState.email,
       status: "loading",
@@ -92,6 +125,90 @@ export function useAdminDashboard() {
 
   const retryDashboard = () => {
     setReloadToken((value) => value + 1);
+  };
+
+  const createDraft = async () => {
+    if (dashboardState.status !== "ready") {
+      return null;
+    }
+
+    setDraftMutationState({
+      message: "Creating draft...",
+      status: "creating",
+    });
+
+    try {
+      const content = createStarterDraftContent(dashboardState.drafts);
+      const savedDraft = await saveDraftEvent(content);
+
+      setDashboardState((currentState) =>
+        currentState.status === "ready"
+          ? {
+              ...currentState,
+              drafts: mergeDraftSummary(currentState.drafts, savedDraft),
+            }
+          : currentState,
+      );
+      setDraftMutationState({
+        message: `Created ${savedDraft.name}.`,
+        status: "success",
+      });
+
+      return savedDraft;
+    } catch (error: unknown) {
+      setDraftMutationState({
+        message: getErrorMessage(error, "We couldn't create the draft right now."),
+        status: "error",
+      });
+      return null;
+    }
+  };
+
+  const duplicateDraft = async (eventId: string) => {
+    if (dashboardState.status !== "ready") {
+      return null;
+    }
+
+    setDraftMutationState({
+      eventId,
+      message: "Duplicating draft...",
+      status: "duplicating",
+    });
+
+    try {
+      const sourceDraft = await loadDraftEvent(eventId);
+
+      if (!sourceDraft) {
+        throw new Error("We couldn't find that draft to duplicate.");
+      }
+
+      const content = createDuplicatedDraftContent(
+        sourceDraft,
+        dashboardState.drafts,
+      );
+      const savedDraft = await saveDraftEvent(content);
+
+      setDashboardState((currentState) =>
+        currentState.status === "ready"
+          ? {
+              ...currentState,
+              drafts: mergeDraftSummary(currentState.drafts, savedDraft),
+            }
+          : currentState,
+      );
+      setDraftMutationState({
+        message: `Duplicated ${sourceDraft.name}.`,
+        status: "success",
+      });
+
+      return savedDraft;
+    } catch (error: unknown) {
+      setDraftMutationState({
+        message: getErrorMessage(error, "We couldn't duplicate the draft right now."),
+        status: "error",
+      });
+      return null;
+    }
   };
 
   const requestMagicLink = async (event: FormEvent<HTMLFormElement>) => {
@@ -145,7 +262,10 @@ export function useAdminDashboard() {
   };
 
   return {
+    createDraft,
     dashboardState,
+    draftMutationState,
+    duplicateDraft,
     emailInput,
     isSigningOut,
     magicLinkState,

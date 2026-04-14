@@ -12,13 +12,17 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 const {
   mockGetQuizAdminStatus,
   mockListDraftEventSummaries,
+  mockLoadDraftEvent,
   mockRequestAdminMagicLink,
+  mockSaveDraftEvent,
   mockSignOutAdmin,
   mockUseAdminSession,
 } = vi.hoisted(() => ({
   mockGetQuizAdminStatus: vi.fn(),
   mockListDraftEventSummaries: vi.fn(),
+  mockLoadDraftEvent: vi.fn(),
   mockRequestAdminMagicLink: vi.fn(),
+  mockSaveDraftEvent: vi.fn(),
   mockSignOutAdmin: vi.fn(),
   mockUseAdminSession: vi.fn(),
 }));
@@ -30,11 +34,20 @@ vi.mock("../../../apps/web/src/admin/useAdminSession.ts", () => ({
 vi.mock("../../../apps/web/src/lib/adminQuizApi.ts", () => ({
   getQuizAdminStatus: mockGetQuizAdminStatus,
   listDraftEventSummaries: mockListDraftEventSummaries,
+  loadDraftEvent: mockLoadDraftEvent,
   requestAdminMagicLink: mockRequestAdminMagicLink,
+  saveDraftEvent: mockSaveDraftEvent,
   signOutAdmin: mockSignOutAdmin,
 }));
 
 import { AdminPage } from "../../../apps/web/src/pages/AdminPage.tsx";
+import { getGameById } from "../../../shared/game-config/sample-fixtures.ts";
+
+const sampleDraft = getGameById("madrona-music-2026");
+
+if (!sampleDraft) {
+  throw new Error("Expected the Madrona sample draft to exist.");
+}
 
 const draftSummaries = [
   {
@@ -53,11 +66,28 @@ const draftSummaries = [
   },
 ];
 
+function createDeferred<T>() {
+  let resolve!: (value: T) => void;
+  let reject!: (error: unknown) => void;
+  const promise = new Promise<T>((promiseResolve, promiseReject) => {
+    resolve = promiseResolve;
+    reject = promiseReject;
+  });
+
+  return {
+    promise,
+    reject,
+    resolve,
+  };
+}
+
 describe("AdminPage", () => {
   beforeEach(() => {
     mockGetQuizAdminStatus.mockReset();
     mockListDraftEventSummaries.mockReset();
+    mockLoadDraftEvent.mockReset();
     mockRequestAdminMagicLink.mockReset();
+    mockSaveDraftEvent.mockReset();
     mockSignOutAdmin.mockReset();
     mockUseAdminSession.mockReset();
   });
@@ -135,7 +165,9 @@ describe("AdminPage", () => {
         name: "This account is not allowlisted for quiz authoring.",
       }),
     ).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Create draft" })).toBeNull();
     expect(mockListDraftEventSummaries).not.toHaveBeenCalled();
+    expect(mockSaveDraftEvent).not.toHaveBeenCalled();
   });
 
   it("does not load drafts when admin configuration is missing", () => {
@@ -151,8 +183,10 @@ describe("AdminPage", () => {
         name: "Admin auth needs Supabase configuration.",
       }),
     ).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Create draft" })).toBeNull();
     expect(mockGetQuizAdminStatus).not.toHaveBeenCalled();
     expect(mockListDraftEventSummaries).not.toHaveBeenCalled();
+    expect(mockSaveDraftEvent).not.toHaveBeenCalled();
   });
 
   it("shows the event workspace for an authenticated admin session", async () => {
@@ -176,6 +210,8 @@ describe("AdminPage", () => {
     expect(screen.getByText("Draft Market Day")).toBeTruthy();
     expect(screen.getByText("Live v1")).toBeTruthy();
     expect(screen.getByText("Draft only")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Create draft" })).toBeTruthy();
+    expect(screen.getAllByRole("button", { name: "Duplicate draft" })).toHaveLength(2);
   });
 
   it("uses singular event count copy for one draft", async () => {
@@ -221,7 +257,260 @@ describe("AdminPage", () => {
     expect(screen.getAllByRole("button", { name: "Open live quiz" })).toHaveLength(1);
   });
 
-  it("shows a read-only selected event workspace", async () => {
+  it("creates a starter draft, updates the list, and opens the new workspace", async () => {
+    const navigate = vi.fn();
+    mockUseAdminSession.mockReturnValue({
+      email: "admin@example.com",
+      session: { access_token: "admin-token" },
+      status: "signed_in",
+    });
+    mockGetQuizAdminStatus.mockResolvedValue(true);
+    mockListDraftEventSummaries.mockResolvedValue(draftSummaries);
+    mockSaveDraftEvent.mockResolvedValue({
+      id: "untitled-event-created",
+      liveVersionNumber: null,
+      name: "Untitled event created",
+      slug: "untitled-event-created",
+      updatedAt: "2026-04-12T12:00:00.000Z",
+    });
+
+    render(<AdminPage onNavigate={navigate} />);
+
+    fireEvent.click(await screen.findByRole("button", { name: "Create draft" }));
+
+    await waitFor(() => {
+      expect(mockSaveDraftEvent).toHaveBeenCalledTimes(1);
+    });
+
+    const savedContent = mockSaveDraftEvent.mock.calls[0]?.[0];
+    expect(savedContent).toMatchObject({
+      feedbackMode: "final_score_reveal",
+      name: expect.stringMatching(/^Untitled event /),
+    });
+    expect(savedContent.questions).toHaveLength(1);
+    expect(screen.getByText("Untitled event created")).toBeTruthy();
+    expect(navigate).toHaveBeenCalledWith("/admin/events/untitled-event-created");
+  });
+
+  it("surfaces create failures without changing the list or navigating", async () => {
+    const navigate = vi.fn();
+    mockUseAdminSession.mockReturnValue({
+      email: "admin@example.com",
+      session: { access_token: "admin-token" },
+      status: "signed_in",
+    });
+    mockGetQuizAdminStatus.mockResolvedValue(true);
+    mockListDraftEventSummaries.mockResolvedValue(draftSummaries);
+    mockSaveDraftEvent.mockRejectedValue(
+      new Error("A quiz event already uses that slug."),
+    );
+
+    render(<AdminPage onNavigate={navigate} />);
+
+    fireEvent.click(await screen.findByRole("button", { name: "Create draft" }));
+
+    expect(
+      await screen.findByText("A quiz event already uses that slug."),
+    ).toBeTruthy();
+    expect(screen.queryByText("Untitled event created")).toBeNull();
+    expect(navigate).not.toHaveBeenCalled();
+  });
+
+  it("disables workspace actions while a draft is being created", async () => {
+    const saveDraft = createDeferred<unknown>();
+    mockUseAdminSession.mockReturnValue({
+      email: "admin@example.com",
+      session: { access_token: "admin-token" },
+      status: "signed_in",
+    });
+    mockGetQuizAdminStatus.mockResolvedValue(true);
+    mockListDraftEventSummaries.mockResolvedValue(draftSummaries);
+    mockSaveDraftEvent.mockReturnValue(saveDraft.promise);
+
+    render(<AdminPage onNavigate={() => {}} />);
+
+    fireEvent.click(await screen.findByRole("button", { name: "Create draft" }));
+
+    expect(
+      (await screen.findByRole("button", { name: "Creating draft..." }))
+        .hasAttribute("disabled"),
+    ).toBe(true);
+    expect(screen.getByRole("button", { name: "Refresh events" }).hasAttribute("disabled"))
+      .toBe(true);
+    for (const button of screen.getAllByRole("button", { name: "Duplicate draft" })) {
+      expect(button.hasAttribute("disabled")).toBe(true);
+    }
+
+    saveDraft.resolve({
+      id: "untitled-event-created",
+      liveVersionNumber: null,
+      name: "Untitled event created",
+      slug: "untitled-event-created",
+      updatedAt: "2026-04-12T12:00:00.000Z",
+    });
+    expect(await screen.findByText("Untitled event created")).toBeTruthy();
+  });
+
+  it("duplicates an existing draft, updates the list, and opens the duplicate", async () => {
+    const navigate = vi.fn();
+    mockUseAdminSession.mockReturnValue({
+      email: "admin@example.com",
+      session: { access_token: "admin-token" },
+      status: "signed_in",
+    });
+    mockGetQuizAdminStatus.mockResolvedValue(true);
+    mockListDraftEventSummaries.mockResolvedValue(draftSummaries);
+    mockLoadDraftEvent.mockResolvedValue({
+      content: sampleDraft,
+      createdAt: "2026-04-07T12:00:00.000Z",
+      id: sampleDraft.id,
+      lastSavedBy: "22222222-2222-4222-8222-222222222222",
+      liveVersionNumber: 1,
+      name: sampleDraft.name,
+      slug: sampleDraft.slug,
+      updatedAt: "2026-04-08T12:00:00.000Z",
+    });
+    mockSaveDraftEvent.mockResolvedValue({
+      id: "madrona-copy",
+      liveVersionNumber: null,
+      name: "Madrona Music in the Playfield Copy",
+      slug: "madrona-copy",
+      updatedAt: "2026-04-12T12:00:00.000Z",
+    });
+
+    render(<AdminPage onNavigate={navigate} />);
+
+    const liveEventCard = await screen.findByLabelText(
+      "Madrona Music in the Playfield event",
+    );
+    fireEvent.click(
+      within(liveEventCard).getByRole("button", { name: "Duplicate draft" }),
+    );
+
+    await waitFor(() => {
+      expect(mockLoadDraftEvent).toHaveBeenCalledWith("madrona-music-2026");
+      expect(mockSaveDraftEvent).toHaveBeenCalledTimes(1);
+    });
+
+    const savedContent = mockSaveDraftEvent.mock.calls[0]?.[0];
+    expect(savedContent.name).toBe("Madrona Music in the Playfield Copy");
+    expect(savedContent.id).not.toBe(sampleDraft.id);
+    expect(savedContent.slug).not.toBe(sampleDraft.slug);
+    expect(savedContent.questions).toEqual(sampleDraft.questions);
+    expect(screen.getByText("Madrona Music in the Playfield Copy")).toBeTruthy();
+    expect(navigate).toHaveBeenCalledWith("/admin/events/madrona-copy");
+  });
+
+  it("surfaces duplicate load failures without saving or navigating", async () => {
+    const navigate = vi.fn();
+    mockUseAdminSession.mockReturnValue({
+      email: "admin@example.com",
+      session: { access_token: "admin-token" },
+      status: "signed_in",
+    });
+    mockGetQuizAdminStatus.mockResolvedValue(true);
+    mockListDraftEventSummaries.mockResolvedValue(draftSummaries);
+    mockLoadDraftEvent.mockRejectedValue(new Error("Draft load failed."));
+
+    render(<AdminPage onNavigate={navigate} />);
+
+    const liveEventCard = await screen.findByLabelText(
+      "Madrona Music in the Playfield event",
+    );
+    fireEvent.click(
+      within(liveEventCard).getByRole("button", { name: "Duplicate draft" }),
+    );
+
+    expect(await screen.findByText("Draft load failed.")).toBeTruthy();
+    expect(mockSaveDraftEvent).not.toHaveBeenCalled();
+    expect(navigate).not.toHaveBeenCalled();
+  });
+
+  it("surfaces duplicate save failures without changing the list or navigating", async () => {
+    const navigate = vi.fn();
+    mockUseAdminSession.mockReturnValue({
+      email: "admin@example.com",
+      session: { access_token: "admin-token" },
+      status: "signed_in",
+    });
+    mockGetQuizAdminStatus.mockResolvedValue(true);
+    mockListDraftEventSummaries.mockResolvedValue(draftSummaries);
+    mockLoadDraftEvent.mockResolvedValue({
+      content: sampleDraft,
+      createdAt: "2026-04-07T12:00:00.000Z",
+      id: sampleDraft.id,
+      lastSavedBy: "22222222-2222-4222-8222-222222222222",
+      liveVersionNumber: 1,
+      name: sampleDraft.name,
+      slug: sampleDraft.slug,
+      updatedAt: "2026-04-08T12:00:00.000Z",
+    });
+    mockSaveDraftEvent.mockRejectedValue(new Error("Draft save failed."));
+
+    render(<AdminPage onNavigate={navigate} />);
+
+    const liveEventCard = await screen.findByLabelText(
+      "Madrona Music in the Playfield event",
+    );
+    fireEvent.click(
+      within(liveEventCard).getByRole("button", { name: "Duplicate draft" }),
+    );
+
+    expect(await screen.findByText("Draft save failed.")).toBeTruthy();
+    expect(screen.queryByText("Madrona Music in the Playfield Copy")).toBeNull();
+    expect(navigate).not.toHaveBeenCalled();
+  });
+
+  it("disables workspace actions while a draft is being duplicated", async () => {
+    const saveDraft = createDeferred<unknown>();
+    mockUseAdminSession.mockReturnValue({
+      email: "admin@example.com",
+      session: { access_token: "admin-token" },
+      status: "signed_in",
+    });
+    mockGetQuizAdminStatus.mockResolvedValue(true);
+    mockListDraftEventSummaries.mockResolvedValue(draftSummaries);
+    mockLoadDraftEvent.mockResolvedValue({
+      content: sampleDraft,
+      createdAt: "2026-04-07T12:00:00.000Z",
+      id: sampleDraft.id,
+      lastSavedBy: "22222222-2222-4222-8222-222222222222",
+      liveVersionNumber: 1,
+      name: sampleDraft.name,
+      slug: sampleDraft.slug,
+      updatedAt: "2026-04-08T12:00:00.000Z",
+    });
+    mockSaveDraftEvent.mockReturnValue(saveDraft.promise);
+
+    render(<AdminPage onNavigate={() => {}} />);
+
+    const liveEventCard = await screen.findByLabelText(
+      "Madrona Music in the Playfield event",
+    );
+    fireEvent.click(
+      within(liveEventCard).getByRole("button", { name: "Duplicate draft" }),
+    );
+
+    expect(
+      (await within(liveEventCard).findByRole("button", { name: "Duplicating..." }))
+        .hasAttribute("disabled"),
+    ).toBe(true);
+    expect(screen.getByRole("button", { name: "Create draft" }).hasAttribute("disabled"))
+      .toBe(true);
+    expect(screen.getByRole("button", { name: "Refresh events" }).hasAttribute("disabled"))
+      .toBe(true);
+
+    saveDraft.resolve({
+      id: "madrona-copy",
+      liveVersionNumber: null,
+      name: "Madrona Music in the Playfield Copy",
+      slug: "madrona-copy",
+      updatedAt: "2026-04-12T12:00:00.000Z",
+    });
+    expect(await screen.findByText("Madrona Music in the Playfield Copy")).toBeTruthy();
+  });
+
+  it("shows selected event workspace actions", async () => {
     mockUseAdminSession.mockReturnValue({
       email: "admin@example.com",
       session: { access_token: "admin-token" },
@@ -242,9 +531,10 @@ describe("AdminPage", () => {
         name: "Madrona Music in the Playfield",
       }),
     ).toBeTruthy();
-    expect(screen.getByText("Read-only workspace")).toBeTruthy();
+    expect(screen.getByText("Draft actions")).toBeTruthy();
     expect(screen.getByText("Slug: first-sample")).toBeTruthy();
     expect(screen.getByRole("button", { name: "Back to all events" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Duplicate draft" })).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Publish" })).toBeNull();
   });
 

@@ -2,15 +2,20 @@ import type { FormEvent } from "react";
 import type { AdminSessionState } from "./useAdminSession";
 import type {
   AdminDashboardState,
+  AdminDraftMutationState,
   AdminMagicLinkState,
 } from "./useAdminDashboard";
+import type { DraftEventSummary } from "../lib/adminQuizApi";
 import { AdminEventWorkspace } from "./AdminEventWorkspace";
 import { AdminSignInForm } from "./AdminSignInForm";
 
 type AdminDashboardContentProps = {
   dashboardState: AdminDashboardState;
+  draftMutationState: AdminDraftMutationState;
   emailInput: string;
   magicLinkState: AdminMagicLinkState;
+  onCreateDraft: () => Promise<DraftEventSummary | null>;
+  onDuplicateDraft: (eventId: string) => Promise<DraftEventSummary | null>;
   onEmailInputChange: (value: string) => void;
   onNavigate: (path: string) => void;
   onRetryDashboard: () => void;
@@ -27,11 +32,14 @@ function SignedInAs({ email }: { email: string | null }) {
   );
 }
 
-/** Renders the active admin auth, authorization, and draft-list state. */
+/** Renders the active admin auth, authorization, and event-workspace state. */
 export function AdminDashboardContent({
   dashboardState,
+  draftMutationState,
   emailInput,
   magicLinkState,
+  onCreateDraft,
+  onDuplicateDraft,
   onEmailInputChange,
   onNavigate,
   onRetryDashboard,
@@ -121,7 +129,10 @@ export function AdminDashboardContent({
         </div>
         <SignedInAs email={dashboardState.email} />
         <AdminEventWorkspace
+          draftMutationState={draftMutationState}
           drafts={dashboardState.drafts}
+          onCreateDraft={onCreateDraft}
+          onDuplicateDraft={onDuplicateDraft}
           onNavigate={onNavigate}
           onRefresh={onRetryDashboard}
           selectedEventId={selectedEventId}

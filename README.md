@@ -8,8 +8,8 @@ The current product shape is:
 - complete a fast 5-7 question experience
 - see local sponsors woven into the game
 - finish with a backend-verified raffle-entry confirmation state
-- admins can sign in at `/admin` to verify private draft-authoring access and
-  use authenticated authoring APIs
+- admins can sign in at `/admin` to create, duplicate, and review private
+  draft events through authenticated authoring APIs
 
 The product is intended for community events like concerts, fairs, and neighborhood markets, where the experience needs to be fast, outdoor-friendly, and easy to run without technical overhead.
 
@@ -20,7 +20,8 @@ This repository currently includes:
 - a Vite + React attendee experience prototype
 - a landing page plus published demo game routes
 - database-backed published event and quiz content
-- a Supabase Auth-backed admin event workspace for private draft access at `/admin`
+- a Supabase Auth-backed admin event workspace for private draft access plus
+  draft create and duplicate actions at `/admin`
 - authenticated admin APIs for draft save, publish, and unpublish operations
 - one-question-at-a-time quiz flow with back navigation
 - multiple quiz feedback modes
@@ -199,7 +200,7 @@ Operational setting ownership lives in [docs/operations.md](./docs/operations.md
 
 The main remaining gaps before the broader event-ready MVP are:
 
-- admin draft editing, duplication, preview, and AI-assisted authoring UI
+- admin draft editing, preview, and AI-assisted authoring UI
 - analytics and reporting for starts, completions, and completion time
 - richer publishing controls such as drafts, previews, or expiry windows for
   live event URLs
