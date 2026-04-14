@@ -295,6 +295,49 @@ Notes:
   with wildcard CORS headers; use a configured remote Supabase project when you
   need a full browser-backed trust-path review
 
+### Admin UI review
+
+Use the admin capture mode to screenshot the authenticated admin shell without
+reading or writing any production data. All Supabase requests are intercepted
+by Playwright before they leave the machine.
+
+Prerequisites:
+
+- the app must be running locally (`npm run dev:web:local` or `npm run preview`)
+- `VITE_SUPABASE_URL` must be set in `apps/web/.env` (already required for
+  normal development — no changes needed)
+- Playwright Chromium must be installed
+
+Run:
+
+```bash
+npm run ui:review:capture:admin
+```
+
+No production data is read or written. Playwright registers `page.route()`
+interceptors for all Supabase endpoints (auth session, token exchange,
+`is_quiz_admin`, `quiz_event_drafts`, and `save-draft`) before any network
+request leaves the machine. The app's `VITE_SUPABASE_URL` is used only so the
+interceptors are registered on the correct URL pattern — the requests never
+reach the remote project.
+
+Screenshots captured (written to `tmp/ui-review/<timestamp>/`):
+
+| File | State |
+|------|-------|
+| `01-admin-sign-in-mobile.png` | Sign-in form, iPhone 13 viewport |
+| `02-admin-sign-in-desktop.png` | Sign-in form, 1440px desktop viewport |
+| `03-admin-all-events-mobile.png` | Authenticated event list, iPhone 13 |
+| `04-admin-all-events-desktop.png` | Authenticated event list, 1440px desktop |
+| `05-admin-workspace-editor-mobile.png` | Selected event details editor, iPhone 13 |
+| `06-admin-workspace-editor-desktop.png` | Selected event details editor, 1440px desktop |
+| `07-admin-workspace-validation-error.png` | Client-side validation error on save |
+| `08-admin-workspace-save-success.png` | Successful save confirmation message |
+| `09-admin-workspace-save-error.png` | Backend save error (simulated 500) |
+| `10-admin-question-editor-mobile.png` | Question editor panel open, iPhone 13 |
+| `11-admin-question-editor-desktop.png` | Question editor panel open, 1440px desktop |
+| `12-admin-unauthorized.png` | Signed-in but not on the admin allowlist |
+
 For an assertion-based mobile smoke check, run:
 
 ```bash

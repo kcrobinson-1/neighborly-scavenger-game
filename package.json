@@ -23,7 +23,8 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "validate:local": "node scripts/testing/run-local-validation.cjs",
-    "ui:review:capture": "node scripts/ui-review/capture-ui-review.cjs"
+    "ui:review:capture": "node scripts/ui-review/capture-ui-review.cjs",
+    "ui:review:capture:admin": "node scripts/ui-review/capture-ui-review.cjs --mode admin"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",
