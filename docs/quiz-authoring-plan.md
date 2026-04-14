@@ -6,8 +6,9 @@
 - Phase 0 status: complete for this document revision
 - Phase 1 status: implemented in the current repo
 - Phase 2 status: implemented in the current repo
-- Phases 3-5 status: proposed implementation work
-- Last updated: 2026-04-08
+- Phase 3 status: implemented in the current repo as a backend/API milestone
+- Phases 4-5 status: proposed implementation work
+- Last updated: 2026-04-13
 - Owner area: product, UX, web app, shared quiz domain, and Supabase backend
 
 ## Purpose
@@ -52,7 +53,7 @@ The current repo does not yet support:
 - creating events without editing repo files or SQL directly
 - editing quizzes safely once an event is live
 - previewing draft content before publish
-- admin publishing workflows
+- using the implemented authoring APIs through a complete admin UI
 
 That gap is now the main blocker between a usable engineering prototype and an
 operational MVP.

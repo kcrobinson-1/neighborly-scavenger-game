@@ -50,10 +50,11 @@ export function AdminPageShell({
 
         <section className="panel admin-panel">
           <div className="admin-copy">
-            <span className="chip">Phase 2 admin shell</span>
+            <span className="chip">Admin authoring shell</span>
             <p>
-              This route proves the auth and authorization model for private quiz
-              drafts. Editing and publish controls still land in Phase 3.
+              This route proves private draft access for allowlisted admins.
+              Full editing, preview, and publish controls still land in the
+              admin UX phase.
             </p>
           </div>
 
