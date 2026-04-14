@@ -1071,6 +1071,11 @@ Suggested validation:
 - browser UI review of add, duplicate, reorder, delete, option mutation,
   validation, saved, and failed-save states
 
+Related UX follow-up items discovered during Phases 4.3 and 4.4 are tracked in
+[docs/admin-ux-roadmap.md](./admin-ux-roadmap.md). Keep that file focused on
+product-facing polish and navigation decisions; workflow tooling stays in
+`docs/dev-workflow-improvements.md`.
+
 #### Phase 4.5: Mobile Preview
 
 Deliverables:
