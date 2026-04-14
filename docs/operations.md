@@ -79,6 +79,7 @@ For this project today, that means:
 - repository merge policy
 - GitHub Actions secrets:
   - `SUPABASE_ACCESS_TOKEN`
+  - `SUPABASE_DB_PASSWORD`
   - `SUPABASE_PROJECT_REF`
 - optional GitHub `production` environment approvals or reviewers
 
@@ -130,7 +131,9 @@ For a new deployment from a fork:
 5. Set `SESSION_SIGNING_SECRET` and `ALLOWED_ORIGINS` in Supabase.
 6. Add Supabase Auth redirect URLs for your local and deployed `/admin` origins.
 7. Insert at least one normalized admin email into `public.quiz_admin_users`.
-8. Recreate the desired GitHub branch protection and Actions secret configuration.
+8. Recreate the desired GitHub branch protection and Actions secret
+   configuration, including the `SUPABASE_ACCESS_TOKEN`,
+   `SUPABASE_DB_PASSWORD`, and `SUPABASE_PROJECT_REF` release secrets.
 
 ## Current Operating Discipline
 

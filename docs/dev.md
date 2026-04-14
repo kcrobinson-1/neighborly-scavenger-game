@@ -367,13 +367,17 @@ Every PR body should include:
 The release workflow currently expects these GitHub Actions secrets:
 
 - `SUPABASE_ACCESS_TOKEN`
+- `SUPABASE_DB_PASSWORD`
 - `SUPABASE_PROJECT_REF`
 
 Important boundary:
 
 - Vercel environment variable values remain managed in Vercel
 - Supabase secrets such as `SESSION_SIGNING_SECRET` and `ALLOWED_ORIGINS` remain managed in the Supabase project
-- the release workflow promotes code and migrations, not secret values
+- the GitHub `SUPABASE_DB_PASSWORD` secret is the production database password
+  used only by the release workflow to apply migrations
+- the release workflow promotes code and migrations, not Supabase Edge Function
+  secret values
 
 ## Integration Troubleshooting
 
