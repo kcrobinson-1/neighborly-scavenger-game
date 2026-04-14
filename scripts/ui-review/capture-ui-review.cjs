@@ -4,6 +4,7 @@ const { chromium, devices } = require("playwright");
 
 const defaultBaseUrl = "http://127.0.0.1:4173";
 const defaultOutputRoot = path.join("tmp", "ui-review");
+const adminEnvPath = path.join("apps", "web", ".env");
 
 /** Parses simple `--key value` style arguments for the capture workflow. */
 function parseArgs(argv) {
@@ -60,6 +61,53 @@ function resolveRunDirectory(outputDir) {
   const runDirectory = path.join(defaultOutputRoot, createTimestamp());
   fs.mkdirSync(runDirectory, { recursive: true });
   return runDirectory;
+}
+
+/** Parses a small Vite-style .env file into a string map. */
+function readEnvFile(envPath) {
+  if (!fs.existsSync(envPath)) {
+    return {};
+  }
+
+  const entries = {};
+  const lines = fs.readFileSync(envPath, "utf8").split(/\r?\n/);
+
+  for (const rawLine of lines) {
+    const line = rawLine.trim();
+
+    if (!line || line.startsWith("#")) {
+      continue;
+    }
+
+    const equalsIndex = line.indexOf("=");
+
+    if (equalsIndex < 0) {
+      continue;
+    }
+
+    const key = line.slice(0, equalsIndex).trim();
+    let value = line.slice(equalsIndex + 1).trim();
+
+    if (
+      (value.startsWith('"') && value.endsWith('"')) ||
+      (value.startsWith("'") && value.endsWith("'"))
+    ) {
+      value = value.slice(1, -1);
+    }
+
+    entries[key] = value;
+  }
+
+  return entries;
+}
+
+/** Resolves the Supabase URL used by the admin capture workflow. */
+function getAdminCaptureSupabaseUrl() {
+  return (
+    process.env.VITE_SUPABASE_URL ||
+    readEnvFile(adminEnvPath).VITE_SUPABASE_URL ||
+    ""
+  );
 }
 
 /** Uses DOM-level click activation because the mobile card layout can confuse Playwright actionability checks. */
@@ -660,7 +708,7 @@ async function captureAdminWorkspaceStates(baseUrl, runDirectory, installMocks) 
     // Install the base mocks first (session + auth + allowlist + draft reads)
     await installMocks(page);
     // Then override save-draft to return 500 — Playwright uses most-recently-added handler first
-    const supabaseUrl = process.env.VITE_SUPABASE_URL;
+    const supabaseUrl = getAdminCaptureSupabaseUrl();
     await page.route(`${supabaseUrl}/functions/v1/save-draft`, (route) => {
       void route.fulfill({
         status: 500,
@@ -751,7 +799,7 @@ async function captureAdminQuestionEditorStates(baseUrl, runDirectory, installMo
 async function captureAdminUnauthorizedState(baseUrl, runDirectory) {
   console.log("Capturing admin unauthorized state...");
 
-  const supabaseUrl = process.env.VITE_SUPABASE_URL;
+  const supabaseUrl = getAdminCaptureSupabaseUrl();
   // Build mocks with isAdmin=false
   const installMocks = buildAdminMocks(supabaseUrl, { isAdmin: false });
 
@@ -776,20 +824,20 @@ async function captureAdminUnauthorizedState(baseUrl, runDirectory) {
 
 /**
  * Orchestrates all admin UI capture steps.
- * Reads VITE_SUPABASE_URL from the environment — exits with a clear error if missing.
+ * Reads VITE_SUPABASE_URL from the environment or apps/web/.env — exits with a clear error if missing.
  */
 async function captureAdminMode(baseUrl, runDirectory) {
-  const supabaseUrl = process.env.VITE_SUPABASE_URL;
+  const supabaseUrl = getAdminCaptureSupabaseUrl();
 
   if (!supabaseUrl) {
     console.error(
       "Error: VITE_SUPABASE_URL is not set in the environment.\n" +
       "The admin capture mode uses Playwright route interception to mock Supabase\n" +
       "requests before they leave the machine, so no production data is read or\n" +
-      "written. However, the app itself reads VITE_SUPABASE_URL at startup to\n" +
-      "determine whether Supabase is configured.\n\n" +
-      "Set VITE_SUPABASE_URL in apps/web/.env and restart the local dev server,\n" +
-      "then re-run: npm run ui:review:capture:admin",
+      "written. However, the capture script needs the same Supabase URL that the\n" +
+      "Vite app reads at startup to register the correct request interceptors.\n\n" +
+      "Set VITE_SUPABASE_URL in apps/web/.env or export it in the shell, then\n" +
+      "re-run: npm run ui:review:capture:admin",
     );
     process.exit(1);
   }

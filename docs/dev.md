@@ -305,7 +305,8 @@ Prerequisites:
 
 - the app must be running locally (`npm run dev:web:local` or `npm run preview`)
 - `VITE_SUPABASE_URL` must be set in `apps/web/.env` (already required for
-  normal development — no changes needed)
+  normal development — the capture script reads that file automatically when
+  the shell environment does not provide the value)
 - Playwright Chromium must be installed
 
 Run:
@@ -317,9 +318,10 @@ npm run ui:review:capture:admin
 No production data is read or written. Playwright registers `page.route()`
 interceptors for all Supabase endpoints (auth session, token exchange,
 `is_quiz_admin`, `quiz_event_drafts`, and `save-draft`) before any network
-request leaves the machine. The app's `VITE_SUPABASE_URL` is used only so the
-interceptors are registered on the correct URL pattern — the requests never
-reach the remote project.
+request leaves the machine. The capture script uses `VITE_SUPABASE_URL` from
+the shell if present and falls back to `apps/web/.env` so the interceptors are
+registered on the correct URL pattern — the requests never reach the remote
+project.
 
 Screenshots captured (written to `tmp/ui-review/<timestamp>/`):
 
