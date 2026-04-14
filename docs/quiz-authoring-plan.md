@@ -933,10 +933,15 @@ Acceptance criteria:
 - question ordering, correct-answer selection, and validation messages survive
   save and reload
 - malformed question changes cannot be published accidentally through the UI
+- existing event create and duplicate flows keep page-level regression coverage
+  while question delete behavior is added
 
 Suggested validation:
 
 - focused frontend tests for question editing behavior
+- Phase 4.2 create and duplicate regression tests, including successful create,
+  successful duplicate, load/save failures, local list updates, and
+  post-create/post-duplicate navigation
 - `npm test -- tests/web/lib/adminQuizApi.test.ts`
 - `npm run build:web`
 - browser UI review of add, reorder, delete, and save flows
