@@ -56,6 +56,11 @@
   outline-offset: 2px;
 }
 
+.admin-textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
 .admin-message {
   margin: 0;
   padding: $space-6 $space-7;
@@ -105,6 +110,7 @@
 
 .admin-toolbar,
 .admin-action-row,
+.admin-checkbox-row,
 .admin-workspace-heading {
   display: flex;
   align-items: flex-start;
@@ -118,6 +124,27 @@
 
 .admin-action-row {
   flex-wrap: wrap;
+}
+
+.admin-details-form {
+  padding-top: $space-4;
+}
+
+.admin-details-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: $space-5;
+}
+
+.admin-checkbox-row {
+  flex-wrap: wrap;
+  color: var(--muted);
+  font-weight: $font-weight-semibold;
+}
+
+.admin-dirty-state {
+  color: var(--muted);
+  font-weight: $font-weight-semibold;
 }
 
 .admin-workspace-detail {
@@ -148,6 +175,10 @@
 
 @media (max-width: 620px) {
   .admin-summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-details-grid {
     grid-template-columns: 1fr;
   }
 

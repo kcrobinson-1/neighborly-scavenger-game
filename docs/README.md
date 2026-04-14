@@ -15,6 +15,8 @@ If you want:
 - the published-content milestone details and tradeoffs, read [database-backed-quiz-content.md](./database-backed-quiz-content.md)
 - the proposed plan for organizer quiz creation and editing, read [quiz-authoring-plan.md](./quiz-authoring-plan.md)
 - the local workflow, validation commands, release flow, or troubleshooting steps, read [dev.md](./dev.md)
+- proposed improvements to local validation, screenshot, PR, and agent workflow,
+  read [dev-workflow-improvements.md](./dev-workflow-improvements.md)
 - the testing strategy, coverage priorities, and rollout plan, read [testing.md](./testing.md)
 - the platform ownership model for GitHub, Vercel, and Supabase settings, read [operations.md](./operations.md)
 - the unresolved product, UX, and workflow decisions, read [open-questions.md](./open-questions.md)
@@ -40,6 +42,9 @@ Use these boundaries to keep the docs tidy:
   organizer/admin quiz creation, editing, preview, and publish workflows
 - `docs/dev.md`
   how engineers work in the repo today: setup, validation, release flow, and troubleshooting
+- `docs/dev-workflow-improvements.md`
+  concrete follow-up tasks for improving local validation, screenshot capture,
+  PR evidence, and agent workflow
 - `docs/testing.md`
   what to test, where tests should run, what to mock, and what is intentionally overkill right now
 - `docs/operations.md`

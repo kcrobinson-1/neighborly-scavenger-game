@@ -10,7 +10,7 @@ type AdminPageProps = {
 
 /** Route adapter for the authenticated admin shell. */
 export function AdminPage({ onNavigate, selectedEventId }: AdminPageProps) {
-  const adminDashboard = useAdminDashboard();
+  const adminDashboard = useAdminDashboard(selectedEventId);
 
   return (
     <AdminPageShell
@@ -30,7 +30,9 @@ export function AdminPage({ onNavigate, selectedEventId }: AdminPageProps) {
         onEmailInputChange={adminDashboard.setEmailInput}
         onNavigate={onNavigate}
         onRetryDashboard={adminDashboard.retryDashboard}
+        onSaveSelectedEventDetails={adminDashboard.saveSelectedEventDetails}
         onSubmitMagicLink={adminDashboard.requestMagicLink}
+        selectedDraftState={adminDashboard.selectedDraftState}
         selectedEventId={selectedEventId}
         sessionState={adminDashboard.sessionState}
       />

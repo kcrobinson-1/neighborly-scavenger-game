@@ -423,6 +423,10 @@ Treat pull requests as reviewable engineering work, not speculative drafts with 
 - If a helper script depends on local tools such as Docker, Deno, Playwright, or the Supabase CLI, either make the script self-checking with clear failure messages or document the setup in the same change.
 - For new helper scripts that start local services or background processes, validate teardown as well as setup so CI cannot hang after the assertions already passed.
 - Prefer fixing local workflow blockers in the repo when reasonable instead of relying on CI to be the first real execution environment.
+- For PRs that create or materially modify UX, layout, interaction flow, or
+  user-facing copy, follow the screenshot requirements in `docs/dev.md`: include
+  uploaded screenshots in the PR description or explicitly state why screenshots
+  were not captured.
 - If a PR is intentionally still exploratory, keep it clearly framed as draft work and do not present it as merge-ready.
 
 ### Regression Discipline

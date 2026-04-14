@@ -66,6 +66,72 @@ const draftSummaries = [
   },
 ];
 
+const selectedDraftContent = {
+  ...sampleDraft,
+  id: "madrona-music-2026",
+  name: "Madrona Music in the Playfield",
+  slug: "first-sample",
+};
+
+function createDraftDetail(content = selectedDraftContent) {
+  return {
+    content,
+    createdAt: "2026-04-07T12:00:00.000Z",
+    id: content.id,
+    lastSavedBy: "22222222-2222-4222-8222-222222222222",
+    liveVersionNumber: 1,
+    name: content.name,
+    slug: content.slug,
+    updatedAt: "2026-04-08T12:00:00.000Z",
+  };
+}
+
+function renderAdminRoute(initialSelectedEventId?: string) {
+  const navigate = vi.fn();
+
+  function AdminRouteHarness() {
+    const [selectedEventId, setSelectedEventId] = React.useState(
+      initialSelectedEventId,
+    );
+
+    return (
+      <AdminPage
+        onNavigate={(path) => {
+          navigate(path);
+
+          if (path === "/admin") {
+            setSelectedEventId(undefined);
+            return;
+          }
+
+          if (path.startsWith("/admin/events/")) {
+            setSelectedEventId(path.replace("/admin/events/", ""));
+          }
+        }}
+        selectedEventId={selectedEventId}
+      />
+    );
+  }
+
+  return {
+    navigate,
+    ...render(<AdminRouteHarness />),
+  };
+}
+
+function getFieldValue(label: string) {
+  const field = screen.getByLabelText(label) as
+    | HTMLInputElement
+    | HTMLSelectElement
+    | HTMLTextAreaElement;
+
+  return field.value;
+}
+
+function getCheckboxValue(label: string) {
+  return (screen.getByLabelText(label) as HTMLInputElement).checked;
+}
+
 function createDeferred<T>() {
   let resolve!: (value: T) => void;
   let reject!: (error: unknown) => void;
@@ -167,6 +233,7 @@ describe("AdminPage", () => {
     ).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Create draft" })).toBeNull();
     expect(mockListDraftEventSummaries).not.toHaveBeenCalled();
+    expect(mockLoadDraftEvent).not.toHaveBeenCalled();
     expect(mockSaveDraftEvent).not.toHaveBeenCalled();
   });
 
@@ -186,6 +253,7 @@ describe("AdminPage", () => {
     expect(screen.queryByRole("button", { name: "Create draft" })).toBeNull();
     expect(mockGetQuizAdminStatus).not.toHaveBeenCalled();
     expect(mockListDraftEventSummaries).not.toHaveBeenCalled();
+    expect(mockLoadDraftEvent).not.toHaveBeenCalled();
     expect(mockSaveDraftEvent).not.toHaveBeenCalled();
   });
 
@@ -212,6 +280,7 @@ describe("AdminPage", () => {
     expect(screen.getByText("Draft only")).toBeTruthy();
     expect(screen.getByRole("button", { name: "Create draft" })).toBeTruthy();
     expect(screen.getAllByRole("button", { name: "Duplicate draft" })).toHaveLength(2);
+    expect(mockLoadDraftEvent).not.toHaveBeenCalled();
   });
 
   it("uses singular event count copy for one draft", async () => {
@@ -518,6 +587,7 @@ describe("AdminPage", () => {
     });
     mockGetQuizAdminStatus.mockResolvedValue(true);
     mockListDraftEventSummaries.mockResolvedValue(draftSummaries);
+    mockLoadDraftEvent.mockResolvedValue(createDraftDetail());
 
     render(
       <AdminPage
@@ -532,10 +602,206 @@ describe("AdminPage", () => {
       }),
     ).toBeTruthy();
     expect(screen.getByText("Draft actions")).toBeTruthy();
-    expect(screen.getByText("Slug: first-sample")).toBeTruthy();
+    expect(await screen.findByLabelText("Event name")).toBeTruthy();
+    expect(screen.getByDisplayValue("first-sample")).toBeTruthy();
     expect(screen.getByRole("button", { name: "Back to all events" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Duplicate draft" })).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Publish" })).toBeNull();
+  });
+
+  it("loads selected event details into an explicit-save form", async () => {
+    const loadDraft = createDeferred<ReturnType<typeof createDraftDetail>>();
+    mockUseAdminSession.mockReturnValue({
+      email: "admin@example.com",
+      session: { access_token: "admin-token" },
+      status: "signed_in",
+    });
+    mockGetQuizAdminStatus.mockResolvedValue(true);
+    mockListDraftEventSummaries.mockResolvedValue(draftSummaries);
+    mockLoadDraftEvent.mockReturnValue(loadDraft.promise);
+
+    render(
+      <AdminPage
+        onNavigate={() => {}}
+        selectedEventId="madrona-music-2026"
+      />,
+    );
+
+    expect(await screen.findByText("Loading event details...")).toBeTruthy();
+    loadDraft.resolve(createDraftDetail());
+    await screen.findByLabelText("Event name");
+    expect(getFieldValue("Event name")).toBe("Madrona Music in the Playfield");
+    expect(getFieldValue("Slug")).toBe("first-sample");
+    expect(getFieldValue("Location")).toBe(sampleDraft.location);
+    expect(getFieldValue("Estimated minutes")).toBe(
+      String(selectedDraftContent.estimatedMinutes),
+    );
+    expect(getFieldValue("Raffle label")).toBe(sampleDraft.raffleLabel);
+    expect(getFieldValue("Intro")).toBe(sampleDraft.intro);
+    expect(getFieldValue("Summary")).toBe(sampleDraft.summary);
+    expect(getFieldValue("Feedback mode")).toBe(sampleDraft.feedbackMode);
+    expect(getCheckboxValue("Allow back navigation")).toBe(true);
+    expect(getCheckboxValue("Allow retake")).toBe(true);
+    expect(screen.getByRole("button", { name: "Save changes" }).hasAttribute("disabled"))
+      .toBe(true);
+    expect(mockLoadDraftEvent).toHaveBeenCalledWith("madrona-music-2026");
+  });
+
+  it("surfaces local event-details validation without saving", async () => {
+    mockUseAdminSession.mockReturnValue({
+      email: "admin@example.com",
+      session: { access_token: "admin-token" },
+      status: "signed_in",
+    });
+    mockGetQuizAdminStatus.mockResolvedValue(true);
+    mockListDraftEventSummaries.mockResolvedValue(draftSummaries);
+    mockLoadDraftEvent.mockResolvedValue(createDraftDetail());
+
+    render(
+      <AdminPage
+        onNavigate={() => {}}
+        selectedEventId="madrona-music-2026"
+      />,
+    );
+
+    fireEvent.change(await screen.findByLabelText("Event name"), {
+      target: { value: " " },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Save changes" }));
+
+    expect(await screen.findByText("Event name is required.")).toBeTruthy();
+    expect(mockSaveDraftEvent).not.toHaveBeenCalled();
+  });
+
+  it("saves event details, updates the summary list, and keeps questions unchanged", async () => {
+    mockUseAdminSession.mockReturnValue({
+      email: "admin@example.com",
+      session: { access_token: "admin-token" },
+      status: "signed_in",
+    });
+    mockGetQuizAdminStatus.mockResolvedValue(true);
+    mockListDraftEventSummaries.mockResolvedValue(draftSummaries);
+    mockLoadDraftEvent.mockResolvedValue(createDraftDetail());
+    mockSaveDraftEvent.mockResolvedValue({
+      id: "madrona-music-2026",
+      liveVersionNumber: 1,
+      name: "Updated Madrona Event",
+      slug: "updated-madrona-event",
+      updatedAt: "2026-04-13T12:00:00.000Z",
+    });
+    const { navigate } = renderAdminRoute("madrona-music-2026");
+
+    fireEvent.change(await screen.findByLabelText("Event name"), {
+      target: { value: " Updated Madrona Event " },
+    });
+    fireEvent.change(screen.getByLabelText("Slug"), {
+      target: { value: " updated-madrona-event " },
+    });
+    fireEvent.change(screen.getByLabelText("Estimated minutes"), {
+      target: { value: "4" },
+    });
+    fireEvent.click(screen.getByLabelText("Allow retake"));
+    fireEvent.click(screen.getByRole("button", { name: "Save changes" }));
+
+    expect(
+      await screen.findByText("Saved Updated Madrona Event."),
+    ).toBeTruthy();
+    const savedContent = mockSaveDraftEvent.mock.calls[0]?.[0];
+    expect(savedContent).toMatchObject({
+      allowRetake: false,
+      estimatedMinutes: 4,
+      id: "madrona-music-2026",
+      name: "Updated Madrona Event",
+      slug: "updated-madrona-event",
+    });
+    expect(savedContent.questions).toEqual(selectedDraftContent.questions);
+
+    fireEvent.click(screen.getByRole("button", { name: "Back to all events" }));
+
+    expect(navigate).toHaveBeenCalledWith("/admin");
+    expect(await screen.findByText("Updated Madrona Event")).toBeTruthy();
+  });
+
+  it("surfaces selected event save failures without updating the summary list", async () => {
+    mockUseAdminSession.mockReturnValue({
+      email: "admin@example.com",
+      session: { access_token: "admin-token" },
+      status: "signed_in",
+    });
+    mockGetQuizAdminStatus.mockResolvedValue(true);
+    mockListDraftEventSummaries.mockResolvedValue(draftSummaries);
+    mockLoadDraftEvent.mockResolvedValue(createDraftDetail());
+    mockSaveDraftEvent.mockRejectedValue(new Error("A quiz event already uses that slug."));
+
+    renderAdminRoute("madrona-music-2026");
+
+    fireEvent.change(await screen.findByLabelText("Event name"), {
+      target: { value: "Conflicting Event" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Save changes" }));
+
+    expect(
+      await screen.findByText("A quiz event already uses that slug."),
+    ).toBeTruthy();
+    expect(screen.queryByRole("heading", { name: "Conflicting Event" })).toBeNull();
+  });
+
+  it("shows a selected event detail load failure", async () => {
+    mockUseAdminSession.mockReturnValue({
+      email: "admin@example.com",
+      session: { access_token: "admin-token" },
+      status: "signed_in",
+    });
+    mockGetQuizAdminStatus.mockResolvedValue(true);
+    mockListDraftEventSummaries.mockResolvedValue(draftSummaries);
+    mockLoadDraftEvent.mockRejectedValue(new Error("Draft detail failed."));
+
+    render(
+      <AdminPage
+        onNavigate={() => {}}
+        selectedEventId="madrona-music-2026"
+      />,
+    );
+
+    expect(await screen.findByText("Draft detail failed.")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Save changes" })).toBeNull();
+  });
+
+  it("reloads a selected route with saved draft details", async () => {
+    mockUseAdminSession.mockReturnValue({
+      email: "admin@example.com",
+      session: { access_token: "admin-token" },
+      status: "signed_in",
+    });
+    mockGetQuizAdminStatus.mockResolvedValue(true);
+    mockListDraftEventSummaries.mockResolvedValue([
+      {
+        ...draftSummaries[0],
+        name: "Reloaded Event",
+        slug: "reloaded-event",
+      },
+      draftSummaries[1],
+    ]);
+    mockLoadDraftEvent.mockResolvedValue(
+      createDraftDetail({
+        ...selectedDraftContent,
+        name: "Reloaded Event",
+        slug: "reloaded-event",
+        summary: "Reloaded summary",
+      }),
+    );
+
+    render(
+      <AdminPage
+        onNavigate={() => {}}
+        selectedEventId="madrona-music-2026"
+      />,
+    );
+
+    await screen.findByLabelText("Event name");
+    expect(getFieldValue("Event name")).toBe("Reloaded Event");
+    expect(getFieldValue("Slug")).toBe("reloaded-event");
+    expect(getFieldValue("Summary")).toBe("Reloaded summary");
   });
 
   it("shows an admin-only not-found state for an unknown selected event", async () => {
@@ -560,6 +826,8 @@ describe("AdminPage", () => {
         name: "Event workspace not found",
       }),
     ).toBeTruthy();
+    expect(mockLoadDraftEvent).not.toHaveBeenCalled();
+    expect(mockSaveDraftEvent).not.toHaveBeenCalled();
 
     fireEvent.click(screen.getByRole("button", { name: "Back to all events" }));
 
