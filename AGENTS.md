@@ -89,6 +89,25 @@ Use the lightweight path only when the change is small and low-risk, for example
 
 Use the full structured path when the change is multi-file, architectural, refactor-heavy, or changes tests, validation, documentation, or workflow.
 
+### Planning Depth
+
+When asked to make a plan, do not compress the workflow to an arbitrary short
+step count.
+
+- include every execution gate that materially affects quality, even if that
+  makes the plan longer than five steps
+- keep baseline validation, branch hygiene, implementation, automated
+  code-review feedback, documentation cleanup, final validation, and PR
+  preparation as separate steps when they are all relevant
+- do not merge steps just to keep the plan visually compact
+- if a new required step is added, insert it at the correct point in the
+  sequence without weakening or collapsing the surrounding steps
+- for implementation plans, make the plan decision-complete enough that another
+  engineer or agent can execute it without inventing missing gates, validation,
+  or handoff work
+- for PR-sized work, name the intended commit boundaries before editing when
+  practical, and keep review-fix commits distinct when they clarify the history
+
 ### Scope Guardrails
 
 Treat broad checklist, cleanup, or refactor requests as a queue of PR-sized tasks, not as permission to work through everything in one thread.
@@ -184,12 +203,20 @@ Before editing for any non-trivial task:
    Each commit should leave the repo working, keep tests aligned with code, and preserve a reviewable intermediate state.
 7. Validate continuously, not just at the end.
    Run the relevant checks before each commit and after any risky structural step.
-8. Keep documentation current as the work progresses.
+8. Run an automated code-review feedback loop before documentation cleanup.
+   Review the diff from a senior-engineer/code-review stance, identify concrete
+   bugs, behavior drift, weak tests, stale copy, accessibility or usability
+   regressions, misplaced abstractions, and docs drift. Apply the best fixes,
+   rerun the focused validation, and commit review fixes separately when that
+   makes the history easier to review.
+9. Keep documentation current as the work progresses.
    Do not save README or architecture updates for the very end if the structure is already changing underneath them.
-9. Before handoff, delete temporary execution-plan/checklist docs or convert
+   After the code-review feedback loop, update durable docs so they describe
+   the reviewed implementation rather than the first implementation pass.
+10. Before handoff, delete temporary execution-plan/checklist docs or convert
    them into durable reference docs. Do not leave running-state planning docs in
    the repo after their phase has landed.
-10. Self-review each commit-sized diff, then self-review the final branch as a whole before handing off or opening a PR.
+11. Self-review each commit-sized diff, then self-review the final branch as a whole before handing off or opening a PR.
 
 If you discover that the current docs no longer describe the code accurately, fix the docs in the same change when practical.
 
