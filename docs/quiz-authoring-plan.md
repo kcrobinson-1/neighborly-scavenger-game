@@ -814,3 +814,6 @@ The design should be considered successful when:
 - the first version is small enough to implement and validate confidently
 - the architecture leaves room for later analytics, richer publish controls,
   and broader non-admin access without forcing a rewrite first
+- future admin operations can grant and revoke quiz-authoring access through a
+  root-level admin role and UI instead of requiring direct SQL changes to the
+  admin allowlist

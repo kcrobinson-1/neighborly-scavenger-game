@@ -38,6 +38,11 @@ here in the same change.
   The current authoring model uses Supabase Auth plus `public.quiz_admin_users`
   for all admin access. It does not yet define organizer-scoped roles,
   event-level permissions, or non-admin collaborator access.
+- Should the repo add a root-level admin role and UI for managing
+  `public.quiz_admin_users` membership instead of requiring direct SQL edits?
+  The current setup intentionally keeps allowlist membership as a manual
+  Supabase operation, but that is operationally awkward once more than one
+  trusted operator needs to grant or revoke access.
 - Do organizers need expiry, scheduled publish, or friendlier inactive-event
   behavior beyond immediate unpublish?
   The current backend supports explicit publish and unpublish by clearing
