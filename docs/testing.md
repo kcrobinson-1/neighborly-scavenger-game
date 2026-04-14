@@ -63,6 +63,69 @@ The intended split is:
 - [x] Update local validation and CI to run the new trust-path checks.
 - [x] Update contributor docs so the new commands and local prerequisites are clear.
 
+## Admin Functionality Validation Goal
+
+The next validation goal is to make admin functionality testable end to end from
+a developer machine before release.
+
+The desired end state is:
+
+- a contributor can run one documented local command that verifies the full
+  admin surface against a real local Supabase stack and local web app
+- that command covers admin sign-in/session setup, allowlist authorization,
+  private draft visibility, draft save, publish, unpublish, and the public
+  attendee route after publish state changes
+- `docs/dev.md` tells contributors and agents to run that command before
+  opening a PR when a change might affect admin auth, authoring APIs, draft
+  persistence, publish/unpublish behavior, Supabase Auth configuration, or the
+  admin UI
+- the release workflow or a post-release workflow has a lightweight production
+  smoke check that proves deployed admin auth and deployed authoring functions
+  still work after production Supabase migrations and function deployment
+
+The value of this goal is operational confidence. Admin authoring can change
+live attendee content, so the repo should catch broken auth redirects,
+allowlist regressions, RLS mistakes, function deployment gaps, and
+publish/unpublish transaction failures before a real event depends on them.
+
+Avoid overengineering this into a general user-management test platform. The
+first version should not introduce broad role matrices, large visual snapshot
+suites, production mutation tests against real event content, or PR checks that
+depend on a shared production Supabase project. Keep the local suite
+deterministic and use production smoke only for a dedicated test admin and test
+event.
+
+Recommended rollout:
+
+1. Add local admin test seed data.
+   Seed a known admin user or authenticated test path, an active
+   `public.quiz_admin_users` row, and a dedicated authoring test event in the
+   local Supabase stack.
+2. Add a local admin auth test helper.
+   Prefer a deterministic local Supabase Auth session setup over reading magic
+   links from email. The helper should document exactly how it creates or
+   restores the admin session.
+3. Add local browser coverage for the admin shell.
+   Use Playwright to open `/admin`, establish the admin session, verify the
+   allowlisted state, and confirm draft summaries render.
+4. Add local mutation coverage for authoring APIs.
+   Exercise `save-draft`, `publish-draft`, and `unpublish-event` against only a
+   dedicated test event, then verify the public `/game/:slug` route reflects
+   the expected publish state.
+5. Expose the suite as a repo command.
+   Add a command such as `npm run test:e2e:admin` or
+   `npm run test:admin:supabase`, then include it in `npm run validate:local`
+   only if runtime stays reasonable and setup remains deterministic.
+6. Update contributor workflow docs.
+   Once the command exists, update `docs/dev.md` and `AGENTS.md` so admin,
+   authoring, auth, RLS, publish/unpublish, and Supabase configuration changes
+   name this command as required validation before PR handoff.
+7. Add production smoke after the local suite is stable.
+   Run a separate `workflow_dispatch`, post-release, or nightly check against
+   the deployed site using a dedicated production test admin and test event.
+   Keep it out of normal PR CI unless a future staging backend makes remote
+   checks isolated and cheap.
+
 ## Implementation Notes
 
 The current setup includes a few deliberate choices that are worth documenting:
@@ -377,6 +440,8 @@ Keep PR CI focused on fast confidence:
 Still worth adding to PR CI:
 
 - the small Playwright mobile smoke suite
+- the local admin functionality suite after it exists and is stable enough to
+  run deterministically before release
 
 ### Post-Merge Or Nightly
 
@@ -385,6 +450,8 @@ If the suite grows, the heavier checks can run after merge or on a schedule:
 - fuller Playwright coverage
 - longer-running local Supabase integration scenarios
 - optional screenshot artifact capture for UX review
+- production admin smoke against a dedicated test admin and test event after
+  release
 
 This is optional for now. The repo does not yet need an elaborate nightly test matrix.
 
@@ -445,10 +512,18 @@ Everything beyond that should earn its keep.
 - [x] Add an integration test that exercises `issue-session` plus `complete-quiz` against a local Supabase stack.
 - [ ] Add PR CI coverage for the Playwright smoke suite.
 - [x] Add PR CI coverage for Deno function tests.
+- [ ] Add local end-to-end admin functionality coverage for sign-in/session
+  setup, allowlist authorization, draft reads, save, publish, unpublish, and
+  public route verification against a dedicated local test event.
+- [ ] Document the admin functionality test command in `docs/dev.md` and require
+  it before PR handoff for admin, authoring, auth, RLS, publish/unpublish, and
+  related Supabase configuration changes.
 
 ### Later, Only If Needed
 
 - [ ] Add broader Playwright coverage for retry-after-401 and backend failure messaging.
 - [ ] Add test helpers for reusable sample payloads and session tokens.
 - [ ] Add post-merge or nightly longer-running integration coverage if the product surface expands.
+- [ ] Add post-release production admin smoke coverage using a dedicated
+  production test admin and test event.
 - [ ] Revisit visual regression tooling only if design churn slows down and stable screenshots become worth maintaining.

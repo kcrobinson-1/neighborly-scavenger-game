@@ -262,6 +262,14 @@ Database test note:
 
 Broader test strategy guidance, including what should eventually run in PR CI versus local-only iteration, lives in [testing.md](./testing.md).
 
+Admin functionality validation is not yet exposed as one end-to-end repo
+command. Until that suite exists, changes that can affect admin auth,
+allowlist checks, draft persistence, publish/unpublish behavior, Supabase Auth
+configuration, or the admin UI should run the closest available checks from the
+validation list above and describe any missing admin end-to-end coverage in the
+handoff. The target command, release expectations, and rollout checklist live
+in [testing.md](./testing.md#admin-functionality-validation-goal).
+
 ## UI Review Workflow
 
 Use browser review when validating UI changes, especially mobile-first flow changes.
