@@ -118,8 +118,9 @@ Supabase-backed published content in this mode.
 
 The admin authoring shell and authoring APIs also require:
 
-- Supabase Auth redirect URLs that include your local `/admin` origin
-- your admin email to be present in `public.quiz_admin_users`
+- Supabase Auth Site URL and redirect URLs that include the `/admin` origins
+  you use
+- your normalized admin email to be active in `public.quiz_admin_users`
 
 If you do not have backend access and only need frontend iteration:
 

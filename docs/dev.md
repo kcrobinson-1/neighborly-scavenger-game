@@ -102,6 +102,13 @@ That means:
 - the allowlist check lives in SQL through `public.is_quiz_admin()`, not in
   browser-only state
 
+Magic-link sign-in uses the current browser origin to request a Supabase Auth
+redirect back to `/admin`. For production, Supabase Auth must have the deployed
+web origin as its Site URL and must allow the deployed `/admin` URL as a
+redirect URL. If those dashboard values still point at a local default such as
+`http://localhost:3000`, emailed links can send admins to the wrong origin even
+when the app requested the correct redirect.
+
 ### Offline fallback stays explicit
 
 When Supabase environment variables are missing, the app now fails loudly unless offline mode is explicitly enabled.
@@ -171,7 +178,8 @@ Notes:
 If you also need the admin route locally:
 
 1. make sure Supabase Auth redirect URLs include your local `/admin` origin
-2. add your normalized email to `public.quiz_admin_users` in the connected project
+2. add your normalized email to `public.quiz_admin_users` in the connected
+   project
 3. make sure the `save-draft`, `publish-draft`, and `unpublish-event` Edge
    Functions are deployed when testing authoring writes against a remote project
 4. open `/admin` after starting `npm run dev:web` or `npm run dev:web:local`
@@ -321,9 +329,21 @@ Then set these frontend env vars locally and in your Vercel project:
 
 Then finish the manual authoring setup in Supabase:
 
+- set the Auth Site URL to your deployed web origin, such as
+  `https://your-production-web-origin.example`
 - add Auth redirect URLs for `http://127.0.0.1:4173/admin`,
   `http://localhost:4173/admin`, and your deployed `/admin` origin
-- add at least one normalized admin email to `public.quiz_admin_users`
+- add at least one normalized admin email to `public.quiz_admin_users`:
+
+```sql
+insert into public.quiz_admin_users (email)
+values ('admin@example.com')
+on conflict (email)
+do update set active = true, updated_at = now();
+```
+
+Use a lowercase, trimmed email address. To revoke access without deleting the
+historical row, set `active = false` for that email.
 
 ### Vercel
 

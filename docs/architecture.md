@@ -256,6 +256,11 @@ Today that route:
 - lists private draft events for allowlisted admins
 - keeps non-admin authenticated users out of the draft data path
 
+The browser requests magic links with an explicit `/admin` redirect on the
+current origin. Supabase Auth dashboard settings still have to allow that URL,
+and the project Site URL should match the deployed web origin so email links do
+not fall back to a local default.
+
 The visible admin page is still intentionally minimal, but the backend API
 surface now supports the next authoring step:
 

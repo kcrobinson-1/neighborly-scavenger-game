@@ -110,6 +110,7 @@ Why manual for now:
   - `SESSION_SIGNING_SECRET`
   - `ALLOWED_ORIGINS`
 - Auth URL configuration for magic-link sign-in:
+  - deployed web origin as the Supabase Auth Site URL
   - local `/admin` redirect URLs
   - deployed `/admin` redirect URLs
 - operational allowlist membership in `public.quiz_admin_users`
@@ -129,7 +130,8 @@ For a new deployment from a fork:
 3. Create a new Vercel project for the `apps/web` app.
 4. Add `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY` in Vercel.
 5. Set `SESSION_SIGNING_SECRET` and `ALLOWED_ORIGINS` in Supabase.
-6. Add Supabase Auth redirect URLs for your local and deployed `/admin` origins.
+6. Set the Supabase Auth Site URL to the deployed web origin and add redirect
+   URLs for your local and deployed `/admin` origins.
 7. Insert at least one normalized admin email into `public.quiz_admin_users`.
 8. Recreate the desired GitHub branch protection and Actions secret
    configuration, including the `SUPABASE_ACCESS_TOKEN`,
