@@ -20,7 +20,7 @@ This repository currently includes:
 - a Vite + React attendee experience prototype
 - a landing page plus published demo game routes
 - database-backed published event and quiz content
-- a Supabase Auth-backed admin shell for private draft access at `/admin`
+- a Supabase Auth-backed admin event workspace for private draft access at `/admin`
 - authenticated admin APIs for draft save, publish, and unpublish operations
 - one-question-at-a-time quiz flow with back navigation
 - multiple quiz feedback modes
@@ -199,7 +199,7 @@ Operational setting ownership lives in [docs/operations.md](./docs/operations.md
 
 The main remaining gaps before the broader event-ready MVP are:
 
-- full admin draft editing, duplication, preview, and AI-assisted authoring UI
+- admin draft editing, duplication, preview, and AI-assisted authoring UI
 - analytics and reporting for starts, completions, and completion time
 - richer publishing controls such as drafts, previews, or expiry windows for
   live event URLs

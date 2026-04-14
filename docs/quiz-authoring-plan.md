@@ -384,10 +384,13 @@ In scope:
 - duplicate event
 - edit event details
 - add, edit, reorder, duplicate, and delete questions
-- AI-assisted draft generation and question rewrites
 - mobile preview
 - publish and unpublish
 - clear live versus draft state
+
+Post-MVP unless event setup speed requires it:
+
+- AI-assisted draft generation and question rewrites
 
 Out of scope:
 
@@ -756,21 +759,239 @@ Implementation status:
 
 ### Phase 4: Admin UX MVP
 
+Phase 4 should be split into smaller PR-sized subphases. The full UX milestone
+touches route structure, authenticated data loading, draft mutations, complex
+form state, attendee-preview reuse, publish controls, and AI entry points. That
+is too much surface for one reviewable PR, especially because admin UI changes
+need both code-level validation and browser review.
+
 Deliverables:
 
 - events list
 - create and duplicate event flow
 - event details editor
 - question builder
-- AI-assisted generate and rewrite entry points
 - mobile preview
 - publish checklist and status surfaces
+
+Post-MVP candidates:
+
+- AI-assisted generate and rewrite entry points
+- shareable preview links
+- richer unpublish, expiry, scheduled publish, rollback, and role-management
+  workflows
 
 Acceptance criteria:
 
 - a trusted admin can create and publish a quiz through the admin UI without
   touching the codebase
 - the draft versus live state is obvious in the UI
+
+MVP sequencing:
+
+- Complete Phases 4.1 through 4.6 before moving to Phase 5.
+- Defer Phase 4.7 unless AI-assisted authoring becomes necessary for the first
+  event-ready release.
+- Keep Phase 4.5 scoped to authenticated in-editor preview; shareable preview
+  links stay post-MVP because the preview access model is still an open question.
+
+#### Phase 4.1: Admin Event Workspace
+
+Deliverables:
+
+- replace the minimal draft list with an event-centered admin workspace
+- keep authenticated admin gating and private draft reads unchanged
+- show draft/live status, slug, last saved time, and primary actions for each
+  event
+- add route/state structure needed for selecting one event without introducing
+  editing yet
+
+Acceptance criteria:
+
+- an allowlisted admin can sign in and orient around event status at a glance
+- non-admin and missing-config states continue to block draft access
+- no draft content or live projection mutation is introduced in this subphase
+
+Implementation status:
+
+- implemented in the current repo as the read-only `/admin` event workspace
+- `/admin/events/:eventId` selects one private draft summary for orientation
+  without enabling editing
+- create, duplicate, edit, preview, publish, unpublish, and AI-assisted entry
+  points remain deferred to later Phase 4 subphases
+
+Implementation decisions:
+
+- Use the draft event `id` as the selected workspace route segment because it
+  is the stable private authoring identifier; keep slugs reserved for public
+  attendee routes.
+- Keep the selected workspace summary-only in this phase so direct event
+  routing does not imply draft content editing, preview, or mutation readiness.
+- Expose `Open live quiz` only when `live_version_number` is present because a
+  draft-only event has no public attendee projection to open.
+
+Suggested validation:
+
+- `npm test -- tests/web/pages/AdminPage.test.tsx`
+- `npm test -- tests/web/lib/adminQuizApi.test.ts`
+- `npm run build:web`
+- browser UI review for `/admin` when Supabase admin configuration is available
+
+#### Phase 4.2: Create And Duplicate Drafts
+
+Deliverables:
+
+- add admin UI actions for creating a new draft event and duplicating an
+  existing draft
+- use the existing canonical draft save API for all persisted draft creation
+- generate new ids and slugs client-side only as draft inputs, with backend
+  validation and slug conflict handling still authoritative
+- keep duplicate output as an unpublished draft until the admin explicitly
+  publishes it
+
+Acceptance criteria:
+
+- an admin can create or duplicate a draft without editing SQL or repo files
+- slug collisions and save failures are surfaced without creating live content
+- the events list refreshes or updates after successful draft creation
+
+Suggested validation:
+
+- `npm test -- tests/web/pages/AdminPage.test.tsx`
+- `npm test -- tests/web/lib/adminQuizApi.test.ts`
+- `npm run build:web`
+- browser UI review for create and duplicate paths when Supabase admin
+  configuration is available
+
+#### Phase 4.3: Event Details Editor
+
+Deliverables:
+
+- add an editor surface for event-level draft fields: name, slug, location,
+  estimated minutes, raffle label, intro, summary, feedback mode, back
+  navigation, and retake settings
+- save through `save-draft` using the full canonical draft document
+- show saved, saving, and error states clearly
+- keep draft edits separate from live attendee content until publish
+
+Acceptance criteria:
+
+- an admin can update event details and reload the draft with the saved changes
+- invalid draft payloads and backend save failures produce actionable messages
+- existing published attendee routes remain unchanged after draft-only edits
+
+Suggested validation:
+
+- `npm test -- tests/web/pages/AdminPage.test.tsx`
+- `npm test -- tests/web/lib/adminQuizApi.test.ts`
+- `npm run build:web`
+- browser UI review covering saved and failed-save states when practical
+
+#### Phase 4.4: Question Builder
+
+Deliverables:
+
+- add question list and focused question editor surfaces
+- support add, duplicate, reorder, delete, prompt, sponsor, selection mode,
+  options, correct answers, explanation, and sponsor fact
+- reuse shared draft validation for local feedback where practical, while
+  preserving backend publish validation as the final gate
+- require confirmation for deleting questions
+
+Acceptance criteria:
+
+- an admin can build and save a valid 5-7 question draft through the UI
+- question ordering, correct-answer selection, and validation messages survive
+  save and reload
+- malformed question changes cannot be published accidentally through the UI
+
+Suggested validation:
+
+- focused frontend tests for question editing behavior
+- `npm test -- tests/web/lib/adminQuizApi.test.ts`
+- `npm run build:web`
+- browser UI review of add, reorder, delete, and save flows
+
+#### Phase 4.5: Mobile Preview
+
+Deliverables:
+
+- add an authenticated draft preview that reuses the attendee quiz shell and
+  quiz components against draft content
+- keep preview read access admin-only; do not add shareable preview links in
+  this subphase
+- make preview visually mobile-sized and clearly labeled as draft preview
+- ensure preview does not issue attendee completion sessions or write raffle
+  entitlement data
+
+Acceptance criteria:
+
+- an admin can preview the current draft flow before publish
+- preview behavior matches the attendee quiz interaction where draft-only data
+  permits it
+- preview cannot be confused with a live public route
+
+Suggested validation:
+
+- frontend tests for preview route/state wiring
+- `npm run build:web`
+- browser UI review using mobile viewport and direct preview route loading
+
+#### Phase 4.6: Publish Checklist And Status Surfaces
+
+Deliverables:
+
+- add publish and unpublish controls backed by the existing authoring functions
+- add a publish checklist that blocks publish until draft validation passes
+- show live, draft-only, unpublished, and draft-changes-not-published states
+  clearly in the editor and event list
+- show published version, publish result, slug, and copyable live route after a
+  successful publish
+
+Acceptance criteria:
+
+- an admin can publish and unpublish a draft through the UI
+- failed publish attempts do not change the visible live status
+- draft-only edits after publish are visibly distinct from live content
+
+Suggested validation:
+
+- `npm test -- tests/web/pages/AdminPage.test.tsx`
+- `npm test -- tests/web/lib/adminQuizApi.test.ts`
+- `npm run test:functions`
+- `npm run test:supabase`
+- `npm run build:web`
+- browser UI review covering publish, post-publish draft edit, and unpublish
+  flows when Supabase admin configuration is available
+
+#### Phase 4.7: AI-Assisted Draft Entry Points
+
+Priority: post-MVP by default. This can move earlier only if manual creation
+and duplication are not fast enough for the first event-ready release.
+
+Deliverables:
+
+- add UI entry points for AI-assisted initial draft generation and selected
+  question rewrites
+- write AI output into the same canonical draft document used by manual edits
+- keep human review and explicit publish required for every AI-assisted change
+- preserve the existing backend validation and publish checklist as the final
+  gate
+
+Acceptance criteria:
+
+- AI-assisted output is saved only as draft content
+- admins can review and edit generated content before publish
+- the UI does not introduce a second authoring data model or bypass
+  `save-draft`
+
+Suggested validation:
+
+- frontend tests for applying generated draft/question output into editor state
+- `npm test -- tests/web/lib/adminQuizApi.test.ts`
+- `npm run build:web`
+- browser UI review of the generated-content review flow when the AI path is
+  configured
 
 ### Phase 5: Migration, Validation, And Docs
 

@@ -105,8 +105,9 @@ grouped into a dedicated `apps/web/src/game/` module:
 - `apps/web/src/lib/session.ts`
   Small client id-generation helpers.
 - `apps/web/src/admin/`
-  Admin-session and dashboard hooks plus small presentational components for
-  magic-link sign-in, status states, and private draft listing on `/admin`.
+  Admin-session and dashboard hooks plus presentational components for
+  magic-link sign-in, status states, the event workspace, and selected draft
+  event routes under `/admin`.
 - `apps/web/src/types/quiz.ts`
   Client-side types for completion payloads and results.
 - `apps/web/src/data/games.ts`
@@ -245,7 +246,7 @@ The current shared game model and frontend support more than one quiz behavior:
 
 This capability is implemented in both the shared config model and the `useQuizSession` reducer flow.
 
-### Minimal admin auth shell for authoring access
+### Admin event workspace for authoring access
 
 The web app now includes a dedicated `/admin` route.
 
@@ -253,7 +254,9 @@ Today that route:
 
 - signs admins in with Supabase Auth magic links
 - checks a private email allowlist through `public.is_quiz_admin()`
-- lists private draft events for allowlisted admins
+- shows an event-centered workspace for private draft events visible to
+  allowlisted admins
+- supports direct read-only event selection under `/admin/events/:eventId`
 - keeps non-admin authenticated users out of the draft data path
 
 The browser requests magic links with an explicit `/admin` redirect on the
@@ -261,8 +264,8 @@ current origin. Supabase Auth dashboard settings still have to allow that URL,
 and the project Site URL should match the deployed web origin so email links do
 not fall back to a local default.
 
-The visible admin page is still intentionally minimal, but the backend API
-surface now supports the next authoring step:
+The visible admin page is still read-only, but the backend API surface now
+supports the next authoring step:
 
 - `save-draft` writes validated private draft JSON for allowlisted admins
 - `publish-draft` validates the draft and updates the public event, question,
@@ -397,7 +400,7 @@ The repository has a working prototype slice, but it does not yet satisfy the fu
 
 ### Organizer/admin tooling
 
-Today, the repo has a minimal organizer/admin access shell, but not a full
+Today, the repo has a read-only organizer/admin event workspace, but not a full
 authoring product.
 
 What is missing:

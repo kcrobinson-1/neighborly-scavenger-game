@@ -1,5 +1,12 @@
 import React from "react";
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const {
@@ -28,6 +35,23 @@ vi.mock("../../../apps/web/src/lib/adminQuizApi.ts", () => ({
 }));
 
 import { AdminPage } from "../../../apps/web/src/pages/AdminPage.tsx";
+
+const draftSummaries = [
+  {
+    id: "madrona-music-2026",
+    liveVersionNumber: 1,
+    name: "Madrona Music in the Playfield",
+    slug: "first-sample",
+    updatedAt: "2026-04-07T16:15:00.000Z",
+  },
+  {
+    id: "draft-market-2026",
+    liveVersionNumber: null,
+    name: "Draft Market Day",
+    slug: "draft-market",
+    updatedAt: "2026-04-08T16:15:00.000Z",
+  },
+];
 
 describe("AdminPage", () => {
   beforeEach(() => {
@@ -114,30 +138,142 @@ describe("AdminPage", () => {
     expect(mockListDraftEventSummaries).not.toHaveBeenCalled();
   });
 
-  it("shows the draft list for an authenticated admin session", async () => {
+  it("does not load drafts when admin configuration is missing", () => {
+    mockUseAdminSession.mockReturnValue({
+      message: "Supabase env vars are missing.",
+      status: "missing_config",
+    });
+
+    render(<AdminPage onNavigate={() => {}} />);
+
+    expect(
+      screen.getByRole("heading", {
+        name: "Admin auth needs Supabase configuration.",
+      }),
+    ).toBeTruthy();
+    expect(mockGetQuizAdminStatus).not.toHaveBeenCalled();
+    expect(mockListDraftEventSummaries).not.toHaveBeenCalled();
+  });
+
+  it("shows the event workspace for an authenticated admin session", async () => {
     mockUseAdminSession.mockReturnValue({
       email: "admin@example.com",
       session: { access_token: "admin-token" },
       status: "signed_in",
     });
     mockGetQuizAdminStatus.mockResolvedValue(true);
-    mockListDraftEventSummaries.mockResolvedValue([
-      {
-        id: "madrona-music-2026",
-        liveVersionNumber: 1,
-        name: "Madrona Music in the Playfield",
-        slug: "first-sample",
-        updatedAt: "2026-04-07T16:15:00.000Z",
-      },
-    ]);
+    mockListDraftEventSummaries.mockResolvedValue(draftSummaries);
 
     render(<AdminPage onNavigate={() => {}} />);
 
     expect(
-      await screen.findByRole("heading", { name: "Private draft events" }),
+      await screen.findByRole("heading", { name: "Event workspace" }),
     ).toBeTruthy();
+    expect(screen.getByText("2 events")).toBeTruthy();
+    expect(screen.getByText("1 live")).toBeTruthy();
+    expect(screen.getByText("1 draft only")).toBeTruthy();
     expect(screen.getByText("Madrona Music in the Playfield")).toBeTruthy();
+    expect(screen.getByText("Draft Market Day")).toBeTruthy();
     expect(screen.getByText("Live v1")).toBeTruthy();
+    expect(screen.getByText("Draft only")).toBeTruthy();
+  });
+
+  it("uses singular event count copy for one draft", async () => {
+    mockUseAdminSession.mockReturnValue({
+      email: "admin@example.com",
+      session: { access_token: "admin-token" },
+      status: "signed_in",
+    });
+    mockGetQuizAdminStatus.mockResolvedValue(true);
+    mockListDraftEventSummaries.mockResolvedValue([draftSummaries[0]]);
+
+    render(<AdminPage onNavigate={() => {}} />);
+
+    expect(await screen.findByText("1 event")).toBeTruthy();
+    expect(screen.getByText("1 live")).toBeTruthy();
+    expect(screen.getByText("0 draft only")).toBeTruthy();
+  });
+
+  it("navigates from event cards to workspaces and live quiz routes", async () => {
+    const navigate = vi.fn();
+    mockUseAdminSession.mockReturnValue({
+      email: "admin@example.com",
+      session: { access_token: "admin-token" },
+      status: "signed_in",
+    });
+    mockGetQuizAdminStatus.mockResolvedValue(true);
+    mockListDraftEventSummaries.mockResolvedValue(draftSummaries);
+
+    render(<AdminPage onNavigate={navigate} />);
+
+    const liveEventCard = await screen.findByLabelText(
+      "Madrona Music in the Playfield event",
+    );
+    fireEvent.click(
+      within(liveEventCard).getByRole("button", { name: "Open workspace" }),
+    );
+    fireEvent.click(
+      within(liveEventCard).getByRole("button", { name: "Open live quiz" }),
+    );
+
+    expect(navigate).toHaveBeenCalledWith("/admin/events/madrona-music-2026");
+    expect(navigate).toHaveBeenCalledWith("/game/first-sample");
+    expect(screen.getAllByRole("button", { name: "Open live quiz" })).toHaveLength(1);
+  });
+
+  it("shows a read-only selected event workspace", async () => {
+    mockUseAdminSession.mockReturnValue({
+      email: "admin@example.com",
+      session: { access_token: "admin-token" },
+      status: "signed_in",
+    });
+    mockGetQuizAdminStatus.mockResolvedValue(true);
+    mockListDraftEventSummaries.mockResolvedValue(draftSummaries);
+
+    render(
+      <AdminPage
+        onNavigate={() => {}}
+        selectedEventId="madrona-music-2026"
+      />,
+    );
+
+    expect(
+      await screen.findByRole("heading", {
+        name: "Madrona Music in the Playfield",
+      }),
+    ).toBeTruthy();
+    expect(screen.getByText("Read-only workspace")).toBeTruthy();
+    expect(screen.getByText("Slug: first-sample")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Back to all events" })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Publish" })).toBeNull();
+  });
+
+  it("shows an admin-only not-found state for an unknown selected event", async () => {
+    const navigate = vi.fn();
+    mockUseAdminSession.mockReturnValue({
+      email: "admin@example.com",
+      session: { access_token: "admin-token" },
+      status: "signed_in",
+    });
+    mockGetQuizAdminStatus.mockResolvedValue(true);
+    mockListDraftEventSummaries.mockResolvedValue(draftSummaries);
+
+    render(
+      <AdminPage
+        onNavigate={navigate}
+        selectedEventId="missing-event"
+      />,
+    );
+
+    expect(
+      await screen.findByRole("heading", {
+        name: "Event workspace not found",
+      }),
+    ).toBeTruthy();
+
+    fireEvent.click(screen.getByRole("button", { name: "Back to all events" }));
+
+    expect(navigate).toHaveBeenCalledWith("/admin");
   });
 
   it("returns to the signed-out shell after sign-out completes", async () => {
@@ -147,15 +283,7 @@ describe("AdminPage", () => {
       status: "signed_in",
     });
     mockGetQuizAdminStatus.mockResolvedValue(true);
-    mockListDraftEventSummaries.mockResolvedValue([
-      {
-        id: "madrona-music-2026",
-        liveVersionNumber: 1,
-        name: "Madrona Music in the Playfield",
-        slug: "first-sample",
-        updatedAt: "2026-04-07T16:15:00.000Z",
-      },
-    ]);
+    mockListDraftEventSummaries.mockResolvedValue(draftSummaries);
     mockSignOutAdmin.mockImplementation(async () => {
       mockUseAdminSession.mockReturnValue({
         status: "signed_out",
@@ -164,7 +292,7 @@ describe("AdminPage", () => {
 
     render(<AdminPage onNavigate={() => {}} />);
 
-    await screen.findByRole("heading", { name: "Private draft events" });
+    await screen.findByRole("heading", { name: "Event workspace" });
 
     fireEvent.click(screen.getByRole("button", { name: "Sign out" }));
 

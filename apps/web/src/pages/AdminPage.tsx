@@ -5,10 +5,11 @@ import { routes } from "../routes";
 
 type AdminPageProps = {
   onNavigate: (path: string) => void;
+  selectedEventId?: string;
 };
 
 /** Route adapter for the authenticated admin shell. */
-export function AdminPage({ onNavigate }: AdminPageProps) {
+export function AdminPage({ onNavigate, selectedEventId }: AdminPageProps) {
   const adminDashboard = useAdminDashboard();
 
   return (
@@ -24,8 +25,10 @@ export function AdminPage({ onNavigate }: AdminPageProps) {
         emailInput={adminDashboard.emailInput}
         magicLinkState={adminDashboard.magicLinkState}
         onEmailInputChange={adminDashboard.setEmailInput}
+        onNavigate={onNavigate}
         onRetryDashboard={adminDashboard.retryDashboard}
         onSubmitMagicLink={adminDashboard.requestMagicLink}
+        selectedEventId={selectedEventId}
         sessionState={adminDashboard.sessionState}
       />
     </AdminPageShell>

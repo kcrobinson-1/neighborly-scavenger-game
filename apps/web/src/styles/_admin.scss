@@ -5,6 +5,7 @@
 .admin-copy,
 .admin-state-stack,
 .admin-form,
+.admin-workspace-detail,
 .draft-list,
 .draft-row-copy {
   @include stack(16px);
@@ -23,6 +24,7 @@
 }
 
 .admin-panel h2,
+.admin-workspace-detail h3,
 .draft-row h3 {
   margin: 0;
 }
@@ -72,12 +74,52 @@
 }
 
 .admin-signout-button,
+.admin-inline-button,
 .admin-refresh-button {
   width: fit-content;
 }
 
 .admin-signed-in-as {
   font-size: 0.95rem;
+}
+
+.admin-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: $space-5;
+}
+
+.admin-summary-item {
+  padding: $space-6 $space-7;
+  border: 1px solid $color-border-muted;
+  border-radius: $radius-control;
+  background: $color-secondary-surface;
+  color: var(--secondary);
+  font-weight: $font-weight-bold;
+}
+
+.admin-toolbar,
+.admin-action-row,
+.admin-workspace-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: $space-5;
+}
+
+.admin-toolbar,
+.admin-workspace-heading {
+  justify-content: space-between;
+}
+
+.admin-action-row {
+  flex-wrap: wrap;
+}
+
+.admin-workspace-detail {
+  padding: $space-8;
+  border: 1px solid $color-border-muted;
+  border-radius: $radius-card;
+  background: $color-draft-row-surface;
 }
 
 .draft-list {
@@ -89,6 +131,7 @@
   border: 1px solid $color-border-muted;
   border-radius: $radius-card;
   background: $color-draft-row-surface;
+  @include stack($space-7);
 }
 
 .draft-row-header {
@@ -96,4 +139,15 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: $space-5;
+}
+
+@media (max-width: 620px) {
+  .admin-summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-toolbar,
+  .admin-workspace-heading {
+    flex-direction: column;
+  }
 }

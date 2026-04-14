@@ -4,7 +4,7 @@ import type {
   AdminDashboardState,
   AdminMagicLinkState,
 } from "./useAdminDashboard";
-import { AdminDraftList } from "./AdminDraftList";
+import { AdminEventWorkspace } from "./AdminEventWorkspace";
 import { AdminSignInForm } from "./AdminSignInForm";
 
 type AdminDashboardContentProps = {
@@ -12,8 +12,10 @@ type AdminDashboardContentProps = {
   emailInput: string;
   magicLinkState: AdminMagicLinkState;
   onEmailInputChange: (value: string) => void;
+  onNavigate: (path: string) => void;
   onRetryDashboard: () => void;
   onSubmitMagicLink: (event: FormEvent<HTMLFormElement>) => void;
+  selectedEventId?: string;
   sessionState: AdminSessionState;
 };
 
@@ -31,8 +33,10 @@ export function AdminDashboardContent({
   emailInput,
   magicLinkState,
   onEmailInputChange,
+  onNavigate,
   onRetryDashboard,
   onSubmitMagicLink,
+  selectedEventId,
   sessionState,
 }: AdminDashboardContentProps) {
   if (sessionState.status === "missing_config") {
@@ -113,17 +117,15 @@ export function AdminDashboardContent({
       <div className="admin-state-stack">
         <div className="section-heading">
           <p className="eyebrow">Authenticated admin</p>
-          <h2>Private draft events</h2>
+          <h2>Event workspace</h2>
         </div>
         <SignedInAs email={dashboardState.email} />
-        <button
-          className="secondary-button admin-refresh-button"
-          onClick={onRetryDashboard}
-          type="button"
-        >
-          Refresh draft list
-        </button>
-        <AdminDraftList drafts={dashboardState.drafts} />
+        <AdminEventWorkspace
+          drafts={dashboardState.drafts}
+          onNavigate={onNavigate}
+          onRefresh={onRetryDashboard}
+          selectedEventId={selectedEventId}
+        />
       </div>
     );
   }

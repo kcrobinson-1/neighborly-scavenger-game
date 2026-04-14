@@ -50,11 +50,11 @@ export function AdminPageShell({
 
         <section className="panel admin-panel">
           <div className="admin-copy">
-            <span className="chip">Admin authoring shell</span>
+            <span className="chip">Admin event workspace</span>
             <p>
-              This route proves private draft access for allowlisted admins.
-              Full editing, preview, and publish controls still land in the
-              admin UX phase.
+              Review private event drafts, open live quiz routes, and select an
+              event workspace before the editing, preview, and publish phases
+              land.
             </p>
           </div>
 

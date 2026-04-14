@@ -15,7 +15,9 @@ vi.mock("../../apps/web/src/pages/LandingPage.tsx", () => ({
 }));
 
 vi.mock("../../apps/web/src/pages/AdminPage.tsx", () => ({
-  AdminPage: () => <div>Admin Page</div>,
+  AdminPage: ({ selectedEventId }: { selectedEventId?: string }) => (
+    <div>Admin Page{selectedEventId ? `: ${selectedEventId}` : ""}</div>
+  ),
 }));
 
 vi.mock("../../apps/web/src/pages/GameRoutePage.tsx", () => ({
@@ -46,5 +48,16 @@ describe("App", () => {
     render(<App />);
 
     expect(screen.getByText("Admin Page")).toBeTruthy();
+  });
+
+  it("renders the admin event route with the selected event id", () => {
+    mockUsePathnameNavigation.mockReturnValue({
+      navigate: vi.fn(),
+      pathname: "/admin/events/madrona-music-2026",
+    });
+
+    render(<App />);
+
+    expect(screen.getByText("Admin Page: madrona-music-2026")).toBeTruthy();
   });
 });
