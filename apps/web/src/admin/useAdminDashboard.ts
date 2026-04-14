@@ -17,6 +17,10 @@ import {
   applyEventDetailsFormValues,
   type AdminEventDetailsFormValues,
 } from "./eventDetails";
+import {
+  applyQuestionFormValues,
+  type AdminQuestionFormValues,
+} from "./questionBuilder";
 import { useAdminSession } from "./useAdminSession";
 
 export type AdminDashboardState =
@@ -51,6 +55,11 @@ export type AdminSelectedDraftState =
       message: string;
       status: "saving" | "save_error" | "success";
     };
+
+export type AdminQuestionSaveState =
+  | { message: null; status: "idle" }
+  | { message: string; status: "saving" }
+  | { message: string; status: "save_error" | "success" };
 
 function getErrorMessage(error: unknown, fallbackMessage: string) {
   return error instanceof Error ? error.message : fallbackMessage;
@@ -89,6 +98,14 @@ export function useAdminDashboard(selectedEventId?: string) {
     useState<AdminSelectedDraftState>({
       status: "idle",
     });
+  const [focusedQuestionId, setFocusedQuestionId] = useState<string | null>(
+    null,
+  );
+  const [questionSaveState, setQuestionSaveState] =
+    useState<AdminQuestionSaveState>({
+      message: null,
+      status: "idle",
+    });
   const visibleDraftIds =
     dashboardState.status === "ready"
       ? dashboardState.drafts.map((draft) => draft.id).join("\0")
@@ -99,6 +116,8 @@ export function useAdminDashboard(selectedEventId?: string) {
       setDashboardState({ status: "idle" });
       setDraftMutationState({ message: null, status: "idle" });
       setSelectedDraftState({ status: "idle" });
+      setFocusedQuestionId(null);
+      setQuestionSaveState({ message: null, status: "idle" });
       return;
     }
 
@@ -159,6 +178,8 @@ export function useAdminDashboard(selectedEventId?: string) {
       !selectedEventId
     ) {
       setSelectedDraftState({ status: "idle" });
+      setFocusedQuestionId(null);
+      setQuestionSaveState({ message: null, status: "idle" });
       return;
     }
 
@@ -168,6 +189,8 @@ export function useAdminDashboard(selectedEventId?: string) {
 
     if (!visibleDraftIdSet.has(selectedEventId)) {
       setSelectedDraftState({ status: "idle" });
+      setFocusedQuestionId(null);
+      setQuestionSaveState({ message: null, status: "idle" });
       return;
     }
 
@@ -177,6 +200,7 @@ export function useAdminDashboard(selectedEventId?: string) {
       eventId: selectedEventId,
       status: "loading",
     });
+    setQuestionSaveState({ message: null, status: "idle" });
 
     void loadDraftEvent(selectedEventId)
       .then((draft) => {
@@ -197,6 +221,18 @@ export function useAdminDashboard(selectedEventId?: string) {
           draft,
           message: null,
           status: "ready",
+        });
+        setFocusedQuestionId((currentQuestionId) => {
+          if (
+            currentQuestionId &&
+            draft.content.questions.some(
+              (question) => question.id === currentQuestionId,
+            )
+          ) {
+            return currentQuestionId;
+          }
+
+          return draft.content.questions[0]?.id ?? null;
         });
       })
       .catch((error: unknown) => {
@@ -366,6 +402,70 @@ export function useAdminDashboard(selectedEventId?: string) {
     }
   };
 
+  const saveSelectedQuestion = async (
+    questionId: string,
+    values: AdminQuestionFormValues,
+  ) => {
+    if (
+      selectedDraftState.status !== "ready" &&
+      selectedDraftState.status !== "save_error" &&
+      selectedDraftState.status !== "success"
+    ) {
+      return null;
+    }
+
+    const currentDraft = selectedDraftState.draft;
+
+    setQuestionSaveState({
+      message: "Saving question changes...",
+      status: "saving",
+    });
+
+    try {
+      const content = applyQuestionFormValues(
+        currentDraft.content,
+        questionId,
+        values,
+      );
+      const savedDraft = await saveDraftEvent(content);
+      const nextDraft: DraftEventDetail = {
+        ...currentDraft,
+        ...savedDraft,
+        content,
+      };
+
+      setDashboardState((currentState) =>
+        currentState.status === "ready"
+          ? {
+              ...currentState,
+              drafts: mergeDraftSummary(currentState.drafts, savedDraft),
+            }
+          : currentState,
+      );
+      setSelectedDraftState({
+        draft: nextDraft,
+        message: null,
+        status: "ready",
+      });
+      setFocusedQuestionId(questionId);
+      setQuestionSaveState({
+        message: "Saved question changes.",
+        status: "success",
+      });
+
+      return savedDraft;
+    } catch (error: unknown) {
+      setQuestionSaveState({
+        message: getErrorMessage(
+          error,
+          "We couldn't save the question changes right now.",
+        ),
+        status: "save_error",
+      });
+      return null;
+    }
+  };
+
   const requestMagicLink = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
@@ -424,11 +524,15 @@ export function useAdminDashboard(selectedEventId?: string) {
     emailInput,
     isSigningOut,
     magicLinkState,
+    focusedQuestionId,
+    questionSaveState,
     requestMagicLink,
     retryDashboard,
     saveSelectedEventDetails,
+    saveSelectedQuestion,
     selectedDraftState,
     sessionState,
+    setFocusedQuestionId,
     setEmailInput,
     signOut,
     signOutError,

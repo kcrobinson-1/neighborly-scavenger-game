@@ -1,22 +1,32 @@
 import type { DraftEventSummary } from "../lib/adminQuizApi";
 import { routes } from "../routes";
 import { AdminEventDetailsForm } from "./AdminEventDetailsForm";
+import { AdminQuestionEditor } from "./AdminQuestionEditor";
 import type {
   AdminDraftMutationState,
+  AdminQuestionSaveState,
   AdminSelectedDraftState,
 } from "./useAdminDashboard";
 import type { AdminEventDetailsFormValues } from "./eventDetails";
+import type { AdminQuestionFormValues } from "./questionBuilder";
 
 type AdminEventWorkspaceProps = {
   draftMutationState: AdminDraftMutationState;
   drafts: DraftEventSummary[];
+  focusedQuestionId: string | null;
   onCreateDraft: () => Promise<DraftEventSummary | null>;
   onDuplicateDraft: (eventId: string) => Promise<DraftEventSummary | null>;
+  onFocusQuestion: (questionId: string) => void;
   onNavigate: (path: string) => void;
   onRefresh: () => void;
   onSaveSelectedEventDetails: (
     values: AdminEventDetailsFormValues,
   ) => Promise<DraftEventSummary | null>;
+  onSaveSelectedQuestion: (
+    questionId: string,
+    values: AdminQuestionFormValues,
+  ) => Promise<DraftEventSummary | null>;
+  questionSaveState: AdminQuestionSaveState;
   selectedDraftState: AdminSelectedDraftState;
   selectedEventId?: string;
 };
@@ -58,6 +68,10 @@ function isSelectedDraftSaving(state: AdminSelectedDraftState) {
   return state.status === "saving";
 }
 
+function isQuestionSaving(state: AdminQuestionSaveState) {
+  return state.status === "saving";
+}
+
 function getMutationMessageClass(state: AdminDraftMutationState) {
   return state.status === "error"
     ? "admin-message admin-message-error"
@@ -78,15 +92,33 @@ function getSelectedDraftMessageKind(
   return "info";
 }
 
+function getQuestionMessageKind(
+  state: AdminQuestionSaveState,
+): "error" | "info" | "success" {
+  if (state.status === "save_error") {
+    return "error";
+  }
+
+  if (state.status === "success") {
+    return "success";
+  }
+
+  return "info";
+}
+
 /** Event workspace for draft orientation plus create and duplicate actions. */
 export function AdminEventWorkspace({
   draftMutationState,
   drafts,
+  focusedQuestionId,
   onCreateDraft,
   onDuplicateDraft,
+  onFocusQuestion,
   onNavigate,
   onRefresh,
   onSaveSelectedEventDetails,
+  onSaveSelectedQuestion,
+  questionSaveState,
   selectedDraftState,
   selectedEventId,
 }: AdminEventWorkspaceProps) {
@@ -96,7 +128,9 @@ export function AdminEventWorkspace({
   const counts = getEventCounts(drafts);
   const isMutationPending = isDraftMutationPending(draftMutationState);
   const isSelectedSaving = isSelectedDraftSaving(selectedDraftState);
-  const isWorkspaceBusy = isMutationPending || isSelectedSaving;
+  const isQuestionSavePending = isQuestionSaving(questionSaveState);
+  const isWorkspaceBusy =
+    isMutationPending || isSelectedSaving || isQuestionSavePending;
 
   const handleCreateDraft = async () => {
     const savedDraft = await onCreateDraft();
@@ -199,6 +233,22 @@ export function AdminEventWorkspace({
             message={selectedDraftState.message}
             messageKind={getSelectedDraftMessageKind(selectedDraftState)}
             onSave={onSaveSelectedEventDetails}
+          />
+        ) : null}
+        {focusedQuestionId &&
+        (selectedDraftState.status === "ready" ||
+          selectedDraftState.status === "saving" ||
+          selectedDraftState.status === "save_error" ||
+          selectedDraftState.status === "success") ? (
+          <AdminQuestionEditor
+            disabled={isWorkspaceBusy}
+            draft={selectedDraftState.draft}
+            focusedQuestionId={focusedQuestionId}
+            isSaving={isQuestionSavePending}
+            message={questionSaveState.message}
+            messageKind={getQuestionMessageKind(questionSaveState)}
+            onFocusQuestion={onFocusQuestion}
+            onSave={onSaveSelectedQuestion}
           />
         ) : null}
         {draftMutationState.status !== "idle" ? (

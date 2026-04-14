@@ -4,9 +4,11 @@ import type {
   AdminDashboardState,
   AdminDraftMutationState,
   AdminMagicLinkState,
+  AdminQuestionSaveState,
   AdminSelectedDraftState,
 } from "./useAdminDashboard";
 import type { AdminEventDetailsFormValues } from "./eventDetails";
+import type { AdminQuestionFormValues } from "./questionBuilder";
 import type { DraftEventSummary } from "../lib/adminQuizApi";
 import { AdminEventWorkspace } from "./AdminEventWorkspace";
 import { AdminSignInForm } from "./AdminSignInForm";
@@ -16,6 +18,7 @@ type AdminDashboardContentProps = {
   draftMutationState: AdminDraftMutationState;
   emailInput: string;
   magicLinkState: AdminMagicLinkState;
+  focusedQuestionId: string | null;
   onCreateDraft: () => Promise<DraftEventSummary | null>;
   onDuplicateDraft: (eventId: string) => Promise<DraftEventSummary | null>;
   onEmailInputChange: (value: string) => void;
@@ -24,10 +27,16 @@ type AdminDashboardContentProps = {
   onSaveSelectedEventDetails: (
     values: AdminEventDetailsFormValues,
   ) => Promise<DraftEventSummary | null>;
+  onSaveSelectedQuestion: (
+    questionId: string,
+    values: AdminQuestionFormValues,
+  ) => Promise<DraftEventSummary | null>;
   onSubmitMagicLink: (event: FormEvent<HTMLFormElement>) => void;
+  questionSaveState: AdminQuestionSaveState;
   selectedDraftState: AdminSelectedDraftState;
   selectedEventId?: string;
   sessionState: AdminSessionState;
+  onFocusQuestion: (questionId: string) => void;
 };
 
 function SignedInAs({ email }: { email: string | null }) {
@@ -43,6 +52,7 @@ export function AdminDashboardContent({
   dashboardState,
   draftMutationState,
   emailInput,
+  focusedQuestionId,
   magicLinkState,
   onCreateDraft,
   onDuplicateDraft,
@@ -50,10 +60,13 @@ export function AdminDashboardContent({
   onNavigate,
   onRetryDashboard,
   onSaveSelectedEventDetails,
+  onSaveSelectedQuestion,
   onSubmitMagicLink,
+  questionSaveState,
   selectedDraftState,
   selectedEventId,
   sessionState,
+  onFocusQuestion,
 }: AdminDashboardContentProps) {
   if (sessionState.status === "missing_config") {
     return (
@@ -143,7 +156,11 @@ export function AdminDashboardContent({
           onDuplicateDraft={onDuplicateDraft}
           onNavigate={onNavigate}
           onRefresh={onRetryDashboard}
+          focusedQuestionId={focusedQuestionId}
+          onFocusQuestion={onFocusQuestion}
           onSaveSelectedEventDetails={onSaveSelectedEventDetails}
+          onSaveSelectedQuestion={onSaveSelectedQuestion}
+          questionSaveState={questionSaveState}
           selectedDraftState={selectedDraftState}
           selectedEventId={selectedEventId}
         />

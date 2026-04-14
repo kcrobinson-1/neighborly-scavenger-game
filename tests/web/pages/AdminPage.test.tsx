@@ -603,6 +603,7 @@ describe("AdminPage", () => {
     ).toBeTruthy();
     expect(screen.getByText("Draft actions")).toBeTruthy();
     expect(await screen.findByLabelText("Event name")).toBeTruthy();
+    expect(await screen.findByLabelText("Question builder")).toBeTruthy();
     expect(screen.getByDisplayValue("first-sample")).toBeTruthy();
     expect(screen.getByRole("button", { name: "Back to all events" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Duplicate draft" })).toBeTruthy();
@@ -630,6 +631,7 @@ describe("AdminPage", () => {
     expect(await screen.findByText("Loading event details...")).toBeTruthy();
     loadDraft.resolve(createDraftDetail());
     await screen.findByLabelText("Event name");
+    await screen.findByLabelText("Question builder");
     expect(getFieldValue("Event name")).toBe("Madrona Music in the Playfield");
     expect(getFieldValue("Slug")).toBe("first-sample");
     expect(getFieldValue("Location")).toBe(sampleDraft.location);
@@ -645,6 +647,63 @@ describe("AdminPage", () => {
     expect(screen.getByRole("button", { name: "Save changes" }).hasAttribute("disabled"))
       .toBe(true);
     expect(mockLoadDraftEvent).toHaveBeenCalledWith("madrona-music-2026");
+  });
+
+  it("loads the selected draft question list and defaults to the first question", async () => {
+    mockUseAdminSession.mockReturnValue({
+      email: "admin@example.com",
+      session: { access_token: "admin-token" },
+      status: "signed_in",
+    });
+    mockGetQuizAdminStatus.mockResolvedValue(true);
+    mockListDraftEventSummaries.mockResolvedValue(draftSummaries);
+    mockLoadDraftEvent.mockResolvedValue(createDraftDetail());
+
+    render(
+      <AdminPage
+        onNavigate={() => {}}
+        selectedEventId="madrona-music-2026"
+      />,
+    );
+
+    expect(await screen.findByLabelText("Question builder")).toBeTruthy();
+    expect(screen.getByRole("button", { name: /Question 1:/ })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /Question 2:/ })).toBeTruthy();
+    expect(getFieldValue("Question prompt")).toBe(sampleDraft.questions[0].prompt);
+    expect(getFieldValue("Question sponsor")).toBe(sampleDraft.questions[0].sponsor);
+    expect(getFieldValue("Selection mode")).toBe(sampleDraft.questions[0].selectionMode);
+    expect(getFieldValue("Explanation")).toBe(
+      sampleDraft.questions[0].explanation ?? "",
+    );
+    expect(getFieldValue("Sponsor fact")).toBe(
+      sampleDraft.questions[0].sponsorFact ?? "",
+    );
+    expect(getFieldValue("Option 1 label")).toBe(sampleDraft.questions[0].options[0].label);
+    expect(mockLoadDraftEvent).toHaveBeenCalledTimes(1);
+  });
+
+  it("changes the focused question without loading the draft again", async () => {
+    mockUseAdminSession.mockReturnValue({
+      email: "admin@example.com",
+      session: { access_token: "admin-token" },
+      status: "signed_in",
+    });
+    mockGetQuizAdminStatus.mockResolvedValue(true);
+    mockListDraftEventSummaries.mockResolvedValue(draftSummaries);
+    mockLoadDraftEvent.mockResolvedValue(createDraftDetail());
+
+    render(
+      <AdminPage
+        onNavigate={() => {}}
+        selectedEventId="madrona-music-2026"
+      />,
+    );
+
+    await screen.findByLabelText("Question builder");
+    fireEvent.click(screen.getByRole("button", { name: /Question 2:/ }));
+
+    expect(getFieldValue("Question prompt")).toBe(sampleDraft.questions[1].prompt);
+    expect(mockLoadDraftEvent).toHaveBeenCalledTimes(1);
   });
 
   it("surfaces local event-details validation without saving", async () => {
@@ -720,6 +779,118 @@ describe("AdminPage", () => {
 
     expect(navigate).toHaveBeenCalledWith("/admin");
     expect(await screen.findByText("Updated Madrona Event")).toBeTruthy();
+  });
+
+  it("saves existing question edits and preserves event details", async () => {
+    const updatedQuestion = {
+      ...sampleDraft.questions[0],
+      correctAnswerIds: [sampleDraft.questions[0].options[1].id],
+      explanation: "Updated explanation",
+      options: sampleDraft.questions[0].options.map((option, index) => ({
+        ...option,
+        label: `Updated option ${index + 1}`,
+      })),
+      prompt: "Updated question prompt",
+      selectionMode: "single" as const,
+      sponsor: "Updated sponsor",
+      sponsorFact: "Updated sponsor fact",
+    };
+    mockUseAdminSession.mockReturnValue({
+      email: "admin@example.com",
+      session: { access_token: "admin-token" },
+      status: "signed_in",
+    });
+    mockGetQuizAdminStatus.mockResolvedValue(true);
+    mockListDraftEventSummaries.mockResolvedValue(draftSummaries);
+    mockLoadDraftEvent.mockResolvedValue(createDraftDetail());
+    mockSaveDraftEvent.mockResolvedValue({
+      id: "madrona-music-2026",
+      liveVersionNumber: 1,
+      name: "Madrona Music in the Playfield",
+      slug: "first-sample",
+      updatedAt: "2026-04-13T12:00:00.000Z",
+    });
+
+    renderAdminRoute("madrona-music-2026");
+
+    fireEvent.change(await screen.findByLabelText("Question prompt"), {
+      target: { value: ` ${updatedQuestion.prompt} ` },
+    });
+    fireEvent.change(screen.getByLabelText("Question sponsor"), {
+      target: { value: ` ${updatedQuestion.sponsor} ` },
+    });
+    fireEvent.change(screen.getByLabelText("Explanation"), {
+      target: { value: ` ${updatedQuestion.explanation} ` },
+    });
+    fireEvent.change(screen.getByLabelText("Sponsor fact"), {
+      target: { value: ` ${updatedQuestion.sponsorFact} ` },
+    });
+    fireEvent.change(screen.getByLabelText("Option 1 label"), {
+      target: { value: ` ${updatedQuestion.options[0].label} ` },
+    });
+    fireEvent.change(screen.getByLabelText("Option 2 label"), {
+      target: { value: ` ${updatedQuestion.options[1].label} ` },
+    });
+    fireEvent.change(screen.getByLabelText("Option 3 label"), {
+      target: { value: ` ${updatedQuestion.options[2].label} ` },
+    });
+    fireEvent.click(screen.getAllByLabelText("Correct")[1]);
+    fireEvent.click(screen.getByRole("button", { name: "Save question changes" }));
+
+    expect(await screen.findByText("Saved question changes.")).toBeTruthy();
+    const savedContent = mockSaveDraftEvent.mock.calls[0]?.[0];
+    expect(savedContent).toMatchObject({
+      id: selectedDraftContent.id,
+      name: selectedDraftContent.name,
+      slug: selectedDraftContent.slug,
+    });
+    expect(savedContent.questions[0]).toEqual(updatedQuestion);
+    expect(savedContent.questions.slice(1)).toEqual(
+      selectedDraftContent.questions.slice(1),
+    );
+  });
+
+  it("surfaces local question validation without saving", async () => {
+    mockUseAdminSession.mockReturnValue({
+      email: "admin@example.com",
+      session: { access_token: "admin-token" },
+      status: "signed_in",
+    });
+    mockGetQuizAdminStatus.mockResolvedValue(true);
+    mockListDraftEventSummaries.mockResolvedValue(draftSummaries);
+    mockLoadDraftEvent.mockResolvedValue(createDraftDetail());
+
+    renderAdminRoute("madrona-music-2026");
+
+    fireEvent.change(await screen.findByLabelText("Question prompt"), {
+      target: { value: " " },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Save question changes" }));
+
+    expect(await screen.findByText("Question prompt is required.")).toBeTruthy();
+    expect(mockSaveDraftEvent).not.toHaveBeenCalled();
+  });
+
+  it("surfaces selected question save failures without mutating draft state", async () => {
+    mockUseAdminSession.mockReturnValue({
+      email: "admin@example.com",
+      session: { access_token: "admin-token" },
+      status: "signed_in",
+    });
+    mockGetQuizAdminStatus.mockResolvedValue(true);
+    mockListDraftEventSummaries.mockResolvedValue(draftSummaries);
+    mockLoadDraftEvent.mockResolvedValue(createDraftDetail());
+    mockSaveDraftEvent.mockRejectedValue(new Error("Draft save failed."));
+
+    renderAdminRoute("madrona-music-2026");
+
+    fireEvent.change(await screen.findByLabelText("Question prompt"), {
+      target: { value: "Unsaved prompt" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Save question changes" }));
+
+    expect(await screen.findByText("Draft save failed.")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /Unsaved prompt/ })).toBeNull();
   });
 
   it("surfaces selected event save failures without updating the summary list", async () => {
@@ -802,6 +973,40 @@ describe("AdminPage", () => {
     expect(getFieldValue("Event name")).toBe("Reloaded Event");
     expect(getFieldValue("Slug")).toBe("reloaded-event");
     expect(getFieldValue("Summary")).toBe("Reloaded summary");
+  });
+
+  it("reloads a selected route with saved question content", async () => {
+    mockUseAdminSession.mockReturnValue({
+      email: "admin@example.com",
+      session: { access_token: "admin-token" },
+      status: "signed_in",
+    });
+    mockGetQuizAdminStatus.mockResolvedValue(true);
+    mockListDraftEventSummaries.mockResolvedValue(draftSummaries);
+    mockLoadDraftEvent.mockResolvedValue(
+      createDraftDetail({
+        ...selectedDraftContent,
+        questions: [
+          {
+            ...selectedDraftContent.questions[0],
+            prompt: "Reloaded question prompt",
+            sponsorFact: "Reloaded sponsor fact",
+          },
+          ...selectedDraftContent.questions.slice(1),
+        ],
+      }),
+    );
+
+    render(
+      <AdminPage
+        onNavigate={() => {}}
+        selectedEventId="madrona-music-2026"
+      />,
+    );
+
+    await screen.findByLabelText("Question builder");
+    expect(getFieldValue("Question prompt")).toBe("Reloaded question prompt");
+    expect(getFieldValue("Sponsor fact")).toBe("Reloaded sponsor fact");
   });
 
   it("shows an admin-only not-found state for an unknown selected event", async () => {

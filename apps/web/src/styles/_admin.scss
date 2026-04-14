@@ -111,7 +111,8 @@
 .admin-toolbar,
 .admin-action-row,
 .admin-checkbox-row,
-.admin-workspace-heading {
+.admin-workspace-heading,
+.admin-option-row {
   display: flex;
   align-items: flex-start;
   gap: $space-5;
@@ -138,6 +139,64 @@
 
 .admin-checkbox-row {
   flex-wrap: wrap;
+  color: var(--muted);
+  font-weight: $font-weight-semibold;
+}
+
+.admin-question-builder {
+  @include stack($space-6);
+  padding-top: $space-6;
+  border-top: 1px solid $color-border-muted;
+}
+
+.admin-question-layout {
+  display: grid;
+  grid-template-columns: minmax(180px, 0.35fr) minmax(0, 1fr);
+  gap: $space-6;
+}
+
+.admin-question-list {
+  @include stack($space-4);
+}
+
+.admin-question-list-button {
+  width: 100%;
+  text-align: left;
+}
+
+.admin-question-list-button[aria-pressed="true"] {
+  border-color: var(--secondary);
+  color: var(--secondary);
+}
+
+.admin-question-form {
+  min-width: 0;
+}
+
+.admin-option-fieldset {
+  @include stack($space-5);
+  min-width: 0;
+  margin: 0;
+  padding: $space-6;
+  border: 1px solid $color-border-muted;
+  border-radius: $radius-control;
+}
+
+.admin-option-fieldset legend {
+  padding: 0 $space-3;
+  font-weight: $font-weight-bold;
+}
+
+.admin-option-row {
+  align-items: center;
+}
+
+.admin-option-row .admin-field {
+  flex: 1;
+}
+
+.admin-correct-answer {
+  min-width: 96px;
   color: var(--muted);
   font-weight: $font-weight-semibold;
 }
@@ -179,6 +238,10 @@
   }
 
   .admin-details-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-question-layout {
     grid-template-columns: 1fr;
   }
 
