@@ -259,6 +259,8 @@ Today that route:
 - supports direct event selection under `/admin/events/:eventId`
 - lets admins create starter drafts and duplicate existing private drafts
   through the authenticated draft save path
+- lets admins edit selected event-level draft details without changing live
+  attendee content
 - keeps non-admin authenticated users out of the draft data path
 
 The browser requests magic links with an explicit `/admin` redirect on the
@@ -266,8 +268,8 @@ current origin. Supabase Auth dashboard settings still have to allow that URL,
 and the project Site URL should match the deployed web origin so email links do
 not fall back to a local default.
 
-The visible admin page can create and duplicate private drafts, but the backend
-API surface owns validation and persistence:
+The visible admin page can create, duplicate, and update event-level private
+draft details, but the backend API surface owns validation and persistence:
 
 - `save-draft` writes validated private draft JSON for allowlisted admins
 - `publish-draft` validates the draft and updates the public event, question,
@@ -276,8 +278,8 @@ API surface owns validation and persistence:
   preserving private draft and version history
 - `quiz_event_audit_log` records publish and unpublish transitions
 
-The current scope still stops short of a full editor, question builder,
-preview route, publish controls in the UI, or AI authoring UI.
+The current scope still stops short of a question builder, preview route,
+publish controls in the UI, or AI authoring UI.
 
 ## Runtime Request Flow
 
@@ -403,11 +405,12 @@ The repository has a working prototype slice, but it does not yet satisfy the fu
 ### Organizer/admin tooling
 
 Today, the repo has an organizer/admin event workspace for private draft
-orientation plus create and duplicate actions, but not a full authoring product.
+orientation, create/duplicate actions, and event-level draft details editing,
+but not a full authoring product.
 
 What is missing:
 
-- full draft editing and preview UI without code changes
+- question editing and preview UI without code changes
 - AI-assisted authoring entry points in the admin experience
 - managing sponsor attribution and question content beyond draft visibility
 
@@ -451,8 +454,8 @@ This is an explicit product tradeoff, not an accidental omission.
 The most sensible next architectural steps are:
 
 1. Add a staging or branch-based Supabase promotion path if local verification plus direct-to-production release stops feeling sufficient.
-2. Add organizer-facing draft editing, duplication, preview, and AI-assisted UI
-   on top of the new admin API path.
+2. Add organizer-facing question editing, preview, publish controls, and
+   AI-assisted UI on top of the new admin API path.
 3. Add lightweight analytics/reporting for live events.
 4. Add richer publish behavior such as drafts, previews, or expiry windows if
    live operations need them.

@@ -909,9 +909,33 @@ Acceptance criteria:
 - invalid draft payloads and backend save failures produce actionable messages
 - existing published attendee routes remain unchanged after draft-only edits
 
+Implementation status:
+
+- implemented in the current repo as an explicit-save event-details editor on
+  `/admin/events/:eventId`
+- selected event routes load full private draft content only after the event id
+  is visible in the authenticated admin's draft-summary list
+- saves update only top-level event fields through `save-draft` and preserve the
+  draft id plus existing question content
+- question editing, preview, publish, unpublish, and live-content mutation remain
+  deferred to later Phase 4 subphases
+
+Implementation decisions:
+
+- Use the selected workspace route for the MVP editor because it keeps event
+  orientation, duplicate actions, and event-detail edits in one admin context.
+- Keep save explicit with a `Save changes` button rather than autosave so
+  validation and backend errors are easy to understand.
+- Treat event-card inline editing and a separate event-details route as future
+  UX options: cards would reduce navigation for quick edits, while a dedicated
+  route would make deep-linking and larger editor layouts more explicit.
+- Keep slug format validation minimal in the browser and rely on the backend for
+  authoritative validation and uniqueness conflict messages.
+
 Suggested validation:
 
 - `npm test -- tests/web/pages/AdminPage.test.tsx`
+- `npm test -- tests/web/admin/eventDetails.test.ts`
 - `npm test -- tests/web/lib/adminQuizApi.test.ts`
 - `npm run build:web`
 - browser UI review covering saved and failed-save states when practical
