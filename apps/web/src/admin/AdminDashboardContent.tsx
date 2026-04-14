@@ -4,7 +4,9 @@ import type {
   AdminDashboardState,
   AdminDraftMutationState,
   AdminMagicLinkState,
+  AdminSelectedDraftState,
 } from "./useAdminDashboard";
+import type { AdminEventDetailsFormValues } from "./eventDetails";
 import type { DraftEventSummary } from "../lib/adminQuizApi";
 import { AdminEventWorkspace } from "./AdminEventWorkspace";
 import { AdminSignInForm } from "./AdminSignInForm";
@@ -19,7 +21,11 @@ type AdminDashboardContentProps = {
   onEmailInputChange: (value: string) => void;
   onNavigate: (path: string) => void;
   onRetryDashboard: () => void;
+  onSaveSelectedEventDetails: (
+    values: AdminEventDetailsFormValues,
+  ) => Promise<DraftEventSummary | null>;
   onSubmitMagicLink: (event: FormEvent<HTMLFormElement>) => void;
+  selectedDraftState: AdminSelectedDraftState;
   selectedEventId?: string;
   sessionState: AdminSessionState;
 };
@@ -43,7 +49,9 @@ export function AdminDashboardContent({
   onEmailInputChange,
   onNavigate,
   onRetryDashboard,
+  onSaveSelectedEventDetails,
   onSubmitMagicLink,
+  selectedDraftState,
   selectedEventId,
   sessionState,
 }: AdminDashboardContentProps) {
@@ -135,6 +143,8 @@ export function AdminDashboardContent({
           onDuplicateDraft={onDuplicateDraft}
           onNavigate={onNavigate}
           onRefresh={onRetryDashboard}
+          onSaveSelectedEventDetails={onSaveSelectedEventDetails}
+          selectedDraftState={selectedDraftState}
           selectedEventId={selectedEventId}
         />
       </div>
