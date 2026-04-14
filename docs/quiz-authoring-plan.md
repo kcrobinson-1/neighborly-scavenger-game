@@ -972,6 +972,21 @@ Deliverables:
 - reuse shared draft validation for local feedback where practical, while
   preserving backend publish validation as the final gate
 
+Status:
+
+- implemented in the current repo as a selected-event question list plus one
+  focused existing-question editor under `/admin/events/:eventId`
+- selected private drafts still load only after the authenticated admin summary
+  list confirms the event is visible
+- saves map the focused question form back into the full canonical draft
+  document and persist through `save-draft`
+- event details, question ids/order, and option ids/order are preserved; add,
+  duplicate, reorder, and delete operations remain deferred to Phase 4.4.2
+- clearing optional explanation or sponsor fact removes that optional field from
+  the saved question content rather than persisting an empty string
+- changing selection mode does not auto-repair correct answers; invalid
+  selections surface local validation and must be fixed before save
+
 Acceptance criteria:
 
 - an admin can edit existing question content and save the draft through the UI

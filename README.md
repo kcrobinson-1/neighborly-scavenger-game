@@ -9,7 +9,8 @@ The current product shape is:
 - see local sponsors woven into the game
 - finish with a backend-verified raffle-entry confirmation state
 - admins can sign in at `/admin` to create, duplicate, review, and update
-  event details for private draft events through authenticated authoring APIs
+  event details and existing question content for private draft events through
+  authenticated authoring APIs
 
 The product is intended for community events like concerts, fairs, and neighborhood markets, where the experience needs to be fast, outdoor-friendly, and easy to run without technical overhead.
 
@@ -21,7 +22,8 @@ This repository currently includes:
 - a landing page plus published demo game routes
 - database-backed published event and quiz content
 - a Supabase Auth-backed admin event workspace for private draft access plus
-  draft create, duplicate, and event-detail edit actions at `/admin`
+  draft create, duplicate, event-detail edit, and existing-question edit
+  actions at `/admin`
 - authenticated admin APIs for draft save, publish, and unpublish operations
 - one-question-at-a-time quiz flow with back navigation
 - multiple quiz feedback modes
@@ -200,7 +202,7 @@ Operational setting ownership lives in [docs/operations.md](./docs/operations.md
 
 The main remaining gaps before the broader event-ready MVP are:
 
-- admin question editing, preview, and AI-assisted authoring UI
+- admin question-structure editing, preview, and AI-assisted authoring UI
 - analytics and reporting for starts, completions, and completion time
 - richer publishing controls such as drafts, previews, or expiry windows for
   live event URLs
