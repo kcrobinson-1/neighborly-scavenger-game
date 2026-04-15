@@ -88,11 +88,22 @@ export function AdminEventDetailsForm({
           <span className="admin-field-label">Slug</span>
           <input
             className="admin-input"
-            disabled={disabled}
+            disabled={disabled || draft.liveVersionNumber !== null}
             onChange={updateTextValue("slug")}
+            title={
+              draft.liveVersionNumber !== null
+                ? "Slug is locked after publishing — printed QR codes and URLs depend on it."
+                : undefined
+            }
             type="text"
             value={values.slug}
           />
+          {draft.liveVersionNumber !== null ? (
+            <span className="admin-field-hint">
+              Locked after publishing — printed QR codes and URLs depend on
+              this.
+            </span>
+          ) : null}
         </label>
         <label className="admin-field">
           <span className="admin-field-label">Location</span>

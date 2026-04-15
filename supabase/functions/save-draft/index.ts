@@ -52,6 +52,26 @@ async function saveDraft(
     },
   });
 
+  const { data: existing } = await supabase
+    .from("quiz_event_drafts")
+    .select("live_version_number, slug")
+    .eq("id", input.content.id)
+    .maybeSingle<{ live_version_number: number | null; slug: string }>();
+
+  if (
+    existing !== null &&
+    existing.live_version_number !== null &&
+    existing.slug !== input.content.slug
+  ) {
+    return {
+      data: null,
+      error: {
+        code: "slug_locked",
+        message: "Slug cannot be changed after the event has been published.",
+      },
+    };
+  }
+
   return await supabase
     .from("quiz_event_drafts")
     .upsert(
@@ -79,6 +99,10 @@ export const defaultSaveDraftHandlerDependencies: SaveDraftHandlerDependencies =
   };
 
 function getPersistenceStatus(error: { code?: string; message: string }) {
+  if (error.code === "slug_locked") {
+    return 422;
+  }
+
   if (error.code === "23505" || error.message.includes("duplicate key")) {
     return 409;
   }
@@ -153,7 +177,9 @@ export function createSaveDraftHandler(
           error ? getPersistenceStatus(error) : 500,
           {
             details: error?.message,
-            error: error && getPersistenceStatus(error) === 409
+            error: error && getPersistenceStatus(error) === 422
+              ? "The slug cannot be changed after the event has been published."
+              : error && getPersistenceStatus(error) === 409
               ? "A quiz event already uses that slug."
               : "We couldn't save the draft right now.",
           },

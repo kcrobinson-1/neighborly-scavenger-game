@@ -47,9 +47,10 @@ here in the same change.
   behavior beyond immediate unpublish?
   The current backend supports explicit publish and unpublish by clearing
   `quiz_events.published_at`, but richer lifecycle controls are still deferred.
-- How renameable should event slugs be after QR codes have been printed?
-  Stable slugs matter operationally, but the repo does not yet define whether
-  post-publish slug changes should be forbidden, redirected, or simply allowed.
+- **Decided:** Slugs are locked after first publish. The admin UI will make the
+  slug field read-only once an event has been published, with a padlock
+  affordance and tooltip. Redirect table approach was ruled out due to
+  slug-recycling complexity.
 
 Detailed authoring-specific scope questions are expanded further in
 [`quiz-authoring-plan.md`](./quiz-authoring-plan.md).

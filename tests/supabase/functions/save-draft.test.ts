@@ -146,6 +146,35 @@ Deno.test("save-draft upserts the normalized draft and returns a safe summary", 
   });
 });
 
+Deno.test("save-draft rejects slug changes on published events as 422", async () => {
+  const handler = createSaveDraftHandler({
+    ...defaultSaveDraftHandlerDependencies,
+    authoringHttp: createAuthoringHttpDependencies({
+      authenticateQuizAdmin: async () => ({
+        status: "ok",
+        userId: adminUserId,
+      }),
+    }),
+    saveDraft: async () => ({
+      data: null,
+      error: {
+        code: "slug_locked",
+        message: "Slug cannot be changed after the event has been published.",
+      },
+    }),
+  });
+
+  const response = await handler(
+    createAuthoringRequest({ content: sampleDraft }),
+  );
+
+  assertEquals(response.status, 422);
+  assertEquals(await response.json(), {
+    details: "Slug cannot be changed after the event has been published.",
+    error: "The slug cannot be changed after the event has been published.",
+  });
+});
+
 Deno.test("save-draft reports slug conflicts as 409", async () => {
   const handler = createSaveDraftHandler({
     ...defaultSaveDraftHandlerDependencies,
