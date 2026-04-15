@@ -283,8 +283,7 @@ surface owns validation and persistence:
   preserving private draft and version history
 - `quiz_event_audit_log` records publish and unpublish transitions
 
-The current scope still stops short of a preview route, publish controls in the
-UI, or AI authoring UI.
+The current scope still stops short of a preview route or AI authoring UI.
 
 ## Runtime Request Flow
 
