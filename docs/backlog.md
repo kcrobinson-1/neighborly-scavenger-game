@@ -87,7 +87,7 @@ event.
   and publish controls add more surface to the same page.
   Detail: [`docs/admin-ux-roadmap.md` — Clarify the desktop admin workspace hierarchy](./admin-ux-roadmap.md)
 
-- [ ] **`dev` Split `useAdminDashboard.ts`** (refactor score 9/10)
+- [x] **`dev` Split `useAdminDashboard.ts`** (refactor score 9/10)
   Extract selected-draft and mutation state machines into focused hooks so the
   top-level dashboard is auth/loading orchestration rather than one long event
   handler module. Highest-scored refactor; the most-touched file during admin

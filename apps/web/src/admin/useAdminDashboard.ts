@@ -3,27 +3,25 @@ import {
   getQuizAdminStatus,
   listDraftEventSummaries,
   loadDraftEvent,
-  publishDraftEvent,
   requestAdminMagicLink,
   saveDraftEvent,
   signOutAdmin,
-  unpublishEvent,
-  type DraftEventDetail,
   type DraftEventSummary,
-  type PublishDraftResult,
 } from "../lib/adminQuizApi";
 import {
   createDuplicatedDraftContent,
   createStarterDraftContent,
 } from "./draftCreation";
-import {
-  applyEventDetailsFormValues,
-  type AdminEventDetailsFormValues,
-} from "./eventDetails";
-import {
-  prepareQuestionContentForSave,
-} from "./questionBuilder";
 import { useAdminSession } from "./useAdminSession";
+import { useSelectedDraft } from "./useSelectedDraft";
+
+// Re-export types that moved to useSelectedDraft so existing imports don't break.
+export type {
+  AdminPublishState,
+  AdminQuestionSaveState,
+  AdminSelectedDraftState,
+  AdminUnpublishState,
+} from "./useSelectedDraft";
 
 export type AdminDashboardState =
   | { status: "idle" }
@@ -43,39 +41,6 @@ export type AdminDraftMutationState =
   | { eventId: string; message: string; status: "duplicating" }
   | { message: string; status: "error" | "success" };
 
-export type AdminSelectedDraftState =
-  | { status: "idle" }
-  | { eventId: string; status: "loading" }
-  | { eventId: string; message: string; status: "error" }
-  | {
-      draft: DraftEventDetail;
-      message: null;
-      status: "ready";
-    }
-  | {
-      draft: DraftEventDetail;
-      message: string;
-      status: "saving" | "save_error" | "success";
-    };
-
-export type AdminQuestionSaveState =
-  | { message: null; status: "idle" }
-  | { message: string; status: "saving" }
-  | { message: string; status: "save_error" | "success" };
-
-export type AdminPublishState =
-  | { status: "idle" }
-  | { status: "publishing" }
-  | { result: PublishDraftResult; status: "success" }
-  | { message: string; status: "error" };
-
-export type AdminUnpublishState =
-  | { status: "idle" }
-  | { status: "confirming" }
-  | { status: "unpublishing" }
-  | { status: "success" }
-  | { message: string; status: "error" };
-
 function getErrorMessage(error: unknown, fallbackMessage: string) {
   return error instanceof Error ? error.message : fallbackMessage;
 }
@@ -90,7 +55,7 @@ function mergeDraftSummary(
   ];
 }
 
-/** Coordinates /admin auth, allowlist, draft loading, and form actions. */
+/** Coordinates /admin session auth, allowlist checks, and the draft list. Selected-draft editing and publish state are delegated to useSelectedDraft. */
 export function useAdminDashboard(selectedEventId?: string) {
   const sessionState = useAdminSession();
   const [emailInput, setEmailInput] = useState("");
@@ -109,40 +74,11 @@ export function useAdminDashboard(selectedEventId?: string) {
       message: null,
       status: "idle",
     });
-  const [selectedDraftState, setSelectedDraftState] =
-    useState<AdminSelectedDraftState>({
-      status: "idle",
-    });
-  const [focusedQuestionId, setFocusedQuestionId] = useState<string | null>(
-    null,
-  );
-  const [questionSaveState, setQuestionSaveState] =
-    useState<AdminQuestionSaveState>({
-      message: null,
-      status: "idle",
-    });
-  const [publishState, setPublishState] = useState<AdminPublishState>({
-    status: "idle",
-  });
-  const [unpublishState, setUnpublishState] = useState<AdminUnpublishState>({
-    status: "idle",
-  });
-  const [hasDraftChanges, setHasDraftChanges] = useState(false);
-  const visibleDraftIds =
-    dashboardState.status === "ready"
-      ? dashboardState.drafts.map((draft) => draft.id).join("\0")
-      : "";
 
   useEffect(() => {
     if (sessionState.status !== "signed_in") {
       setDashboardState({ status: "idle" });
       setDraftMutationState({ message: null, status: "idle" });
-      setSelectedDraftState({ status: "idle" });
-      setFocusedQuestionId(null);
-      setQuestionSaveState({ message: null, status: "idle" });
-      setPublishState({ status: "idle" });
-      setUnpublishState({ status: "idle" });
-      setHasDraftChanges(false);
       return;
     }
 
@@ -196,101 +132,25 @@ export function useAdminDashboard(selectedEventId?: string) {
     };
   }, [reloadToken, sessionState]);
 
-  useEffect(() => {
-    if (
-      sessionState.status !== "signed_in" ||
-      dashboardState.status !== "ready" ||
-      !selectedEventId
-    ) {
-      setSelectedDraftState({ status: "idle" });
-      setFocusedQuestionId(null);
-      setQuestionSaveState({ message: null, status: "idle" });
-      setPublishState({ status: "idle" });
-      setUnpublishState({ status: "idle" });
-      setHasDraftChanges(false);
-      return;
-    }
-
-    const visibleDraftIdSet = new Set(
-      visibleDraftIds ? visibleDraftIds.split("\0") : [],
+  const handleUpdateDraftsList = (
+    updater: (drafts: DraftEventSummary[]) => DraftEventSummary[],
+  ) => {
+    setDashboardState((currentState: AdminDashboardState) =>
+      currentState.status === "ready"
+        ? { ...currentState, drafts: updater(currentState.drafts) }
+        : currentState,
     );
+  };
 
-    if (!visibleDraftIdSet.has(selectedEventId)) {
-      setSelectedDraftState({ status: "idle" });
-      setFocusedQuestionId(null);
-      setQuestionSaveState({ message: null, status: "idle" });
-      setPublishState({ status: "idle" });
-      setUnpublishState({ status: "idle" });
-      setHasDraftChanges(false);
-      return;
-    }
-
-    let isCancelled = false;
-
-    setSelectedDraftState({
-      eventId: selectedEventId,
-      status: "loading",
-    });
-    setQuestionSaveState({ message: null, status: "idle" });
-
-    void loadDraftEvent(selectedEventId)
-      .then((draft) => {
-        if (isCancelled) {
-          return;
-        }
-
-        if (!draft) {
-          setSelectedDraftState({
-            eventId: selectedEventId,
-            message: "We couldn't find that draft event.",
-            status: "error",
-          });
-          return;
-        }
-
-        setSelectedDraftState({
-          draft,
-          message: null,
-          status: "ready",
-        });
-        setFocusedQuestionId((currentQuestionId) => {
-          if (
-            currentQuestionId &&
-            draft.content.questions.some(
-              (question) => question.id === currentQuestionId,
-            )
-          ) {
-            return currentQuestionId;
-          }
-
-          return draft.content.questions[0]?.id ?? null;
-        });
-      })
-      .catch((error: unknown) => {
-        if (!isCancelled) {
-          setSelectedDraftState({
-            eventId: selectedEventId,
-            message: getErrorMessage(
-              error,
-              "We couldn't load the draft event right now.",
-            ),
-            status: "error",
-          });
-        }
-      });
-
-    return () => {
-      isCancelled = true;
-    };
-  }, [
-    dashboardState.status,
+  const selectedDraft = useSelectedDraft({
+    dashboardState,
+    onUpdateDraftsList: handleUpdateDraftsList,
     selectedEventId,
-    sessionState.status,
-    visibleDraftIds,
-  ]);
+    sessionState,
+  });
 
   const retryDashboard = () => {
-    setReloadToken((value) => value + 1);
+    setReloadToken((value: number) => value + 1);
   };
 
   const createDraft = async () => {
@@ -307,7 +167,7 @@ export function useAdminDashboard(selectedEventId?: string) {
       const content = createStarterDraftContent(dashboardState.drafts);
       const savedDraft = await saveDraftEvent(content);
 
-      setDashboardState((currentState) =>
+      setDashboardState((currentState: AdminDashboardState) =>
         currentState.status === "ready"
           ? {
               ...currentState,
@@ -354,7 +214,7 @@ export function useAdminDashboard(selectedEventId?: string) {
       );
       const savedDraft = await saveDraftEvent(content);
 
-      setDashboardState((currentState) =>
+      setDashboardState((currentState: AdminDashboardState) =>
         currentState.status === "ready"
           ? {
               ...currentState,
@@ -372,130 +232,6 @@ export function useAdminDashboard(selectedEventId?: string) {
       setDraftMutationState({
         message: getErrorMessage(error, "We couldn't duplicate the draft right now."),
         status: "error",
-      });
-      return null;
-    }
-  };
-
-  const saveSelectedEventDetails = async (
-    values: AdminEventDetailsFormValues,
-  ) => {
-    if (
-      selectedDraftState.status !== "ready" &&
-      selectedDraftState.status !== "save_error" &&
-      selectedDraftState.status !== "success"
-    ) {
-      return null;
-    }
-
-    const currentDraft = selectedDraftState.draft;
-
-    setSelectedDraftState({
-      draft: currentDraft,
-      message: "Saving event details...",
-      status: "saving",
-    });
-
-    try {
-      const content = applyEventDetailsFormValues(currentDraft.content, values);
-      const savedDraft = await saveDraftEvent(content);
-      const nextDraft: DraftEventDetail = {
-        ...currentDraft,
-        ...savedDraft,
-        content,
-      };
-
-      setDashboardState((currentState) =>
-        currentState.status === "ready"
-          ? {
-              ...currentState,
-              drafts: mergeDraftSummary(currentState.drafts, savedDraft),
-            }
-          : currentState,
-      );
-      setSelectedDraftState({
-        draft: nextDraft,
-        message: `Saved ${savedDraft.name}.`,
-        status: "success",
-      });
-
-      if (currentDraft.liveVersionNumber !== null) {
-        setHasDraftChanges(true);
-      }
-
-      return savedDraft;
-    } catch (error: unknown) {
-      setSelectedDraftState({
-        draft: currentDraft,
-        message: getErrorMessage(
-          error,
-          "We couldn't save the event details right now.",
-        ),
-        status: "save_error",
-      });
-      return null;
-    }
-  };
-
-  const saveSelectedQuestionContent = async (
-    content: DraftEventDetail["content"],
-    questionId: string,
-  ) => {
-    if (
-      selectedDraftState.status !== "ready" &&
-      selectedDraftState.status !== "save_error" &&
-      selectedDraftState.status !== "success"
-    ) {
-      return null;
-    }
-
-    const currentDraft = selectedDraftState.draft;
-
-    setQuestionSaveState({
-      message: "Saving question changes...",
-      status: "saving",
-    });
-
-    try {
-      const preparedContent = prepareQuestionContentForSave(content);
-      const savedDraft = await saveDraftEvent(preparedContent);
-      const nextDraft: DraftEventDetail = {
-        ...currentDraft,
-        ...savedDraft,
-        content: preparedContent,
-      };
-
-      setDashboardState((currentState) =>
-        currentState.status === "ready"
-          ? {
-              ...currentState,
-              drafts: mergeDraftSummary(currentState.drafts, savedDraft),
-            }
-          : currentState,
-      );
-      setSelectedDraftState({
-        draft: nextDraft,
-        message: null,
-        status: "ready",
-      });
-      setFocusedQuestionId(questionId);
-      setQuestionSaveState({
-        message: "Saved question changes.",
-        status: "success",
-      });
-
-      if (currentDraft.liveVersionNumber !== null) {
-        setHasDraftChanges(true);
-      }
-
-      return savedDraft;
-    } catch (error: unknown) {
-      setQuestionSaveState({
-        message: getErrorMessage(
-          error,
-          "We couldn't save the question changes right now.",
-        ),
-        status: "save_error",
       });
       return null;
     }
@@ -551,154 +287,20 @@ export function useAdminDashboard(selectedEventId?: string) {
     }
   };
 
-  const publishEvent = async () => {
-    if (
-      selectedDraftState.status !== "ready" &&
-      selectedDraftState.status !== "save_error" &&
-      selectedDraftState.status !== "success"
-    ) {
-      return;
-    }
-
-    const currentDraft = selectedDraftState.draft;
-
-    setPublishState({ status: "publishing" });
-
-    try {
-      const result = await publishDraftEvent(currentDraft.id);
-
-      setDashboardState((currentState) =>
-        currentState.status === "ready"
-          ? {
-              ...currentState,
-              drafts: currentState.drafts.map((draft) =>
-                draft.id === currentDraft.id
-                  ? {
-                      ...draft,
-                      hasBeenPublished: true,
-                      liveVersionNumber: result.versionNumber,
-                    }
-                  : draft,
-              ),
-            }
-          : currentState,
-      );
-      // Also update the loaded draft detail so the unpublish section appears
-      // immediately and hasDraftChanges tracking works for first-time
-      // publishes where liveVersionNumber starts as null.
-      setSelectedDraftState((currentState) =>
-        currentState.status === "ready" ||
-        currentState.status === "save_error" ||
-        currentState.status === "success"
-          ? {
-              ...currentState,
-              draft: {
-                ...currentState.draft,
-                hasBeenPublished: true,
-                liveVersionNumber: result.versionNumber,
-              },
-            }
-          : currentState,
-      );
-      setPublishState({ result, status: "success" });
-      setHasDraftChanges(false);
-    } catch (error: unknown) {
-      setPublishState({
-        message: getErrorMessage(error, "We couldn't publish the draft right now."),
-        status: "error",
-      });
-    }
-  };
-
-  const startUnpublish = () => {
-    setUnpublishState({ status: "confirming" });
-  };
-
-  const confirmUnpublish = async () => {
-    if (
-      selectedDraftState.status !== "ready" &&
-      selectedDraftState.status !== "save_error" &&
-      selectedDraftState.status !== "success"
-    ) {
-      return;
-    }
-
-    const currentDraft = selectedDraftState.draft;
-
-    setUnpublishState({ status: "unpublishing" });
-
-    try {
-      await unpublishEvent(currentDraft.id);
-
-      setDashboardState((currentState) =>
-        currentState.status === "ready"
-          ? {
-              ...currentState,
-              drafts: currentState.drafts.map((draft) =>
-                draft.id === currentDraft.id
-                  ? { ...draft, liveVersionNumber: null }
-                  : draft,
-              ),
-            }
-          : currentState,
-      );
-      // Also clear liveVersionNumber on the loaded detail so the unpublish
-      // section hides immediately without waiting for a re-fetch.
-      setSelectedDraftState((currentState) =>
-        currentState.status === "ready" ||
-        currentState.status === "save_error" ||
-        currentState.status === "success"
-          ? {
-              ...currentState,
-              draft: { ...currentState.draft, liveVersionNumber: null },
-            }
-          : currentState,
-      );
-      setUnpublishState({ status: "idle" });
-      // Clear the publish success banner so "Published as version N" is not
-      // shown after the event has been unpublished.
-      setPublishState({ status: "idle" });
-    } catch (error: unknown) {
-      setUnpublishState({
-        message: getErrorMessage(
-          error,
-          "We couldn't unpublish the event right now.",
-        ),
-        status: "error",
-      });
-    }
-  };
-
-  const cancelUnpublish = () => {
-    setUnpublishState({ status: "idle" });
-  };
-
   return {
-    cancelUnpublish,
-    confirmUnpublish,
-    createDraft,
+    ...selectedDraft,
     dashboardState,
     draftMutationState,
     duplicateDraft,
+    createDraft,
     emailInput,
-    hasDraftChanges,
     isSigningOut,
     magicLinkState,
-    focusedQuestionId,
-    publishEvent,
-    publishState,
-    questionSaveState,
     requestMagicLink,
     retryDashboard,
-    saveSelectedEventDetails,
-    saveSelectedQuestionContent,
-    selectedDraftState,
     sessionState,
-    setFocusedQuestionId,
     setEmailInput,
     signOut,
     signOutError,
-    startUnpublish,
-    unpublishState,
   };
 }

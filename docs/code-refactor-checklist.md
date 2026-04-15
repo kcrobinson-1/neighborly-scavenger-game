@@ -60,7 +60,7 @@ Rules for this checklist:
   Validation: `npm test -- tests/web/admin/questionBuilder.test.ts` and
   `npm run build:web`.
 
-- [ ] Split admin dashboard orchestration from mutation and selection state.
+- [x] Split admin dashboard orchestration from mutation and selection state.
   `apps/web/src/admin/useAdminDashboard.ts` now owns session bootstrap,
   allowlist checks, draft loading, create, duplicate, event-details saves,
   question saves, publish/unpublish state, and the selected-question focus
