@@ -65,13 +65,17 @@ The intended split is:
 
 ## Admin Functionality Validation Goal
 
-The next validation goal is to make admin functionality testable end to end from
-a developer machine before release.
+Phase 5.1 introduced `npm run test:e2e:admin` for deterministic local admin
+end-to-end validation against a real local Supabase stack.
+
+Remaining goal: add a lightweight production or post-release admin smoke check
+after the local suite is stable.
 
 The desired end state is:
 
-- a contributor can run one documented local command that verifies the full
-  admin surface against a real local Supabase stack and local web app
+- a contributor can run one documented local command (`npm run test:e2e:admin`)
+  that verifies the full admin surface against a real local Supabase stack and
+  local web app
 - that command covers admin sign-in/session setup, allowlist authorization,
   private draft visibility, draft save, publish, unpublish, and the public
   attendee route after publish state changes
@@ -79,9 +83,9 @@ The desired end state is:
   opening a PR when a change might affect admin auth, authoring APIs, draft
   persistence, publish/unpublish behavior, Supabase Auth configuration, or the
   admin UI
-- the release workflow or a post-release workflow has a lightweight production
-  smoke check that proves deployed admin auth and deployed authoring functions
-  still work after production Supabase migrations and function deployment
+- a release workflow or post-release workflow has a lightweight production smoke
+  check that proves deployed admin auth and deployed authoring functions still
+  work after production Supabase migrations and function deployment
 
 The value of this goal is operational confidence. Admin authoring can change
 live attendee content, so the repo should catch broken auth redirects,
@@ -95,32 +99,29 @@ depend on a shared production Supabase project. Keep the local suite
 deterministic and use production smoke only for a dedicated test admin and test
 event.
 
-Recommended rollout:
+Recommended rollout status:
 
-1. Add local admin test seed data.
+1. [x] Add local admin test seed data.
    Seed a known admin user or authenticated test path, an active
    `public.quiz_admin_users` row, and a dedicated authoring test event in the
    local Supabase stack.
-2. Add a local admin auth test helper.
+2. [x] Add a local admin auth test helper.
    Prefer a deterministic local Supabase Auth session setup over reading magic
    links from email. The helper should document exactly how it creates or
    restores the admin session.
-3. Add local browser coverage for the admin shell.
+3. [x] Add local browser coverage for the admin shell.
    Use Playwright to open `/admin`, establish the admin session, verify the
    allowlisted state, and confirm draft summaries render.
-4. Add local mutation coverage for authoring APIs.
+4. [x] Add local mutation coverage for authoring APIs.
    Exercise `save-draft`, `publish-draft`, and `unpublish-event` against only a
    dedicated test event, then verify the public `/game/:slug` route reflects
    the expected publish state.
-5. Expose the suite as a repo command.
-   Add a command such as `npm run test:e2e:admin` or
-   `npm run test:admin:supabase`, then include it in `npm run validate:local`
-   only if runtime stays reasonable and setup remains deterministic.
-6. Update contributor workflow docs.
-   Once the command exists, update `docs/dev.md` and `AGENTS.md` so admin,
-   authoring, auth, RLS, publish/unpublish, and Supabase configuration changes
-   name this command as required validation before PR handoff.
-7. Add production smoke after the local suite is stable.
+5. [x] Expose the suite as a repo command.
+   Landed as `npm run test:e2e:admin`, intentionally separate from
+   `npm run validate:local` in Phase 5.1.
+6. [x] Update contributor workflow docs.
+   `docs/dev.md` now names the command for admin-affecting changes.
+7. [ ] Add production smoke after the local suite is stable.
    Run a separate `workflow_dispatch`, post-release, or nightly check against
    the deployed site using a dedicated production test admin and test event.
    Keep it out of normal PR CI unless a future staging backend makes remote
@@ -148,6 +149,9 @@ The current setup includes a few deliberate choices that are worth documenting:
   it checks Docker, starts `npx supabase start` when needed, runs pgTAP, and only stops the stack afterward if it started it itself
 - `npm run validate:local` is the repo-level local validation shortcut
   it runs lint, unit tests, Edge Function Deno tests, Playwright smoke, the shared local Supabase validation command, the web build, and the two Deno checks in one pass
+- `npm run test:e2e:admin` is the local admin end-to-end validation command
+  it prepares deterministic admin auth and draft fixtures, then runs Playwright
+  against the real local Supabase-backed `/admin` workflow
 - `npm run test:supabase` is the shared local-backend validation command
   it reuses one local Supabase stack for the Edge Function integration test and the pgTAP database suite
 - `deno.json` keeps `nodeModulesDir` in manual mode
