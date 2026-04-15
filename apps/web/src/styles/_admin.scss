@@ -246,6 +246,58 @@
   gap: $space-5;
 }
 
+.admin-publish-panel {
+  @include stack($space-6);
+  padding-top: $space-6;
+  border-top: 1px solid $color-border-muted;
+}
+
+.admin-checklist {
+  @include stack($space-4);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.admin-checklist-item {
+  display: flex;
+  align-items: center;
+  gap: $space-4;
+}
+
+.admin-checklist-indicator {
+  flex-shrink: 0;
+  width: $space-5;
+  height: $space-5;
+  border-radius: $radius-pill;
+}
+
+.admin-checklist-indicator--pass {
+  background: var(--success);
+}
+
+.admin-checklist-indicator--fail {
+  background: var(--primary);
+}
+
+.admin-checklist-detail {
+  color: var(--muted);
+}
+
+.admin-publish-result {
+  @include stack($space-4);
+}
+
+.admin-unpublish-section {
+  @include stack($space-4);
+  padding-top: $space-4;
+  border-top: 1px solid $color-border-muted;
+}
+
+.admin-action-row.admin-unpublish-confirm {
+  align-items: center;
+}
+
 @media (max-width: 620px) {
   .admin-summary-grid {
     grid-template-columns: 1fr;

@@ -3,11 +3,14 @@ import {
   getQuizAdminStatus,
   listDraftEventSummaries,
   loadDraftEvent,
+  publishDraftEvent,
   requestAdminMagicLink,
   saveDraftEvent,
   signOutAdmin,
+  unpublishEvent,
   type DraftEventDetail,
   type DraftEventSummary,
+  type PublishDraftResult,
 } from "../lib/adminQuizApi";
 import {
   createDuplicatedDraftContent,
@@ -60,6 +63,19 @@ export type AdminQuestionSaveState =
   | { message: string; status: "saving" }
   | { message: string; status: "save_error" | "success" };
 
+export type AdminPublishState =
+  | { status: "idle" }
+  | { status: "publishing" }
+  | { result: PublishDraftResult; status: "success" }
+  | { message: string; status: "error" };
+
+export type AdminUnpublishState =
+  | { status: "idle" }
+  | { status: "confirming" }
+  | { status: "unpublishing" }
+  | { status: "success" }
+  | { message: string; status: "error" };
+
 function getErrorMessage(error: unknown, fallbackMessage: string) {
   return error instanceof Error ? error.message : fallbackMessage;
 }
@@ -105,6 +121,13 @@ export function useAdminDashboard(selectedEventId?: string) {
       message: null,
       status: "idle",
     });
+  const [publishState, setPublishState] = useState<AdminPublishState>({
+    status: "idle",
+  });
+  const [unpublishState, setUnpublishState] = useState<AdminUnpublishState>({
+    status: "idle",
+  });
+  const [hasDraftChanges, setHasDraftChanges] = useState(false);
   const visibleDraftIds =
     dashboardState.status === "ready"
       ? dashboardState.drafts.map((draft) => draft.id).join("\0")
@@ -117,6 +140,9 @@ export function useAdminDashboard(selectedEventId?: string) {
       setSelectedDraftState({ status: "idle" });
       setFocusedQuestionId(null);
       setQuestionSaveState({ message: null, status: "idle" });
+      setPublishState({ status: "idle" });
+      setUnpublishState({ status: "idle" });
+      setHasDraftChanges(false);
       return;
     }
 
@@ -179,6 +205,9 @@ export function useAdminDashboard(selectedEventId?: string) {
       setSelectedDraftState({ status: "idle" });
       setFocusedQuestionId(null);
       setQuestionSaveState({ message: null, status: "idle" });
+      setPublishState({ status: "idle" });
+      setUnpublishState({ status: "idle" });
+      setHasDraftChanges(false);
       return;
     }
 
@@ -190,6 +219,9 @@ export function useAdminDashboard(selectedEventId?: string) {
       setSelectedDraftState({ status: "idle" });
       setFocusedQuestionId(null);
       setQuestionSaveState({ message: null, status: "idle" });
+      setPublishState({ status: "idle" });
+      setUnpublishState({ status: "idle" });
+      setHasDraftChanges(false);
       return;
     }
 
@@ -387,6 +419,10 @@ export function useAdminDashboard(selectedEventId?: string) {
         status: "success",
       });
 
+      if (currentDraft.liveVersionNumber !== null) {
+        setHasDraftChanges(true);
+      }
+
       return savedDraft;
     } catch (error: unknown) {
       setSelectedDraftState({
@@ -447,6 +483,10 @@ export function useAdminDashboard(selectedEventId?: string) {
         message: "Saved question changes.",
         status: "success",
       });
+
+      if (currentDraft.liveVersionNumber !== null) {
+        setHasDraftChanges(true);
+      }
 
       return savedDraft;
     } catch (error: unknown) {
@@ -511,15 +551,118 @@ export function useAdminDashboard(selectedEventId?: string) {
     }
   };
 
+  const publishEvent = async () => {
+    if (
+      selectedDraftState.status !== "ready" &&
+      selectedDraftState.status !== "save_error" &&
+      selectedDraftState.status !== "success"
+    ) {
+      return;
+    }
+
+    const currentDraft = selectedDraftState.draft;
+
+    setPublishState({ status: "publishing" });
+
+    try {
+      const result = await publishDraftEvent(currentDraft.id);
+
+      setDashboardState((currentState) =>
+        currentState.status === "ready"
+          ? {
+              ...currentState,
+              drafts: currentState.drafts.map((draft) =>
+                draft.id === currentDraft.id
+                  ? { ...draft, liveVersionNumber: result.versionNumber }
+                  : draft,
+              ),
+            }
+          : currentState,
+      );
+      setPublishState({ result, status: "success" });
+      setHasDraftChanges(false);
+    } catch (error: unknown) {
+      setPublishState({
+        message: getErrorMessage(error, "We couldn't publish the draft right now."),
+        status: "error",
+      });
+    }
+  };
+
+  const startUnpublish = () => {
+    setUnpublishState({ status: "confirming" });
+  };
+
+  const confirmUnpublish = async () => {
+    if (
+      selectedDraftState.status !== "ready" &&
+      selectedDraftState.status !== "save_error" &&
+      selectedDraftState.status !== "success"
+    ) {
+      return;
+    }
+
+    const currentDraft = selectedDraftState.draft;
+
+    setUnpublishState({ status: "unpublishing" });
+
+    try {
+      await unpublishEvent(currentDraft.id);
+
+      setDashboardState((currentState) =>
+        currentState.status === "ready"
+          ? {
+              ...currentState,
+              drafts: currentState.drafts.map((draft) =>
+                draft.id === currentDraft.id
+                  ? { ...draft, liveVersionNumber: null }
+                  : draft,
+              ),
+            }
+          : currentState,
+      );
+      // Also clear liveVersionNumber on the loaded detail so the unpublish
+      // section hides immediately without waiting for a re-fetch.
+      setSelectedDraftState((currentState) =>
+        currentState.status === "ready" ||
+        currentState.status === "save_error" ||
+        currentState.status === "success"
+          ? {
+              ...currentState,
+              draft: { ...currentState.draft, liveVersionNumber: null },
+            }
+          : currentState,
+      );
+      setUnpublishState({ status: "idle" });
+    } catch (error: unknown) {
+      setUnpublishState({
+        message: getErrorMessage(
+          error,
+          "We couldn't unpublish the event right now.",
+        ),
+        status: "error",
+      });
+    }
+  };
+
+  const cancelUnpublish = () => {
+    setUnpublishState({ status: "idle" });
+  };
+
   return {
+    cancelUnpublish,
+    confirmUnpublish,
     createDraft,
     dashboardState,
     draftMutationState,
     duplicateDraft,
     emailInput,
+    hasDraftChanges,
     isSigningOut,
     magicLinkState,
     focusedQuestionId,
+    publishEvent,
+    publishState,
     questionSaveState,
     requestMagicLink,
     retryDashboard,
@@ -531,5 +674,7 @@ export function useAdminDashboard(selectedEventId?: string) {
     setEmailInput,
     signOut,
     signOutError,
+    startUnpublish,
+    unpublishState,
   };
 }
