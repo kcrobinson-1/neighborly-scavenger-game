@@ -13,17 +13,21 @@ const {
   mockGetQuizAdminStatus,
   mockListDraftEventSummaries,
   mockLoadDraftEvent,
+  mockPublishDraftEvent,
   mockRequestAdminMagicLink,
   mockSaveDraftEvent,
   mockSignOutAdmin,
+  mockUnpublishEvent,
   mockUseAdminSession,
 } = vi.hoisted(() => ({
   mockGetQuizAdminStatus: vi.fn(),
   mockListDraftEventSummaries: vi.fn(),
   mockLoadDraftEvent: vi.fn(),
+  mockPublishDraftEvent: vi.fn(),
   mockRequestAdminMagicLink: vi.fn(),
   mockSaveDraftEvent: vi.fn(),
   mockSignOutAdmin: vi.fn(),
+  mockUnpublishEvent: vi.fn(),
   mockUseAdminSession: vi.fn(),
 }));
 
@@ -35,9 +39,11 @@ vi.mock("../../../apps/web/src/lib/adminQuizApi.ts", () => ({
   getQuizAdminStatus: mockGetQuizAdminStatus,
   listDraftEventSummaries: mockListDraftEventSummaries,
   loadDraftEvent: mockLoadDraftEvent,
+  publishDraftEvent: mockPublishDraftEvent,
   requestAdminMagicLink: mockRequestAdminMagicLink,
   saveDraftEvent: mockSaveDraftEvent,
   signOutAdmin: mockSignOutAdmin,
+  unpublishEvent: mockUnpublishEvent,
 }));
 
 import { AdminPage } from "../../../apps/web/src/pages/AdminPage.tsx";
@@ -152,9 +158,11 @@ describe("AdminPage", () => {
     mockGetQuizAdminStatus.mockReset();
     mockListDraftEventSummaries.mockReset();
     mockLoadDraftEvent.mockReset();
+    mockPublishDraftEvent.mockReset();
     mockRequestAdminMagicLink.mockReset();
     mockSaveDraftEvent.mockReset();
     mockSignOutAdmin.mockReset();
+    mockUnpublishEvent.mockReset();
     mockUseAdminSession.mockReset();
   });
 
@@ -1324,5 +1332,325 @@ describe("AdminPage", () => {
         name: "Send a sign-in link to an admin email.",
       }),
     ).toBeTruthy();
+  });
+
+  describe("publish panel checklist", () => {
+    it("shows all checklist items passing for a valid draft", async () => {
+      mockUseAdminSession.mockReturnValue({
+        email: "admin@example.com",
+        session: { access_token: "admin-token" },
+        status: "signed_in",
+      });
+      mockGetQuizAdminStatus.mockResolvedValue(true);
+      mockListDraftEventSummaries.mockResolvedValue(draftSummaries);
+      mockLoadDraftEvent.mockResolvedValue(createDraftDetail());
+
+      renderAdminRoute("madrona-music-2026");
+
+      await screen.findByLabelText("Publish checklist");
+
+      const checklist = screen.getByLabelText("Publish checklist");
+      // Each <li> carries aria-label="Pass: <check label>" or "Fail: ..."
+      const passIndicators = within(checklist).getAllByLabelText(/^Pass:/);
+
+      expect(passIndicators).toHaveLength(5);
+      expect(within(checklist).queryByLabelText(/^Fail:/)).toBeNull();
+    });
+
+    it("shows check 1 failing and disables Publish for a zero-question draft", async () => {
+      mockUseAdminSession.mockReturnValue({
+        email: "admin@example.com",
+        session: { access_token: "admin-token" },
+        status: "signed_in",
+      });
+      mockGetQuizAdminStatus.mockResolvedValue(true);
+      mockListDraftEventSummaries.mockResolvedValue(draftSummaries);
+      mockLoadDraftEvent.mockResolvedValue(
+        createDraftDetail({
+          ...selectedDraftContent,
+          questions: [],
+        }),
+      );
+
+      renderAdminRoute("madrona-music-2026");
+
+      await screen.findByLabelText("Publish checklist");
+
+      const checklist = screen.getByLabelText("Publish checklist");
+
+      expect(within(checklist).getByLabelText(/^Fail:/)).toBeTruthy();
+      expect(
+        screen.getByRole("button", { name: "Publish draft" }).hasAttribute("disabled"),
+      ).toBe(true);
+    });
+  });
+
+  describe("publish flow", () => {
+    it("shows Publishing... while in progress and post-publish confirmation on success", async () => {
+      const publishDraft = createDeferred<unknown>();
+      mockUseAdminSession.mockReturnValue({
+        email: "admin@example.com",
+        session: { access_token: "admin-token" },
+        status: "signed_in",
+      });
+      mockGetQuizAdminStatus.mockResolvedValue(true);
+      mockListDraftEventSummaries.mockResolvedValue(draftSummaries);
+      mockLoadDraftEvent.mockResolvedValue(createDraftDetail());
+      mockPublishDraftEvent.mockReturnValue(publishDraft.promise);
+
+      renderAdminRoute("madrona-music-2026");
+
+      await screen.findByRole("button", { name: "Publish draft" });
+      fireEvent.click(screen.getByRole("button", { name: "Publish draft" }));
+
+      expect(
+        (await screen.findByRole("button", { name: "Publishing..." }))
+          .hasAttribute("disabled"),
+      ).toBe(true);
+
+      publishDraft.resolve({
+        eventId: "madrona-music-2026",
+        publishedAt: "2026-04-14T10:00:00.000Z",
+        slug: "first-sample",
+        versionNumber: 2,
+      });
+
+      expect(await screen.findByText(/Published as version 2/)).toBeTruthy();
+      expect(screen.getByRole("link", { name: "View live quiz" })).toBeTruthy();
+    });
+
+    it("shows an error message when publish fails and re-enables the button", async () => {
+      mockUseAdminSession.mockReturnValue({
+        email: "admin@example.com",
+        session: { access_token: "admin-token" },
+        status: "signed_in",
+      });
+      mockGetQuizAdminStatus.mockResolvedValue(true);
+      mockListDraftEventSummaries.mockResolvedValue(draftSummaries);
+      mockLoadDraftEvent.mockResolvedValue(createDraftDetail());
+      mockPublishDraftEvent.mockRejectedValue(
+        new Error("Publish validation failed."),
+      );
+
+      renderAdminRoute("madrona-music-2026");
+
+      await screen.findByRole("button", { name: "Publish draft" });
+      fireEvent.click(screen.getByRole("button", { name: "Publish draft" }));
+
+      expect(await screen.findByText("Publish validation failed.")).toBeTruthy();
+      expect(
+        screen.getByRole("button", { name: "Publish draft" }).hasAttribute("disabled"),
+      ).toBe(false);
+    });
+  });
+
+  describe("unpublish flow", () => {
+    it("shows inline confirm for a live event, then resolves on confirm", async () => {
+      mockUseAdminSession.mockReturnValue({
+        email: "admin@example.com",
+        session: { access_token: "admin-token" },
+        status: "signed_in",
+      });
+      mockGetQuizAdminStatus.mockResolvedValue(true);
+      mockListDraftEventSummaries.mockResolvedValue(draftSummaries);
+      mockLoadDraftEvent.mockResolvedValue(createDraftDetail());
+      mockUnpublishEvent.mockResolvedValue({
+        eventId: "madrona-music-2026",
+        unpublishedAt: "2026-04-14T10:00:00.000Z",
+      });
+
+      renderAdminRoute("madrona-music-2026");
+
+      await screen.findByRole("button", { name: "Unpublish" });
+      fireEvent.click(screen.getByRole("button", { name: "Unpublish" }));
+
+      expect(await screen.findByText("Are you sure?")).toBeTruthy();
+      expect(screen.getByRole("button", { name: "Confirm unpublish" })).toBeTruthy();
+      expect(screen.getByRole("button", { name: "Cancel unpublish" })).toBeTruthy();
+
+      fireEvent.click(screen.getByRole("button", { name: "Confirm unpublish" }));
+
+      // After unpublish the section disappears (liveVersionNumber → null) and
+      // state resets to idle — no separate success message is shown.
+      await waitFor(() => {
+        expect(screen.queryByRole("button", { name: "Unpublish" })).toBeNull();
+      });
+    });
+
+    it("cancels unpublish when Cancel is clicked and makes no API call", async () => {
+      mockUseAdminSession.mockReturnValue({
+        email: "admin@example.com",
+        session: { access_token: "admin-token" },
+        status: "signed_in",
+      });
+      mockGetQuizAdminStatus.mockResolvedValue(true);
+      mockListDraftEventSummaries.mockResolvedValue(draftSummaries);
+      mockLoadDraftEvent.mockResolvedValue(createDraftDetail());
+
+      renderAdminRoute("madrona-music-2026");
+
+      await screen.findByRole("button", { name: "Unpublish" });
+      fireEvent.click(screen.getByRole("button", { name: "Unpublish" }));
+
+      expect(await screen.findByText("Are you sure?")).toBeTruthy();
+      fireEvent.click(screen.getByRole("button", { name: "Cancel unpublish" }));
+
+      expect(screen.queryByText("Are you sure?")).toBeNull();
+      expect(mockUnpublishEvent).not.toHaveBeenCalled();
+    });
+
+    it("shows an error message when unpublish fails", async () => {
+      mockUseAdminSession.mockReturnValue({
+        email: "admin@example.com",
+        session: { access_token: "admin-token" },
+        status: "signed_in",
+      });
+      mockGetQuizAdminStatus.mockResolvedValue(true);
+      mockListDraftEventSummaries.mockResolvedValue(draftSummaries);
+      mockLoadDraftEvent.mockResolvedValue(createDraftDetail());
+      mockUnpublishEvent.mockRejectedValue(
+        new Error("Unpublish failed on the server."),
+      );
+
+      renderAdminRoute("madrona-music-2026");
+
+      await screen.findByRole("button", { name: "Unpublish" });
+      fireEvent.click(screen.getByRole("button", { name: "Unpublish" }));
+
+      expect(await screen.findByText("Are you sure?")).toBeTruthy();
+      fireEvent.click(screen.getByRole("button", { name: "Confirm unpublish" }));
+
+      expect(
+        await screen.findByText("Unpublish failed on the server."),
+      ).toBeTruthy();
+    });
+  });
+
+  describe("draft changes not published label", () => {
+    it("shows the status label after a save on a live event, then clears it after publish", async () => {
+      mockUseAdminSession.mockReturnValue({
+        email: "admin@example.com",
+        session: { access_token: "admin-token" },
+        status: "signed_in",
+      });
+      mockGetQuizAdminStatus.mockResolvedValue(true);
+      mockListDraftEventSummaries.mockResolvedValue(draftSummaries);
+      mockLoadDraftEvent.mockResolvedValue(createDraftDetail());
+      mockSaveDraftEvent.mockResolvedValue({
+        id: "madrona-music-2026",
+        liveVersionNumber: 1,
+        name: "Madrona Music in the Playfield",
+        slug: "first-sample",
+        updatedAt: "2026-04-14T12:00:00.000Z",
+      });
+      mockPublishDraftEvent.mockResolvedValue({
+        eventId: "madrona-music-2026",
+        publishedAt: "2026-04-14T13:00:00.000Z",
+        slug: "first-sample",
+        versionNumber: 2,
+      });
+
+      renderAdminRoute("madrona-music-2026");
+
+      await screen.findByLabelText("Event name");
+      expect(
+        screen.queryByText(/Draft changes not published/),
+      ).toBeNull();
+
+      fireEvent.change(screen.getByLabelText("Event name"), {
+        target: { value: "Updated Name" },
+      });
+      fireEvent.click(screen.getByRole("button", { name: "Save changes" }));
+
+      await waitFor(() => {
+        expect(screen.getByText(/Draft changes not published/)).toBeTruthy();
+      });
+
+      fireEvent.click(screen.getByRole("button", { name: "Publish draft" }));
+
+      await waitFor(() => {
+        expect(mockPublishDraftEvent).toHaveBeenCalledTimes(1);
+      });
+      await screen.findByText(/Published as version 2/);
+      expect(screen.queryByText(/Draft changes not published/)).toBeNull();
+    });
+
+    it("shows the label again when the draft is edited after publish", async () => {
+      mockUseAdminSession.mockReturnValue({
+        email: "admin@example.com",
+        session: { access_token: "admin-token" },
+        status: "signed_in",
+      });
+      mockGetQuizAdminStatus.mockResolvedValue(true);
+      mockListDraftEventSummaries.mockResolvedValue(draftSummaries);
+      mockLoadDraftEvent.mockResolvedValue(createDraftDetail());
+      mockSaveDraftEvent.mockResolvedValue({
+        id: "madrona-music-2026",
+        liveVersionNumber: 1,
+        name: "Madrona Music in the Playfield",
+        slug: "first-sample",
+        updatedAt: "2026-04-14T12:00:00.000Z",
+      });
+      mockPublishDraftEvent.mockResolvedValue({
+        eventId: "madrona-music-2026",
+        publishedAt: "2026-04-14T13:00:00.000Z",
+        slug: "first-sample",
+        versionNumber: 2,
+      });
+
+      renderAdminRoute("madrona-music-2026");
+
+      // Trigger a save to set hasDraftChanges
+      await screen.findByLabelText("Event name");
+      fireEvent.change(screen.getByLabelText("Event name"), {
+        target: { value: "Updated Name" },
+      });
+      fireEvent.click(screen.getByRole("button", { name: "Save changes" }));
+      await screen.findByText(/Draft changes not published/);
+
+      // Publish clears the label
+      fireEvent.click(screen.getByRole("button", { name: "Publish draft" }));
+      await screen.findByText(/Published as version 2/);
+      expect(screen.queryByText(/Draft changes not published/)).toBeNull();
+
+      // Save again — label should reappear
+      fireEvent.change(screen.getByLabelText("Event name"), {
+        target: { value: "Updated Again" },
+      });
+      fireEvent.click(screen.getByRole("button", { name: "Save changes" }));
+      await waitFor(() => {
+        expect(screen.getByText(/Draft changes not published/)).toBeTruthy();
+      });
+    });
+  });
+
+  describe("unpublish state isolation", () => {
+    it("cancel resets confirm state so unpublish can be retried cleanly", async () => {
+      // Verifies that cancel → retry works: the confirm state fully resets
+      // so a second click on Unpublish brings back "Are you sure?" correctly.
+      mockUseAdminSession.mockReturnValue({
+        email: "admin@example.com",
+        session: { access_token: "admin-token" },
+        status: "signed_in",
+      });
+      mockGetQuizAdminStatus.mockResolvedValue(true);
+      mockListDraftEventSummaries.mockResolvedValue(draftSummaries);
+      mockLoadDraftEvent.mockResolvedValue(createDraftDetail());
+
+      renderAdminRoute("madrona-music-2026");
+
+      await screen.findByRole("button", { name: "Unpublish" });
+
+      // First attempt — cancel
+      fireEvent.click(screen.getByRole("button", { name: "Unpublish" }));
+      expect(await screen.findByText("Are you sure?")).toBeTruthy();
+      fireEvent.click(screen.getByRole("button", { name: "Cancel unpublish" }));
+      expect(screen.queryByText("Are you sure?")).toBeNull();
+
+      // Second attempt — confirm state re-appears cleanly
+      fireEvent.click(screen.getByRole("button", { name: "Unpublish" }));
+      expect(await screen.findByText("Are you sure?")).toBeTruthy();
+      expect(screen.getByRole("button", { name: "Confirm unpublish" })).toBeTruthy();
+    });
   });
 });

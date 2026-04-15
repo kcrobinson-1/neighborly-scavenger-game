@@ -4,8 +4,10 @@ import type {
   AdminDashboardState,
   AdminDraftMutationState,
   AdminMagicLinkState,
+  AdminPublishState,
   AdminQuestionSaveState,
   AdminSelectedDraftState,
+  AdminUnpublishState,
 } from "./useAdminDashboard";
 import type { AdminEventDetailsFormValues } from "./eventDetails";
 import type { DraftEventDetail, DraftEventSummary } from "../lib/adminQuizApi";
@@ -16,12 +18,17 @@ type AdminDashboardContentProps = {
   dashboardState: AdminDashboardState;
   draftMutationState: AdminDraftMutationState;
   emailInput: string;
+  hasDraftChanges: boolean;
   magicLinkState: AdminMagicLinkState;
   focusedQuestionId: string | null;
+  onCancelUnpublish: () => void;
+  onConfirmUnpublish: () => void;
   onCreateDraft: () => Promise<DraftEventSummary | null>;
   onDuplicateDraft: (eventId: string) => Promise<DraftEventSummary | null>;
   onEmailInputChange: (value: string) => void;
+  onFocusQuestion: (questionId: string) => void;
   onNavigate: (path: string) => void;
+  onPublish: () => void;
   onRetryDashboard: () => void;
   onSaveSelectedEventDetails: (
     values: AdminEventDetailsFormValues,
@@ -31,11 +38,13 @@ type AdminDashboardContentProps = {
     questionId: string,
   ) => Promise<DraftEventSummary | null>;
   onSubmitMagicLink: (event: FormEvent<HTMLFormElement>) => void;
+  onUnpublish: () => void;
+  publishState: AdminPublishState;
   questionSaveState: AdminQuestionSaveState;
   selectedDraftState: AdminSelectedDraftState;
   selectedEventId?: string;
   sessionState: AdminSessionState;
-  onFocusQuestion: (questionId: string) => void;
+  unpublishState: AdminUnpublishState;
 };
 
 function SignedInAs({ email }: { email: string | null }) {
@@ -52,20 +61,27 @@ export function AdminDashboardContent({
   draftMutationState,
   emailInput,
   focusedQuestionId,
+  hasDraftChanges,
   magicLinkState,
+  onCancelUnpublish,
+  onConfirmUnpublish,
   onCreateDraft,
   onDuplicateDraft,
   onEmailInputChange,
+  onFocusQuestion,
   onNavigate,
+  onPublish,
   onRetryDashboard,
   onSaveSelectedEventDetails,
   onSaveSelectedQuestionContent,
   onSubmitMagicLink,
+  onUnpublish,
+  publishState,
   questionSaveState,
   selectedDraftState,
   selectedEventId,
   sessionState,
-  onFocusQuestion,
+  unpublishState,
 }: AdminDashboardContentProps) {
   if (sessionState.status === "missing_config") {
     return (
@@ -151,17 +167,24 @@ export function AdminDashboardContent({
         <AdminEventWorkspace
           draftMutationState={draftMutationState}
           drafts={dashboardState.drafts}
+          focusedQuestionId={focusedQuestionId}
+          hasDraftChanges={hasDraftChanges}
+          onCancelUnpublish={onCancelUnpublish}
+          onConfirmUnpublish={onConfirmUnpublish}
           onCreateDraft={onCreateDraft}
           onDuplicateDraft={onDuplicateDraft}
-          onNavigate={onNavigate}
-          onRefresh={onRetryDashboard}
-          focusedQuestionId={focusedQuestionId}
           onFocusQuestion={onFocusQuestion}
+          onNavigate={onNavigate}
+          onPublish={onPublish}
+          onRefresh={onRetryDashboard}
           onSaveSelectedEventDetails={onSaveSelectedEventDetails}
           onSaveSelectedQuestionContent={onSaveSelectedQuestionContent}
+          onUnpublish={onUnpublish}
+          publishState={publishState}
           questionSaveState={questionSaveState}
           selectedDraftState={selectedDraftState}
           selectedEventId={selectedEventId}
+          unpublishState={unpublishState}
         />
       </div>
     );

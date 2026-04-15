@@ -1,11 +1,14 @@
 import type { DraftEventDetail, DraftEventSummary } from "../lib/adminQuizApi";
 import { routes } from "../routes";
 import { AdminEventDetailsForm } from "./AdminEventDetailsForm";
+import { AdminPublishPanel } from "./AdminPublishPanel";
 import { AdminQuestionEditor } from "./AdminQuestionEditor";
 import type {
   AdminDraftMutationState,
+  AdminPublishState,
   AdminQuestionSaveState,
   AdminSelectedDraftState,
+  AdminUnpublishState,
 } from "./useAdminDashboard";
 import type { AdminEventDetailsFormValues } from "./eventDetails";
 
@@ -13,10 +16,14 @@ type AdminEventWorkspaceProps = {
   draftMutationState: AdminDraftMutationState;
   drafts: DraftEventSummary[];
   focusedQuestionId: string | null;
+  hasDraftChanges: boolean;
+  onCancelUnpublish: () => void;
+  onConfirmUnpublish: () => void;
   onCreateDraft: () => Promise<DraftEventSummary | null>;
   onDuplicateDraft: (eventId: string) => Promise<DraftEventSummary | null>;
   onFocusQuestion: (questionId: string) => void;
   onNavigate: (path: string) => void;
+  onPublish: () => void;
   onRefresh: () => void;
   onSaveSelectedEventDetails: (
     values: AdminEventDetailsFormValues,
@@ -25,9 +32,12 @@ type AdminEventWorkspaceProps = {
     content: DraftEventDetail["content"],
     questionId: string,
   ) => Promise<DraftEventSummary | null>;
+  onUnpublish: () => void;
+  publishState: AdminPublishState;
   questionSaveState: AdminQuestionSaveState;
   selectedDraftState: AdminSelectedDraftState;
   selectedEventId?: string;
+  unpublishState: AdminUnpublishState;
 };
 
 function formatSavedAt(timestamp: string) {
@@ -37,10 +47,16 @@ function formatSavedAt(timestamp: string) {
   }).format(new Date(timestamp));
 }
 
-function getStatusLabel(draft: DraftEventSummary) {
-  return draft.liveVersionNumber
-    ? `Live v${draft.liveVersionNumber}`
-    : "Draft only";
+function getStatusLabel(draft: DraftEventSummary, hasDraftChanges = false) {
+  if (!draft.liveVersionNumber) {
+    return "Draft only";
+  }
+
+  if (hasDraftChanges) {
+    return "Draft changes not published";
+  }
+
+  return `Live v${draft.liveVersionNumber}`;
 }
 
 function getEventCounts(drafts: DraftEventSummary[]) {
@@ -110,16 +126,23 @@ export function AdminEventWorkspace({
   draftMutationState,
   drafts,
   focusedQuestionId,
+  hasDraftChanges,
+  onCancelUnpublish,
+  onConfirmUnpublish,
   onCreateDraft,
   onDuplicateDraft,
   onFocusQuestion,
   onNavigate,
+  onPublish,
   onRefresh,
   onSaveSelectedEventDetails,
   onSaveSelectedQuestionContent,
+  onUnpublish,
+  publishState,
   questionSaveState,
   selectedDraftState,
   selectedEventId,
+  unpublishState,
 }: AdminEventWorkspaceProps) {
   const selectedDraft = selectedEventId
     ? drafts.find((draft) => draft.id === selectedEventId)
@@ -129,7 +152,11 @@ export function AdminEventWorkspace({
   const isSelectedSaving = isSelectedDraftSaving(selectedDraftState);
   const isQuestionSavePending = isQuestionSaving(questionSaveState);
   const isWorkspaceBusy =
-    isMutationPending || isSelectedSaving || isQuestionSavePending;
+    isMutationPending ||
+    isSelectedSaving ||
+    isQuestionSavePending ||
+    publishState.status === "publishing" ||
+    unpublishState.status === "unpublishing";
 
   const handleCreateDraft = async () => {
     const savedDraft = await onCreateDraft();
@@ -181,7 +208,7 @@ export function AdminEventWorkspace({
           </div>
           <span className="chip">Draft actions</span>
         </div>
-        <p>Status: {getStatusLabel(selectedDraft)}</p>
+        <p>Status: {getStatusLabel(selectedDraft, hasDraftChanges)}</p>
         <p>Slug: {selectedDraft.slug}</p>
         <p>Last saved: {formatSavedAt(selectedDraft.updatedAt)}</p>
         <div className="admin-action-row">
@@ -249,6 +276,21 @@ export function AdminEventWorkspace({
             messageKind={getQuestionMessageKind(questionSaveState)}
             onFocusQuestion={onFocusQuestion}
             onSave={onSaveSelectedQuestionContent}
+          />
+        ) : null}
+        {selectedDraftState.status === "ready" ||
+        selectedDraftState.status === "saving" ||
+        selectedDraftState.status === "save_error" ||
+        selectedDraftState.status === "success" ? (
+          <AdminPublishPanel
+            disabled={isWorkspaceBusy}
+            draft={selectedDraftState.draft}
+            onCancelUnpublish={onCancelUnpublish}
+            onConfirmUnpublish={onConfirmUnpublish}
+            onPublish={onPublish}
+            onUnpublish={onUnpublish}
+            publishState={publishState}
+            unpublishState={unpublishState}
           />
         ) : null}
         {draftMutationState.status !== "idle" ? (

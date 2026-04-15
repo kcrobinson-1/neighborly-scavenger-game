@@ -25,20 +25,27 @@ export function AdminPage({ onNavigate, selectedEventId }: AdminPageProps) {
         draftMutationState={adminDashboard.draftMutationState}
         emailInput={adminDashboard.emailInput}
         focusedQuestionId={adminDashboard.focusedQuestionId}
+        hasDraftChanges={adminDashboard.hasDraftChanges}
         magicLinkState={adminDashboard.magicLinkState}
+        onCancelUnpublish={adminDashboard.cancelUnpublish}
+        onConfirmUnpublish={adminDashboard.confirmUnpublish}
         onCreateDraft={adminDashboard.createDraft}
         onDuplicateDraft={adminDashboard.duplicateDraft}
         onEmailInputChange={adminDashboard.setEmailInput}
         onFocusQuestion={adminDashboard.setFocusedQuestionId}
         onNavigate={onNavigate}
+        onPublish={adminDashboard.publishEvent}
         onRetryDashboard={adminDashboard.retryDashboard}
         onSaveSelectedEventDetails={adminDashboard.saveSelectedEventDetails}
         onSaveSelectedQuestionContent={adminDashboard.saveSelectedQuestionContent}
         onSubmitMagicLink={adminDashboard.requestMagicLink}
+        onUnpublish={adminDashboard.startUnpublish}
+        publishState={adminDashboard.publishState}
         questionSaveState={adminDashboard.questionSaveState}
         selectedDraftState={adminDashboard.selectedDraftState}
         selectedEventId={selectedEventId}
         sessionState={adminDashboard.sessionState}
+        unpublishState={adminDashboard.unpublishState}
       />
     </AdminPageShell>
   );
