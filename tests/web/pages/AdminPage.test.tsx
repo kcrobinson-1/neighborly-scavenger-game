@@ -79,13 +79,16 @@ const selectedDraftContent = {
   slug: "first-sample",
 };
 
-function createDraftDetail(content = selectedDraftContent) {
+function createDraftDetail(
+  content = selectedDraftContent,
+  liveVersionNumber: number | null = 1,
+) {
   return {
     content,
     createdAt: "2026-04-07T12:00:00.000Z",
     id: content.id,
     lastSavedBy: "22222222-2222-4222-8222-222222222222",
-    liveVersionNumber: 1,
+    liveVersionNumber,
     name: content.name,
     slug: content.slug,
     updatedAt: "2026-04-08T12:00:00.000Z",
@@ -1419,6 +1422,39 @@ describe("AdminPage", () => {
       expect(screen.getByRole("link", { name: "View live quiz" })).toBeTruthy();
     });
 
+    it("shows Unpublish button immediately after publishing a draft-only event", async () => {
+      // Regression: publishEvent must update selectedDraftState.draft.liveVersionNumber
+      // so the unpublish section appears without a page reload for first-time publishes.
+      mockUseAdminSession.mockReturnValue({
+        email: "admin@example.com",
+        session: { access_token: "admin-token" },
+        status: "signed_in",
+      });
+      mockGetQuizAdminStatus.mockResolvedValue(true);
+      mockListDraftEventSummaries.mockResolvedValue(draftSummaries);
+      // Draft-only event: liveVersionNumber starts as null
+      mockLoadDraftEvent.mockResolvedValue(
+        createDraftDetail(selectedDraftContent, null),
+      );
+      mockPublishDraftEvent.mockResolvedValue({
+        eventId: "madrona-music-2026",
+        publishedAt: "2026-04-14T10:00:00.000Z",
+        slug: "first-sample",
+        versionNumber: 1,
+      });
+
+      renderAdminRoute("madrona-music-2026");
+
+      await screen.findByRole("button", { name: "Publish draft" });
+      expect(screen.queryByRole("button", { name: "Unpublish" })).toBeNull();
+
+      fireEvent.click(screen.getByRole("button", { name: "Publish draft" }));
+      await screen.findByText(/Published as version 1/);
+
+      // Unpublish section must be visible now without a reload
+      expect(screen.getByRole("button", { name: "Unpublish" })).toBeTruthy();
+    });
+
     it("shows an error message when publish fails and re-enables the button", async () => {
       mockUseAdminSession.mockReturnValue({
         email: "admin@example.com",
@@ -1523,6 +1559,46 @@ describe("AdminPage", () => {
       expect(
         await screen.findByText("Unpublish failed on the server."),
       ).toBeTruthy();
+    });
+
+    it("clears the publish success banner after unpublish", async () => {
+      // Regression: confirmUnpublish must reset publishState to idle so
+      // "Published as version N" is not shown after the event is unpublished.
+      mockUseAdminSession.mockReturnValue({
+        email: "admin@example.com",
+        session: { access_token: "admin-token" },
+        status: "signed_in",
+      });
+      mockGetQuizAdminStatus.mockResolvedValue(true);
+      mockListDraftEventSummaries.mockResolvedValue(draftSummaries);
+      mockLoadDraftEvent.mockResolvedValue(createDraftDetail());
+      mockPublishDraftEvent.mockResolvedValue({
+        eventId: "madrona-music-2026",
+        publishedAt: "2026-04-14T10:00:00.000Z",
+        slug: "first-sample",
+        versionNumber: 2,
+      });
+      mockUnpublishEvent.mockResolvedValue({
+        eventId: "madrona-music-2026",
+        unpublishedAt: "2026-04-14T11:00:00.000Z",
+      });
+
+      renderAdminRoute("madrona-music-2026");
+
+      // Publish first
+      await screen.findByRole("button", { name: "Publish draft" });
+      fireEvent.click(screen.getByRole("button", { name: "Publish draft" }));
+      await screen.findByText(/Published as version 2/);
+
+      // Now unpublish
+      fireEvent.click(screen.getByRole("button", { name: "Unpublish" }));
+      expect(await screen.findByText("Are you sure?")).toBeTruthy();
+      fireEvent.click(screen.getByRole("button", { name: "Confirm unpublish" }));
+
+      // Publish success banner must be cleared
+      await waitFor(() => {
+        expect(screen.queryByText(/Published as version 2/)).toBeNull();
+      });
     });
   });
 
