@@ -490,11 +490,10 @@ One concrete gotcha already hit in this repo:
 
 The next likely development steps are:
 
-1. Add the full admin editing, duplication, preview, and AI-assisted authoring
-   UI on top of the authoring APIs.
+1. Add admin draft preview (Phase 4.5, deferred post-MVP) and AI-assisted
+   authoring entry points (Phase 4.7, deferred post-MVP).
 2. Add lightweight reporting for quiz starts, completions, and timing.
-3. Add richer event publish controls such as drafts, previews, or expiry
-   windows if operations need them.
+3. Add richer event publish controls such as expiry windows if operations need them.
 4. Decide whether live usage justifies stronger abuse controls than the current
    browser-session dedupe model.
 

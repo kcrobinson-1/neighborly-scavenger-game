@@ -529,10 +529,10 @@ Everything beyond that should earn its keep.
 - [x] Add an integration test that exercises `issue-session` plus `complete-quiz` against a local Supabase stack.
 - [ ] Add PR CI coverage for the Playwright smoke suite.
 - [x] Add PR CI coverage for Deno function tests.
-- [ ] Add local end-to-end admin functionality coverage for sign-in/session
+- [x] Add local end-to-end admin functionality coverage for sign-in/session
   setup, allowlist authorization, draft reads, save, publish, unpublish, and
   public route verification against a dedicated local test event.
-- [ ] Document the admin functionality test command in `docs/dev.md` and require
+- [x] Document the admin functionality test command in `docs/dev.md` and require
   it before PR handoff for admin, authoring, auth, RLS, publish/unpublish, and
   related Supabase configuration changes.
 

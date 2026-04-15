@@ -203,11 +203,10 @@ Operational setting ownership lives in [docs/operations.md](./docs/operations.md
 
 ## Next Phase
 
-With the current MVP scope, Phase 4 is complete with Phase 4.5 and Phase 4.7
-deferred post-MVP.
+With the current MVP scope, Phases 4 and 5 are complete. Phase 4.5 (admin draft
+preview) and Phase 4.7 (AI-assisted authoring) are explicitly deferred post-MVP.
 
-The next implementation step is Phase 5 (migration, validation, and docs),
-followed by post-MVP enhancements:
+Planned post-MVP enhancements:
 
 - admin draft preview (Phase 4.5, deprioritized post-MVP)
 - admin AI-assisted authoring (Phase 4.7, post-MVP)

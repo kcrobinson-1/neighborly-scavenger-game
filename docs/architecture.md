@@ -460,8 +460,9 @@ This is an explicit product tradeoff, not an accidental omission.
 The most sensible next architectural steps are:
 
 1. Add a staging or branch-based Supabase promotion path if local verification plus direct-to-production release stops feeling sufficient.
-2. Add organizer-facing question editing, preview, publish controls, and
-   AI-assisted UI on top of the new admin API path.
+2. Add admin draft preview (Phase 4.5, deferred post-MVP) and AI-assisted
+   authoring entry points (Phase 4.7, deferred post-MVP) on top of the shipped
+   admin authoring surface.
 3. Add lightweight analytics/reporting for live events.
 4. Add richer publish behavior such as drafts, previews, or expiry windows if
    live operations need them.

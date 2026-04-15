@@ -7,8 +7,9 @@
 - Phase 1 status: implemented in the current repo
 - Phase 2 status: implemented in the current repo
 - Phase 3 status: implemented in the current repo as a backend/API milestone
-- Phases 4-5 status: proposed implementation work
-- Last updated: 2026-04-13
+- Phase 4 status: Phases 4.1–4.4 and 4.6 implemented; 4.5 and 4.7 deferred post-MVP
+- Phase 5 status: Phase 5.1 complete; Phase 5.2 complete
+- Last updated: 2026-04-14
 - Owner area: product, UX, web app, shared quiz domain, and Supabase backend
 
 ## Purpose
@@ -1174,6 +1175,8 @@ land with clear review boundaries.
 
 #### Phase 5.1: Local Validation And Migration Verification
 
+Status: complete
+
 Deliverables:
 
 - add one deterministic local admin end-to-end validation command:
@@ -1207,6 +1210,8 @@ Suggested validation:
 - `deno check --no-lock supabase/functions/unpublish-event/index.ts`
 
 #### Phase 5.2: Documentation And Workflow Alignment
+
+Status: complete
 
 Deliverables:
 
