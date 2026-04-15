@@ -85,10 +85,3 @@ Detailed authoring-specific scope questions are expanded further in
   The current MVP intentionally uses a lighter no-login trust boundary and does
   not yet answer how much stronger it needs to become.
 
-## Documentation Process
-
-- When should milestone-specific implementation docs be folded back into the
-  canonical docs set?
-  The repo now has durable docs plus milestone-specific references such as
-  `database-backed-quiz-content.md` and `quiz-authoring-plan.md`, but the
-  archival or consolidation rule is not yet explicit.

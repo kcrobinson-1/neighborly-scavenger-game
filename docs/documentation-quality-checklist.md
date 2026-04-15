@@ -31,7 +31,7 @@ Use it as:
 - [x] Keep docs/testing status and todo sections aligned with the actual test
   surface in the repo.
 - [x] Keep milestone-plan phase status current as later authoring phases land.
-- [ ] Fold milestone-specific implementation notes back into canonical docs when
+- [x] Fold milestone-specific implementation notes back into canonical docs when
   those notes stop being active execution references.
 
 ## Keep Process Guidance Strong
@@ -40,8 +40,9 @@ Use it as:
   of inventing decisions.
 - [x] Cross-link the docs hub, README, and contributor instructions so the doc
   set is discoverable from multiple entrypoints.
-- [ ] Add a canonical admin/auth workflow doc once quiz authoring moves beyond
-  shared-schema groundwork.
+- [x] Add a canonical admin/auth workflow doc once quiz authoring moves beyond
+  shared-schema groundwork. (Covered by `docs/architecture.md` admin workspace
+  section and `docs/dev.md` admin auth and local workflow notes.)
 - [ ] Add a canonical analytics/reporting doc once organizer-visible metrics
   exist.
 - [ ] Document a supported backend preview or staging workflow if the repo adopts

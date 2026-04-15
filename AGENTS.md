@@ -9,6 +9,10 @@ Use it as a practical checklist for making changes that stay aligned with the cu
 For any repository change beyond a trivial read-only answer, treat
 `docs/dev.md` as the development workflow source of truth.
 
+To find the highest-priority next task, start with `docs/backlog.md`. It is the
+single priority-ordered list of post-MVP follow-up work across all concern areas,
+with links to the detail file for each item.
+
 Before editing, read the relevant `docs/dev.md` sections for:
 
 - local setup and environment assumptions

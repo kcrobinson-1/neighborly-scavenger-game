@@ -283,8 +283,7 @@ surface owns validation and persistence:
   preserving private draft and version history
 - `quiz_event_audit_log` records publish and unpublish transitions
 
-The current scope still stops short of a preview route, publish controls in the
-UI, or AI authoring UI.
+The current scope still stops short of a preview route or AI authoring UI.
 
 ## Runtime Request Flow
 
@@ -403,22 +402,19 @@ The current deployment discipline is simpler:
 
 This keeps deployment repo-driven without requiring hotfixes to start in production, and without introducing preview-branch infrastructure on the backend yet.
 
-## Remaining Gaps To Event-Ready MVP
+## Post-MVP Planned Work
 
-The repository has a working prototype slice, but it does not yet satisfy the full event-ready MVP described in `product.md` and `experience.md`. The major remaining gaps are:
+The MVP milestone is complete. The following areas represent planned post-MVP
+enhancements, deferred capabilities, and open operational questions that were
+intentionally out of scope for the initial release.
 
 ### Organizer/admin tooling
 
-Today, the repo has an organizer/admin event workspace for private draft
-orientation, create/duplicate actions, event-level draft details editing, and
-question/option editing, but not a full authoring product.
+The admin workspace ships create, duplicate, event-level edit, question and
+option edit, publish, and unpublish. The deferred capabilities are:
 
-What is missing:
-
-- preview UI without code changes
+- preview UI: let an admin see the attendee experience before publishing
 - AI-assisted authoring entry points in the admin experience
-- managing full authoring workflows beyond the current selected question and
-  option editor
 
 ### Analytics and reporting
 
@@ -460,8 +456,9 @@ This is an explicit product tradeoff, not an accidental omission.
 The most sensible next architectural steps are:
 
 1. Add a staging or branch-based Supabase promotion path if local verification plus direct-to-production release stops feeling sufficient.
-2. Add organizer-facing question editing, preview, publish controls, and
-   AI-assisted UI on top of the new admin API path.
+2. Add admin draft preview (Phase 4.5, deferred post-MVP) and AI-assisted
+   authoring entry points (Phase 4.7, deferred post-MVP) on top of the shipped
+   admin authoring surface.
 3. Add lightweight analytics/reporting for live events.
 4. Add richer publish behavior such as drafts, previews, or expiry windows if
    live operations need them.
