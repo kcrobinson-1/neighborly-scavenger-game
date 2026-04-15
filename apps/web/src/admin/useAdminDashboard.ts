@@ -579,6 +579,22 @@ export function useAdminDashboard(selectedEventId?: string) {
             }
           : currentState,
       );
+      // Also update the loaded draft detail so the unpublish section appears
+      // immediately and hasDraftChanges tracking works for first-time
+      // publishes where liveVersionNumber starts as null.
+      setSelectedDraftState((currentState) =>
+        currentState.status === "ready" ||
+        currentState.status === "save_error" ||
+        currentState.status === "success"
+          ? {
+              ...currentState,
+              draft: {
+                ...currentState.draft,
+                liveVersionNumber: result.versionNumber,
+              },
+            }
+          : currentState,
+      );
       setPublishState({ result, status: "success" });
       setHasDraftChanges(false);
     } catch (error: unknown) {
@@ -634,6 +650,9 @@ export function useAdminDashboard(selectedEventId?: string) {
           : currentState,
       );
       setUnpublishState({ status: "idle" });
+      // Clear the publish success banner so "Published as version N" is not
+      // shown after the event has been unpublished.
+      setPublishState({ status: "idle" });
     } catch (error: unknown) {
       setUnpublishState({
         message: getErrorMessage(
