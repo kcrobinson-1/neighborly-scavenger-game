@@ -1,4 +1,4 @@
-import { type ChangeEvent, type FormEvent, useEffect, useMemo, useState } from "react";
+import { type ChangeEvent, type FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import type { DraftEventDetail, DraftEventSummary } from "../lib/adminQuizApi";
 import {
   createEventDetailsFormValues,
@@ -42,6 +42,17 @@ export function AdminEventDetailsForm({
   useEffect(() => {
     setValues(baselineValues);
   }, [baselineValues]);
+
+  // When publish transitions the slug to locked, discard any unsaved slug edit.
+  // Without this, a stale edit in form state would be sent on the next save and
+  // rejected by the backend with 422, leaving no way to correct it.
+  const prevHasBeenPublished = useRef(draft.hasBeenPublished);
+  useEffect(() => {
+    if (draft.hasBeenPublished && !prevHasBeenPublished.current) {
+      setValues((currentValues) => ({ ...currentValues, slug: baselineValues.slug }));
+    }
+    prevHasBeenPublished.current = draft.hasBeenPublished;
+  }, [draft.hasBeenPublished, baselineValues.slug]);
 
   const updateTextValue =
     (field: TextFieldName) =>

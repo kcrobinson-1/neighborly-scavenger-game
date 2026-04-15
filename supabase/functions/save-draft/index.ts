@@ -99,7 +99,10 @@ export const defaultSaveDraftHandlerDependencies: SaveDraftHandlerDependencies =
   };
 
 function getPersistenceStatus(error: { code?: string; message: string }) {
-  if (error.code === "slug_locked") {
+  // Catches both the application-layer pre-check (code: "slug_locked") and the
+  // DB trigger (message: "slug_locked", code: "P0001") so the race between a
+  // concurrent publish and a save cannot bypass the lock.
+  if (error.code === "slug_locked" || error.message === "slug_locked") {
     return 422;
   }
 
