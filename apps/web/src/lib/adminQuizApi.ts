@@ -23,6 +23,7 @@ type DraftEventRow = {
 };
 
 export type DraftEventSummary = {
+  hasBeenPublished: boolean;
   id: string;
   liveVersionNumber: number | null;
   name: string;
@@ -50,6 +51,7 @@ export type UnpublishEventResult = {
 
 function mapDraftSummary(row: DraftEventRow): DraftEventSummary {
   return {
+    hasBeenPublished: row.live_version_number !== null,
     id: row.id,
     liveVersionNumber: row.live_version_number,
     name: row.name,

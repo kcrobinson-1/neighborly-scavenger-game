@@ -30,10 +30,12 @@ steps, and validation commands.
 
 Must be resolved before QR codes are printed or the first real event runs.
 
-- [ ] **`decision` Event slug stability and QR code routing**
-  Decide whether live QR codes always point to `/game/:slug` and whether
-  slug changes post-print are forbidden, redirected, or allowed. A slug
-  change after QR codes are printed breaks all printed materials.
+- [ ] **`feat` Lock slug after first publish**
+  Slugs are read-only once an event is published. The slug field becomes
+  non-editable in the admin UI with a clear affordance (padlock icon + tooltip)
+  explaining that QR codes and printed URLs depend on it. If a rename is ever
+  needed, it must be an intentional manual operation rather than an accidental
+  edit. Decision: redirect table was ruled out due to slug-recycling edge cases.
   Detail: [`docs/open-questions.md` — Product And Live Event Operation](./open-questions.md)
 
 - [ ] **`infra` Production admin smoke workflow**

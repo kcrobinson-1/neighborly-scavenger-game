@@ -1,4 +1,4 @@
-import { type ChangeEvent, type FormEvent, useEffect, useMemo, useState } from "react";
+import { type ChangeEvent, type FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import type { DraftEventDetail, DraftEventSummary } from "../lib/adminQuizApi";
 import {
   createEventDetailsFormValues,
@@ -43,6 +43,17 @@ export function AdminEventDetailsForm({
     setValues(baselineValues);
   }, [baselineValues]);
 
+  // When publish transitions the slug to locked, discard any unsaved slug edit.
+  // Without this, a stale edit in form state would be sent on the next save and
+  // rejected by the backend with 422, leaving no way to correct it.
+  const prevHasBeenPublished = useRef(draft.hasBeenPublished);
+  useEffect(() => {
+    if (draft.hasBeenPublished && !prevHasBeenPublished.current) {
+      setValues((currentValues) => ({ ...currentValues, slug: baselineValues.slug }));
+    }
+    prevHasBeenPublished.current = draft.hasBeenPublished;
+  }, [draft.hasBeenPublished, baselineValues.slug]);
+
   const updateTextValue =
     (field: TextFieldName) =>
     (
@@ -84,16 +95,30 @@ export function AdminEventDetailsForm({
             value={values.name}
           />
         </label>
-        <label className="admin-field">
-          <span className="admin-field-label">Slug</span>
+        <div className="admin-field">
+          <label htmlFor="admin-event-slug">
+            <span className="admin-field-label">Slug</span>
+          </label>
           <input
             className="admin-input"
-            disabled={disabled}
+            disabled={disabled || draft.hasBeenPublished}
+            id="admin-event-slug"
             onChange={updateTextValue("slug")}
+            title={
+              draft.hasBeenPublished
+                ? "Slug is locked after publishing — printed QR codes and URLs depend on it."
+                : undefined
+            }
             type="text"
             value={values.slug}
           />
-        </label>
+          {draft.hasBeenPublished ? (
+            <span className="admin-field-hint">
+              Locked after publishing — printed QR codes and URLs depend on
+              this.
+            </span>
+          ) : null}
+        </div>
         <label className="admin-field">
           <span className="admin-field-label">Location</span>
           <input

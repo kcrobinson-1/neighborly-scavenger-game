@@ -123,6 +123,7 @@ describe("adminQuizApi", () => {
     await expect(loadDraftEvent(sampleDraft.id)).resolves.toEqual({
       content: sampleDraft,
       createdAt: "2026-04-07T12:00:00.000Z",
+      hasBeenPublished: true,
       id: sampleDraft.id,
       lastSavedBy: "22222222-2222-4222-8222-222222222222",
       liveVersionNumber: 1,
@@ -142,6 +143,7 @@ describe("adminQuizApi", () => {
     });
     const fetchMock = vi.fn().mockResolvedValue(
       createJsonResponse({
+        hasBeenPublished: true,
         id: sampleDraft.id,
         liveVersionNumber: 2,
         name: sampleDraft.name,
@@ -153,6 +155,7 @@ describe("adminQuizApi", () => {
     vi.stubGlobal("fetch", fetchMock);
 
     await expect(saveDraftEvent(sampleDraft)).resolves.toEqual({
+      hasBeenPublished: true,
       id: sampleDraft.id,
       liveVersionNumber: 2,
       name: sampleDraft.name,

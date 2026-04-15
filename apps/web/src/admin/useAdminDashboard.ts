@@ -573,7 +573,11 @@ export function useAdminDashboard(selectedEventId?: string) {
               ...currentState,
               drafts: currentState.drafts.map((draft) =>
                 draft.id === currentDraft.id
-                  ? { ...draft, liveVersionNumber: result.versionNumber }
+                  ? {
+                      ...draft,
+                      hasBeenPublished: true,
+                      liveVersionNumber: result.versionNumber,
+                    }
                   : draft,
               ),
             }
@@ -590,6 +594,7 @@ export function useAdminDashboard(selectedEventId?: string) {
               ...currentState,
               draft: {
                 ...currentState.draft,
+                hasBeenPublished: true,
                 liveVersionNumber: result.versionNumber,
               },
             }

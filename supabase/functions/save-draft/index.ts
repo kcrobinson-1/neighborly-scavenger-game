@@ -52,6 +52,26 @@ async function saveDraft(
     },
   });
 
+  const { data: existing } = await supabase
+    .from("quiz_event_drafts")
+    .select("live_version_number, slug")
+    .eq("id", input.content.id)
+    .maybeSingle<{ live_version_number: number | null; slug: string }>();
+
+  if (
+    existing !== null &&
+    existing.live_version_number !== null &&
+    existing.slug !== input.content.slug
+  ) {
+    return {
+      data: null,
+      error: {
+        code: "slug_locked",
+        message: "Slug cannot be changed after the event has been published.",
+      },
+    };
+  }
+
   return await supabase
     .from("quiz_event_drafts")
     .upsert(
@@ -79,6 +99,13 @@ export const defaultSaveDraftHandlerDependencies: SaveDraftHandlerDependencies =
   };
 
 function getPersistenceStatus(error: { code?: string; message: string }) {
+  // Catches both the application-layer pre-check (code: "slug_locked") and the
+  // DB trigger (message: "slug_locked", code: "P0001") so the race between a
+  // concurrent publish and a save cannot bypass the lock.
+  if (error.code === "slug_locked" || error.message === "slug_locked") {
+    return 422;
+  }
+
   if (error.code === "23505" || error.message.includes("duplicate key")) {
     return 409;
   }
@@ -153,7 +180,9 @@ export function createSaveDraftHandler(
           error ? getPersistenceStatus(error) : 500,
           {
             details: error?.message,
-            error: error && getPersistenceStatus(error) === 409
+            error: error && getPersistenceStatus(error) === 422
+              ? "The slug cannot be changed after the event has been published."
+              : error && getPersistenceStatus(error) === 409
               ? "A quiz event already uses that slug."
               : "We couldn't save the draft right now.",
           },
@@ -163,6 +192,7 @@ export function createSaveDraftHandler(
       return context.jsonResponse(
         200,
         {
+          hasBeenPublished: data.live_version_number !== null,
           id: data.id,
           liveVersionNumber: data.live_version_number,
           name: data.name,

@@ -220,6 +220,11 @@
   font-weight: $font-weight-semibold;
 }
 
+.admin-field-hint {
+  font-size: 0.875rem;
+  color: var(--muted);
+}
+
 .admin-workspace-detail {
   padding: $space-8;
   border: 1px solid $color-border-muted;

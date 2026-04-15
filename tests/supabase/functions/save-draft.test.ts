@@ -134,6 +134,7 @@ Deno.test("save-draft upserts the normalized draft and returns a safe summary", 
 
   assertEquals(response.status, 200);
   assertEquals(await response.json(), {
+    hasBeenPublished: true,
     id: sampleDraft.id,
     liveVersionNumber: 2,
     name: sampleDraft.name,
@@ -143,6 +144,35 @@ Deno.test("save-draft upserts the normalized draft and returns a safe summary", 
   assertEquals(capturedInput, {
     actorUserId: adminUserId,
     content: sampleDraft,
+  });
+});
+
+Deno.test("save-draft rejects slug changes on published events as 422", async () => {
+  const handler = createSaveDraftHandler({
+    ...defaultSaveDraftHandlerDependencies,
+    authoringHttp: createAuthoringHttpDependencies({
+      authenticateQuizAdmin: async () => ({
+        status: "ok",
+        userId: adminUserId,
+      }),
+    }),
+    saveDraft: async () => ({
+      data: null,
+      error: {
+        code: "slug_locked",
+        message: "Slug cannot be changed after the event has been published.",
+      },
+    }),
+  });
+
+  const response = await handler(
+    createAuthoringRequest({ content: sampleDraft }),
+  );
+
+  assertEquals(response.status, 422);
+  assertEquals(await response.json(), {
+    details: "Slug cannot be changed after the event has been published.",
+    error: "The slug cannot be changed after the event has been published.",
   });
 });
 
