@@ -1164,19 +1164,76 @@ Suggested validation:
 
 ### Phase 5: Migration, Validation, And Docs
 
+Phase 5 targets the shipped admin MVP surface only:
+
+- included: Phases 4.1 through 4.4 and 4.6
+- deferred post-MVP: Phase 4.5 preview and Phase 4.7 AI-assisted entry points
+
+Phase 5 should be split into two PR-sized subphases so validation and docs can
+land with clear review boundaries.
+
+#### Phase 5.1: Local Validation And Migration Verification
+
 Deliverables:
 
-- continued backfill and migration verification as later authoring UI surfaces
-  land
-- tests for the completed admin UI workflows, preview behavior, and any AI
-  authoring entry points
-- docs updates across `README.md`, `docs/architecture.md`, and `docs/dev.md`
+- add one deterministic local admin end-to-end validation command:
+  `npm run test:e2e:admin`
+- cover the shipped admin workflow against a local Supabase stack:
+  auth/session bootstrap, allowlist pass, draft visibility, draft save,
+  publish, unpublish, and attendee-route publish-state checks
+- verify migration and backfill invariants for the shipped admin flow through
+  the local Supabase validation path
+- keep PR CI unchanged in this phase; require the new admin e2e command in
+  local validation for admin-affecting changes
 
 Acceptance criteria:
 
+- one local command verifies the shipped admin MVP workflow end-to-end
 - existing attendee routes still behave correctly
 - existing completion trust path still validates against published content
-- contributor docs describe how to run and validate the new authoring path
+
+Suggested validation:
+
+- `npm run lint`
+- `npm test`
+- `npm run test:functions`
+- `npm run test:supabase`
+- `npm run test:e2e:admin`
+- `npm run build:web`
+- `deno check --no-lock supabase/functions/issue-session/index.ts`
+- `deno check --no-lock supabase/functions/complete-quiz/index.ts`
+- `deno check --no-lock supabase/functions/save-draft/index.ts`
+- `deno check --no-lock supabase/functions/publish-draft/index.ts`
+- `deno check --no-lock supabase/functions/unpublish-event/index.ts`
+
+#### Phase 5.2: Documentation And Workflow Alignment
+
+Deliverables:
+
+- update `README.md`, `docs/architecture.md`, and `docs/dev.md` so shipped
+  admin capabilities and deferred 4.5/4.7 status stay consistent
+- document when `npm run test:e2e:admin` is required before PR handoff
+- align contributor workflow language with the shipped admin scope and local
+  validation expectations
+
+Acceptance criteria:
+
+- contributor docs consistently describe the Phase 4 completion boundary and
+  Phase 5 validation expectations
+- no conflicting doc guidance remains for admin feature status or required
+  local checks
+
+Suggested validation:
+
+- `npm run build:web`
+- run `npm run test:e2e:admin` once after docs updates so the documented command
+  and setup steps are verified
+
+Deferred follow-up after Phase 5:
+
+- production or post-release admin smoke workflow remains out of scope for this
+  phase and should be planned separately after local admin e2e coverage is
+  stable
 
 ## Validation Plan For The Implementation Work
 

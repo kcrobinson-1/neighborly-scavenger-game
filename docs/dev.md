@@ -262,13 +262,24 @@ Database test note:
 
 Broader test strategy guidance, including what should eventually run in PR CI versus local-only iteration, lives in [testing.md](./testing.md).
 
-Admin functionality validation is not yet exposed as one end-to-end repo
-command. Until that suite exists, changes that can affect admin auth,
-allowlist checks, draft persistence, publish/unpublish behavior, Supabase Auth
-configuration, or the admin UI should run the closest available checks from the
-validation list above and describe any missing admin end-to-end coverage in the
-handoff. The target command, release expectations, and rollout checklist live
-in [testing.md](./testing.md#admin-functionality-validation-goal).
+Admin functionality validation is now exposed as a dedicated local end-to-end
+command:
+
+```bash
+npm run test:e2e:admin
+```
+
+This command resets the local Supabase database, prepares a deterministic
+allowlisted admin fixture, and runs the shipped admin MVP workflow in Playwright
+against a real local Supabase stack.
+
+Use it when changes can affect admin auth, allowlist checks, draft persistence,
+publish/unpublish behavior, Supabase Auth configuration, or the admin UI.
+
+This command is intentionally local-only in Phase 5.1:
+
+- it is not included in `.github/workflows/ci.yml`
+- it is not included in `npm run validate:local`
 
 ## UI Review Workflow
 
