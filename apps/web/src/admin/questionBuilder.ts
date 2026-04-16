@@ -175,7 +175,7 @@ function createNormalizedQuestion(question: Question): Question {
     })),
     prompt: trimRequired(question.prompt, "Question prompt"),
     selectionMode: question.selectionMode,
-    sponsor: trimRequired(question.sponsor, "Sponsor"),
+    sponsor: trimOptional(question.sponsor ?? "") ?? null,
     ...(trimOptional(question.explanation ?? "")
       ? { explanation: trimOptional(question.explanation ?? "") }
       : {}),
@@ -437,7 +437,7 @@ export function createQuestionFormValues(
     })),
     prompt: question.prompt,
     selectionMode: question.selectionMode,
-    sponsor: question.sponsor,
+    sponsor: question.sponsor ?? "",
     sponsorFact: question.sponsorFact ?? "",
   };
 }

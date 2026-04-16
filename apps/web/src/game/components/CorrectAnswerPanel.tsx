@@ -19,7 +19,7 @@ export function CorrectAnswerPanel({
   return (
     <section className="panel completion-panel">
       <span className="chip chip-success">Correct</span>
-      <h2>{question.sponsor}</h2>
+      {question.sponsor ? <h2>{question.sponsor}</h2> : null}
       <p>{feedbackMessage}</p>
       <button className="primary-button" onClick={onContinue} type="button">
         {isLastQuestion ? "See your results" : "Continue"}

@@ -55,6 +55,42 @@ describe("parseAuthoringGameDraftContent", () => {
       })
     ).toThrow('Draft content "estimatedMinutes" must be a positive integer.');
   });
+
+  it("accepts null sponsor on a question", () => {
+    const draft = parseAuthoringGameDraftContent({
+      ...createAuthoringDraft(),
+      questions: [{ ...createAuthoringDraft().questions[0], sponsor: null }],
+    });
+
+    expect(draft.questions[0].sponsor).toBeNull();
+  });
+
+  it("accepts omitted sponsor field on a question", () => {
+    const baseQuestion = createAuthoringDraft().questions[0];
+    const draft = parseAuthoringGameDraftContent({
+      ...createAuthoringDraft(),
+      questions: [
+        {
+          id: baseQuestion.id,
+          prompt: baseQuestion.prompt,
+          selectionMode: baseQuestion.selectionMode,
+          correctAnswerIds: baseQuestion.correctAnswerIds,
+          options: baseQuestion.options,
+        },
+      ],
+    });
+
+    expect(draft.questions[0].sponsor).toBeNull();
+  });
+
+  it("rejects a non-string non-null sponsor", () => {
+    expect(() =>
+      parseAuthoringGameDraftContent({
+        ...createAuthoringDraft(),
+        questions: [{ ...createAuthoringDraft().questions[0], sponsor: 42 }],
+      })
+    ).toThrow('Question "q1" sponsor must be a string or null.');
+  });
 });
 
 describe("validateAuthoringGameDraftContent", () => {

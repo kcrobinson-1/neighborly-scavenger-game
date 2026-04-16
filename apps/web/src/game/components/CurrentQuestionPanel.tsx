@@ -43,7 +43,9 @@ export function CurrentQuestionPanel({
 
   return (
     <section className="panel question-panel">
-      <p className="sponsor-label">Sponsored by {question.sponsor}</p>
+      {question.sponsor ? (
+        <p className="sponsor-label">Sponsored by {question.sponsor}</p>
+      ) : null}
       <h2>{question.prompt}</h2>
       <p className="selection-hint" id={selectionHintId}>
         {getSelectionLabel(question)}

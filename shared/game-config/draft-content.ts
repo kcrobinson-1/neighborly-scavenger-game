@@ -71,6 +71,28 @@ function expectOptionalString(
   return value;
 }
 
+function expectNullableString(
+  record: JsonRecord,
+  key: string,
+  label: string,
+): string | null {
+  if (!(key in record)) {
+    return null;
+  }
+
+  const value = record[key];
+
+  if (value === null) {
+    return null;
+  }
+
+  if (typeof value !== "string") {
+    throw new Error(`${label} must be a string or null.`);
+  }
+
+  return value;
+}
+
 function expectOptionalBoolean(
   record: JsonRecord,
   key: string,
@@ -205,7 +227,7 @@ function parseQuestion(input: JsonRecord, index: number): Question {
 
   return {
     id: questionId,
-    sponsor: expectString(input, "sponsor", `Question "${questionId}" sponsor`),
+    sponsor: expectNullableString(input, "sponsor", `Question "${questionId}" sponsor`),
     prompt: expectString(input, "prompt", `Question "${questionId}" prompt`),
     selectionMode: expectSelectionMode(
       input,
