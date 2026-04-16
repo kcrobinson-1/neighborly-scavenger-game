@@ -764,7 +764,12 @@ describe("AdminPage", () => {
     });
     const { navigate } = renderAdminRoute("madrona-music-2026");
 
-    fireEvent.change(await screen.findByLabelText("Event name"), {
+    // Wait for the form to load before interacting so that all fireEvent calls
+    // below fire against a stable, fully-rendered form rather than racing async
+    // state updates in CI.
+    await screen.findByLabelText("Event name");
+
+    fireEvent.change(screen.getByLabelText("Event name"), {
       target: { value: " Updated Madrona Event " },
     });
     // Slug field is locked on published events — change is intentionally omitted.
