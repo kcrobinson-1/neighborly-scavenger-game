@@ -40,7 +40,9 @@ async function waitForRouteReady({ routeLabel, routeUrl, timeoutMs, pollMs }) {
         redirect: "manual",
       });
 
-      if (response.status >= 200 && response.status < 500) {
+      // Treat only served/redirected app routes as ready; transient 404s are
+      // common during deployment propagation and should keep polling.
+      if (response.status >= 200 && response.status < 400) {
         logStep(`${routeLabel} is reachable (${response.status})`);
         return;
       }
