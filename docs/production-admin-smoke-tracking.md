@@ -51,6 +51,16 @@ The first production smoke version intentionally excludes:
 
 The workflow runs in the GitHub `production` environment.
 
+Current release-readiness status:
+
+- as of the 2026-04-16 release-readiness pass, no successful production admin
+  smoke run exists for release candidate `70977d6`
+- the latest `Production Admin Smoke` run for that commit was skipped, and the
+  prior run failed during `Validate smoke settings`
+- configuring the GitHub `production` environment settings below and rerunning
+  the workflow is tracked as a Tier 1 item in
+  [`backlog.md`](./backlog.md)
+
 ### GitHub Environment Variables
 
 - `PRODUCTION_SMOKE_BASE_URL`

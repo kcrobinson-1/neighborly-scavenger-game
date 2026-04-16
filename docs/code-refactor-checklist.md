@@ -66,6 +66,16 @@ Rules for this checklist:
   Validation: `npm test -- tests/web/admin/questionBuilder.test.ts` and
   `npm run build:web`.
 
+- [ ] Split selected draft publish/unpublish state from draft loading and save state.
+  `apps/web/src/admin/useSelectedDraft.ts` is now one of the largest frontend
+  source files. It owns selected draft loading, focused question state, event
+  detail saves, question saves, publish state, unpublish confirmation/state,
+  draft-list synchronization, and dirty-state bookkeeping. Extract the
+  publish/unpublish transition logic into a focused hook or helper so
+  `useSelectedDraft.ts` reads as selected draft loading plus save orchestration.
+  Score: 7/10.
+  Validation: `npm test -- tests/web/pages/AdminPage.test.tsx tests/web/lib/adminQuizApi.test.ts` and `npm run build:web`.
+
 - [x] Split admin dashboard orchestration from mutation and selection state.
   `apps/web/src/admin/useAdminDashboard.ts` now owns session bootstrap,
   allowlist checks, draft loading, create, duplicate, event-details saves,

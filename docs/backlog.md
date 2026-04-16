@@ -68,6 +68,26 @@ Must be resolved before QR codes are printed or the first real event runs.
   a dedicated production smoke event.
   Detail: [`docs/production-admin-smoke-tracking.md`](./production-admin-smoke-tracking.md) and [`docs/testing.md` — Admin Functionality Validation Goal](./testing.md)
 
+- [ ] **`infra` Configure production admin smoke settings and rerun release-candidate smoke**
+  The workflow exists, but the release-readiness pass found no successful smoke
+  evidence for release candidate `70977d6`: the latest `Production Admin Smoke`
+  workflow run was skipped, and the prior run failed while validating required
+  smoke settings. Before a live event, populate the GitHub `production`
+  environment variables/secrets documented in
+  `production-admin-smoke-tracking.md`, then rerun the smoke workflow against
+  the release candidate commit and record the successful run in
+  `release-readiness.md`.
+  Detail: [`docs/production-admin-smoke-tracking.md`](./production-admin-smoke-tracking.md)
+
+- [ ] **`decision` Volunteer verification affordance**
+  Decide whether the current completion message plus verification code is
+  sufficient for Madrona volunteer handoff, or whether live operation needs a
+  timestamp, rotating proof treatment, volunteer fallback flow, or anything
+  stronger before raffle tickets are issued. This decision is needed before
+  volunteer training; implementation follow-up is only required if the current
+  affordance is insufficient.
+  Detail: [`docs/open-questions.md` — Product And Live Event Operation](./open-questions.md)
+
 ---
 
 ## Tier 2 — Operational Confidence
@@ -161,12 +181,6 @@ prioritization before starting.
   Expiry windows, scheduled publish, multiple quizzes per event, and friendlier
   inactive-event behavior beyond immediate unpublish.
   Detail: [`docs/open-questions.md` — Authoring And Publishing](./open-questions.md)
-
-- [ ] **`decision` Volunteer verification affordance**
-  Define whether live operation needs a timestamp, rotating proof treatment,
-  volunteer fallback flow, or anything stronger than the current code-based
-  completion proof.
-  Detail: [`docs/open-questions.md` — Product And Live Event Operation](./open-questions.md)
 
 - [ ] **`decision` Sponsor reporting requirements**
   Determine the minimum reporting slice sponsors actually need: simple inclusion

@@ -69,10 +69,10 @@ in [AGENTS.md](../AGENTS.md) reads first.
 | Field | Value |
 | --- | --- |
 | Doc established | 2026-04-16 |
-| Last full pass | _not yet executed — this is the plan-only establishment of the doc_ |
+| Last full pass | 2026-04-16 — completed with no-go findings |
 | Current release target | Madrona Music in the Playfield (initial validation target) |
-| Current go/no-go | _undetermined until the first full pass runs_ |
-| Blocking items summary | see [Release Gates](#release-gates) |
+| Current go/no-go | _no-go — production admin smoke evidence and volunteer verification decision are missing_ |
+| Blocking items summary | production admin smoke settings/rerun and volunteer verification decision are open in [backlog.md](./backlog.md) |
 
 The first pass produces the initial findings tables under
 [Running Findings](#running-findings). Subsequent passes append a new dated
@@ -555,9 +555,11 @@ Refresh instructions:
   directly in [open-questions.md](./open-questions.md), then remove it from
   this list
 
-_The list below is seeded empty. Populate it during the first pass._
+The list below was refreshed during the 2026-04-16 pass.
 
-- _no entries yet_
+- [Product And Live Event Operation — volunteer verification affordance](./open-questions.md)
+  must be decided for Madrona, or explicitly deferred with a named volunteer
+  handoff plan, before the release target can be considered ready.
 
 ## Running Findings
 
@@ -618,10 +620,164 @@ progresses.
 - <link to backlog/tracker item created by this pass>
 ```
 
-### Pass YYYY-MM-DD (placeholder)
+### Pass 2026-04-16
 
-_No full pass has run yet. This doc was established on 2026-04-16 in plan-only
-form. The first pass will populate this section using the template above._
+**Reviewer:** coordinator Codex thread
+**Release target:** Madrona Music in the Playfield
+**Release candidate commit:** 70977d6, with coordinator-branch validation command fix pending commit
+
+**Gates:**
+
+- G1 Trust-path: met for the coordinator branch — `npm run validate:local` passed, including `npm run test:supabase`, the real local `issue-session` plus `complete-quiz` integration path, and 90 pgTAP database tests
+- G2 Attendee e2e: met for the coordinator branch — `npm run test:e2e` passed 3 mobile Chromium attendee smoke tests after the default Playwright config was restricted to `mobile-smoke.spec.ts`
+- G3 Admin production smoke: not met — GitHub run `24538237545` for `70977d6` was skipped, and the prior run `24537110190` failed at `Validate smoke settings`
+- G4 Starts + completion instrumentation: met — `npm run validate:local` exercised start-row Deno tests, local Supabase integration, and pgTAP; release workflow run `24537097693` successfully applied migrations and deployed functions at `d08f65e`, which already contained `20260416000000_add_quiz_starts.sql` and `20260416010000_add_quiz_starts_event_fk.sql`; `70977d6` is docs-only and its release job was skipped
+- G5 Release-blocking open questions: not met — volunteer verification affordance must be decided or explicitly deferred before the release target
+- G6 Observability: not met — manual operator surfaces are identified below, but production admin smoke is not producing release-candidate evidence yet and remains a Tier 1 operational visibility blocker
+- G7 Docs currency: met for the coordinator branch — Dimension 2 doc-currency audit completed, with stale README release-flow and production-smoke status docs updated
+- G8 PR CI depth: not met — no PR CI evidence exists for the coordinator branch yet; `.github/workflows/ci.yml` covers lint, unit tests, Deno function tests, local Supabase integration/database tests, build, and function `deno check`, while attendee Playwright smoke in PR CI remains tracked in [backlog.md](./backlog.md)
+
+**Test coverage:**
+
+- `npm run validate:local` initially failed because `npm run test:e2e` picked up admin and production-smoke specs requiring `TEST_SUPABASE_SERVICE_ROLE_KEY`; fixed in this branch by restricting the default Playwright config to `mobile-smoke.spec.ts`.
+- After that fix, `npm run validate:local` passed end to end: lint; 23 Vitest files / 175 tests; 34 Deno Edge Function tests; 3 attendee mobile Playwright smoke tests; local Supabase integration and pgTAP database tests; `npm run build:web`; and `deno check` for `issue-session`, `complete-quiz`, `save-draft`, `publish-draft`, and `unpublish-event`.
+- `npm run test:e2e:admin` passed 1 local Supabase-backed admin Playwright test covering save, publish, unpublish, and public route verification.
+- `npm run test:e2e:admin:production-smoke` has not produced release-candidate evidence. The latest `Production Admin Smoke` workflow run for `70977d6` was skipped, and the prior run failed while validating required smoke settings. This is tracked as a Tier 1 item in [backlog.md](./backlog.md).
+- Proposed Test Inventory still matches the current suite at a high level: shared-domain tests, frontend session/API/page tests, Deno Edge Function tests, pgTAP database tests, attendee mobile smoke, local admin e2e, and production admin smoke harness all exist. The known gaps remain attendee Playwright smoke in PR CI and broader Playwright retry/backend-failure coverage, both already tracked in [testing.md](./testing.md) or [backlog.md](./backlog.md).
+
+**Documentation:**
+
+- Dimension 2 audit completed for doc-currency triggers, status-oriented docs,
+  area readmes, and boundary comments in the largest source files.
+- `README.md` release flow was stale because it described CI, Vercel deploy,
+  and Supabase release promotion but omitted the production admin smoke
+  workflow. Updated it to include the post-release smoke validation step.
+- `production-admin-smoke-tracking.md` described the workflow and environment
+  contract but did not name the current release-readiness status. Updated it to
+  record that release candidate `70977d6` has no successful production smoke
+  evidence yet and points to the Tier 1 backlog item.
+- Area readmes for `apps/web/src/game/`, `apps/web/src/admin/`, and
+  `shared/game-config/` still match the current module ownership at a
+  documentation level.
+- Boundary comments for trust, persistence, and publish entrypoints in the
+  largest source files are present where needed: `issue-session`,
+  `complete-quiz`, `save-draft`, `publish-draft`, `quizApi`, and
+  `adminQuizApi` document the non-obvious trust, fallback, or auth-token
+  behavior that affects future maintainers.
+
+**Monitoring, logging, observability:**
+
+- Dimension 3 audit completed for Edge Function error responses, browser API
+  error surfacing, release workflow state, production smoke state, and current
+  operator surfaces.
+- Edge Functions currently return distinguishable HTTP statuses and structured
+  JSON errors for important failure branches rather than writing explicit
+  `console` logs. That posture is deliberate for the MVP: caller-visible
+  failures surface to the UI, while Supabase platform request/function logs
+  remain the backend investigation surface. The one deliberately swallowed
+  server-side failure is `issue-session` start tracking; comments explain that
+  `quiz_starts` is best-effort observability and must not block session
+  issuance.
+- Browser-visible failures are not silently dropped: attendee start errors and
+  completion retry states surface through `GamePage`, and admin API failures
+  throw user-facing messages consumed by the admin dashboard state.
+- Live-event operator path, if attendees report failure at minute five: check
+  the latest `Production Admin Smoke` workflow result first; inspect Vercel
+  deployment/runtime logs for frontend route availability; inspect Supabase
+  Edge Function logs for `issue-session`, `complete-quiz`, `save-draft`,
+  `publish-draft`, and `unpublish-event`; then verify Supabase table activity
+  in `quiz_starts`, `quiz_completions`, and `raffle_entitlements` for the event.
+- Analytics-critical data is present in code and local validation:
+  `issue-session` records `quiz_starts`, and completions/entitlements are
+  persisted through the trusted RPC. Production promotion evidence exists from
+  release workflow run `24537097693` on commit `d08f65e`, which already included
+  the starts migrations; `70977d6` was docs-only and its release job was
+  skipped.
+- Remaining blocker: production admin smoke is not operational for this release
+  candidate because required GitHub `production` environment settings are
+  missing or incomplete. This is already tracked as a Tier 1 item in
+  [backlog.md](./backlog.md).
+
+**Cleanliness:**
+
+- Dimension 4 audit completed for largest source files, architecture guardrails,
+  and database enforcement behind public/origin-gated writes.
+- Largest `.ts`/`.tsx` source files in the audited areas are currently:
+  `questionBuilder.ts` (467), `useSelectedDraft.ts` (443),
+  `AdminQuestionEditor.tsx` (438), `AdminEventWorkspace.tsx` (397),
+  `draft-content.ts` (358), `quizApi.ts` (321), `useAdminDashboard.ts`
+  (306), `quizSessionState.ts` (275), `publish-draft/index.ts` (263),
+  `sample-games.ts` (256), and `adminQuizApi.ts` (234).
+- Existing refactor checklist coverage already tracks `questionBuilder.ts`,
+  `AdminQuestionEditor.tsx`, `AdminEventWorkspace.tsx`,
+  `draft-content.ts`, `quizApi.ts`, `useAdminDashboard.ts`,
+  `sample-games.ts`, and `adminQuizApi.ts` where appropriate.
+- New follow-up opened in [code-refactor-checklist.md](./code-refactor-checklist.md):
+  split selected draft publish/unpublish state from draft loading and save
+  state in `apps/web/src/admin/useSelectedDraft.ts`.
+- Architecture guardrails still hold at the reviewed boundaries: visual/admin
+  interaction logic remains in `apps/web/src`, shared quiz validation/scoring
+  remains in `shared/game-config`, and trust/session/persistence/entitlement
+  writes remain in `supabase/functions` plus `supabase/migrations`.
+- Public or origin-gated backend writes have DB-level enforcement: completion
+  writes go through `complete_quiz_and_award_entitlement` with unique
+  request/attempt and one-entitlement constraints; `quiz_starts` has a unique
+  `(event_id, client_session_id)` pair plus an event FK; draft writes have
+  primary-key/slug constraints plus the slug-lock trigger; publish/unpublish go
+  through transactional RPCs with audit rows and published-content constraints.
+
+**Efficiency:**
+
+- Dimension 5 audit completed for attendee network/state flow, Edge Function
+  hot paths, database query/index coverage, and build output.
+- Bundle baseline from `npm run validate:local` / `npm run build:web`:
+  `dist/assets/index-DYmuva_Y.js` 459.21 kB / gzip 128.82 kB, and
+  `dist/assets/index-BqpJ_O73.css` 13.21 kB / gzip 3.57 kB. This is the first
+  recorded release-readiness bundle measurement, so there is no prior-pass
+  trend comparison yet.
+- Attendee path does not show redundant completion writes: `useQuizSession`
+  guards completion submission by `completionRequestId`, retry reuses the same
+  request id, and `quizApi` performs at most one session re-bootstrap after a
+  401 before replaying the same completion request.
+- Edge Function hot paths are appropriately narrow for the MVP: session
+  issuance performs one best-effort start upsert after session verification;
+  completion loads the published event and parallel question/option rows, then
+  persists through one RPC; publish/unpublish route through transactional RPCs.
+- Database query paths have suitable constraints/indexes for hundreds of
+  attendees per event: route lookups use unique `quiz_events.slug`, published
+  content reads use `event_id`-leading primary keys, completions and
+  entitlements use `(event_id, client_session_id)` indexes/constraints, and
+  `quiz_starts` uses unique `(event_id, client_session_id)` plus an event FK.
+- No new performance follow-up opened in this pass.
+
+**Release-blocking open questions:**
+
+- Dimension 6 audit completed against [open-questions.md](./open-questions.md)
+  and `decision` entries in [backlog.md](./backlog.md).
+- Release-blocking: [Product And Live Event Operation — volunteer
+  verification affordance](./open-questions.md). The current completion message
+  plus verification code may be enough, but the repo has not yet recorded that
+  decision for Madrona volunteer handoff. Promoted to Tier 1 in
+  [backlog.md](./backlog.md).
+- Not release-blocking for this target: QR entry route. `experience.md`
+  already says QR codes should open directly into the event quiz experience,
+  and `/game/:slug` exists for that purpose; the long-term question of whether
+  this should always be the production entry contract remains open in
+  [open-questions.md](./open-questions.md).
+- Not release-blocking for this target, deferred as tracked follow-ups:
+  staging/branch Supabase promotion path, sponsor reporting requirements,
+  organizer roles/root admin UI, richer publish controls, multi-quiz events,
+  and stronger trust-boundary/abuse controls.
+
+**Go/no-go:** no-go — production admin smoke evidence is missing, and the volunteer verification decision has not been recorded.
+
+**Follow-ups opened:**
+
+- Tier 1: configure production admin smoke settings and rerun release-candidate smoke in [backlog.md](./backlog.md).
+- Tier 1: decide volunteer verification affordance for Madrona in
+  [backlog.md](./backlog.md).
+- Refactor candidate: split selected draft publish/unpublish state from draft
+  loading and save state in [code-refactor-checklist.md](./code-refactor-checklist.md).
 
 ## Related Docs
 

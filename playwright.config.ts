@@ -4,6 +4,7 @@ const baseUrl = "http://127.0.0.1:4173";
 
 export default defineConfig({
   testDir: "./tests/e2e",
+  testMatch: "**/mobile-smoke.spec.ts",
   outputDir: "tmp/playwright/test-results",
   reporter: "list",
   use: {

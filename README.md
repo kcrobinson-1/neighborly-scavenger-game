@@ -190,6 +190,7 @@ This repo currently uses:
 
 - [`.github/workflows/ci.yml`](./.github/workflows/ci.yml) for validation
 - [`.github/workflows/release.yml`](./.github/workflows/release.yml) for production Supabase promotion after successful CI on `main`
+- [`.github/workflows/production-admin-smoke.yml`](./.github/workflows/production-admin-smoke.yml) for post-release admin smoke validation against dedicated production smoke fixtures
 - Vercel Git integration to deploy the frontend from `main`
 
 Recommended release path:
@@ -200,6 +201,9 @@ Recommended release path:
 4. Merge to `main`.
 5. Let Vercel publish the frontend from the merged commit.
 6. Let the release workflow promote the repo-backed Supabase changes.
+7. Let the production admin smoke workflow verify deployed admin auth,
+   authoring functions, publish, unpublish, and public route state against
+   dedicated smoke fixtures.
 
 Operational setting ownership lives in [docs/operations.md](./docs/operations.md).
 
