@@ -15,13 +15,15 @@ Current setup and release workflow still live in `dev.md`. System responsibiliti
 
 ## Current State
 
-Today the repo validates with:
+Today the repo validation surface includes:
 
 - `npm run lint`
 - `npm test`
 - `npm run test:functions`
 - `npm run test:functions:integration`
 - `npm run test:e2e`
+- `npm run test:e2e:admin`
+- `npm run test:e2e:admin:production-smoke`
 - `npm run test:db`
 - `npm run test:supabase`
 - `npm run build:web`
@@ -31,6 +33,8 @@ Today the repo validates with:
 - `deno check --no-lock supabase/functions/publish-draft/index.ts`
 - `deno check --no-lock supabase/functions/unpublish-event/index.ts`
 - `npm run ui:review:capture` for screenshot-based browser review
+- [`.github/workflows/production-admin-smoke.yml`](../.github/workflows/production-admin-smoke.yml)
+  for post-release and manual production admin smoke runs against dedicated smoke fixtures
 
 That baseline is now a real first-wave strategy, not just static validation. The repo already has focused shared-domain tests, frontend behavior tests, a mobile Playwright smoke suite, pgTAP coverage for the completion RPC, Deno coverage for the Edge Function trust boundary, and a real local Supabase integration test for the full session-plus-completion path.
 
@@ -72,17 +76,17 @@ Current status:
 - contributor workflow docs in `docs/dev.md` now require this command for
   admin-affecting changes
 
-Planned future:
+Current production posture:
 
-- add a lightweight production or post-release admin smoke check after the
-  local suite is stable
-- keep that smoke check separate from normal PR CI unless a future staging
-  backend makes remote checks isolated and cheap
+- a dedicated production smoke workflow now runs post-release and also supports
+  manual `workflow_dispatch` reruns
+- the production smoke path remains separate from normal PR CI because it
+  intentionally touches a dedicated production smoke event
 
 Tracking:
 
-- the remaining production-smoke work is tracked in this section under
-  `Recommended rollout status`, item 7 (`[ ] Add production smoke...`)
+- rollout policy, ownership, and triage are now tracked in
+  [`production-admin-smoke-tracking.md`](./production-admin-smoke-tracking.md)
 
 The desired end state is:
 
@@ -134,11 +138,11 @@ Recommended rollout status:
    `npm run validate:local` for now.
 6. [x] Update contributor workflow docs.
    `docs/dev.md` now names the command for admin-affecting changes.
-7. [ ] Add production smoke after the local suite is stable.
-   Run a separate `workflow_dispatch`, post-release, or nightly check against
-   the deployed site using a dedicated production test admin and test event.
-   Keep it out of normal PR CI unless a future staging backend makes remote
-   checks isolated and cheap.
+7. [x] Add production smoke after the local suite is stable.
+   Landed as [`.github/workflows/production-admin-smoke.yml`](../.github/workflows/production-admin-smoke.yml).
+   It keeps `workflow_dispatch` reruns, adds automatic post-release coverage,
+   and retains a dedicated production smoke event so this remains separate from
+   normal PR CI.
 
 ## Implementation Notes
 
@@ -165,6 +169,10 @@ The current setup includes a few deliberate choices that are worth documenting:
 - `npm run test:e2e:admin` is the local admin end-to-end validation command
   it prepares deterministic admin auth and draft fixtures, then runs Playwright
   against the real local Supabase-backed `/admin` workflow
+- `npm run test:e2e:admin:production-smoke` is the production smoke runner used
+  by the `Production Admin Smoke` workflow
+  it polls deployed route readiness, then runs a single-worker Playwright suite
+  against the deployed admin surface with dedicated smoke fixtures
 - `npm run test:supabase` is the shared local-backend validation command
   it reuses one local Supabase stack for the Edge Function integration test and the pgTAP database suite
 - `deno.json` keeps `nodeModulesDir` in manual mode
@@ -554,6 +562,6 @@ Everything beyond that should earn its keep.
 - [ ] Add broader Playwright coverage for retry-after-401 and backend failure messaging.
 - [ ] Add test helpers for reusable sample payloads and session tokens.
 - [ ] Add post-merge or nightly longer-running integration coverage if the product surface expands.
-- [ ] Add post-release production admin smoke coverage using a dedicated
+- [x] Add post-release production admin smoke coverage using a dedicated
   production test admin and test event.
 - [ ] Revisit visual regression tooling only if design churn slows down and stable screenshots become worth maintaining.
