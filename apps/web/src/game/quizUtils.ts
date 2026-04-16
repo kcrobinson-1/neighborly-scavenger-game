@@ -45,6 +45,8 @@ export function getQuestionFeedbackMessage(question: Question) {
   return (
     question.sponsorFact ??
     question.explanation ??
-    `Correct. ${question.sponsor} is part of the neighborhood event experience.`
+    (question.sponsor
+      ? `Correct. ${question.sponsor} is part of the neighborhood event experience.`
+      : "Correct.")
   );
 }
