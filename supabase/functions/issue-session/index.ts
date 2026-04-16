@@ -130,19 +130,24 @@ export function createIssueSessionHandler(
     const existingSession = await dependencies.readVerifiedSession(request, signingSecret);
 
     if (existingSession) {
-      // Best-effort start tracking: a failure here must not prevent the session
-      // response from returning. Session issuance is the trust boundary;
-      // analytics writes are observability infrastructure with lower failure priority.
+      // Best-effort start tracking: awaited so the Edge Function runtime does
+      // not discard the write before it completes. A DB failure is swallowed —
+      // session issuance is the trust boundary; analytics is observability.
       if (eventId) {
         const supabaseUrl = dependencies.getSupabaseUrl();
         const serviceRoleKey = dependencies.getServiceRoleKey();
 
         if (supabaseUrl && serviceRoleKey) {
-          dependencies
-            .insertQuizStart(eventId, existingSession.sessionId, supabaseUrl, serviceRoleKey)
-            .catch(() => {
-              // Swallow: start tracking must not block session issuance.
-            });
+          try {
+            await dependencies.insertQuizStart(
+              eventId,
+              existingSession.sessionId,
+              supabaseUrl,
+              serviceRoleKey,
+            );
+          } catch {
+            // Swallow: start tracking must not block session issuance.
+          }
         }
       }
 
@@ -168,11 +173,11 @@ export function createIssueSessionHandler(
       const serviceRoleKey = dependencies.getServiceRoleKey();
 
       if (supabaseUrl && serviceRoleKey) {
-        dependencies
-          .insertQuizStart(eventId, sessionId, supabaseUrl, serviceRoleKey)
-          .catch(() => {
-            // Swallow: start tracking must not block session issuance.
-          });
+        try {
+          await dependencies.insertQuizStart(eventId, sessionId, supabaseUrl, serviceRoleKey);
+        } catch {
+          // Swallow: start tracking must not block session issuance.
+        }
       }
     }
 
