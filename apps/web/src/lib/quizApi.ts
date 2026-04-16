@@ -297,8 +297,10 @@ async function submitQuizCompletionToSupabase(
   if (response.status === 401 && retryOnUnauthorized) {
     // If the cookie expired or was never set, we re-bootstrap the server
     // session once and replay the same request. The request id must stay the
-    // same so the backend can dedupe safely.
-    await ensureServerSession();
+    // same so the backend can dedupe safely. Pass eventId so the re-bootstrap
+    // also records a start row — without it, a 401-retry path would produce a
+    // completion row with no corresponding quiz_starts entry.
+    await ensureServerSession(input.eventId);
     return submitQuizCompletionToSupabase(input, false);
   }
 
