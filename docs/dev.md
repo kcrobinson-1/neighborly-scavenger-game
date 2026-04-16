@@ -16,6 +16,8 @@ System shape and data ownership live in `architecture.md`. UX intent lives in `e
 
 Testing scope, layer ownership, and rollout priorities live in `testing.md`.
 Unresolved contributor-workflow and release questions live in `open-questions.md`.
+Release gates, the senior-engineer quality-check methodology, and the living
+release-blocking view live in [`release-readiness.md`](./release-readiness.md).
 
 ## Current Tooling
 

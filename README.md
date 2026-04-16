@@ -92,6 +92,8 @@ The main docs are:
   unresolved product, workflow, and operational decisions that should stay explicit
 - [Documentation Quality Checklist](./docs/documentation-quality-checklist.md)
   action checklist for keeping the documentation set accurate and complete
+- [Release Readiness](./docs/release-readiness.md)
+  living release readiness plan, release gates, and senior-engineer quality-check methodology
 
 ## Quick Start
 

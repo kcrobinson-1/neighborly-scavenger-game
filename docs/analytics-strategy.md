@@ -10,6 +10,7 @@ Related docs:
 - `architecture.md` — current system shape and the post-MVP analytics roadmap item
 - `open-questions.md` — unresolved reporting questions about which metrics come first
 - `backlog.md` — tracked work items for the analytics milestone
+- `release-readiness.md` — release gate G4 (starts + completion instrumentation) and G6 (observability) reference this doc as the tracker of record
 
 ---
 

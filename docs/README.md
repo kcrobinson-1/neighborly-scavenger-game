@@ -22,6 +22,7 @@ If you want:
 - the analytics strategy, tool recommendations, and dashboard goals, read [analytics-strategy.md](./analytics-strategy.md)
 - the unresolved product, UX, and workflow decisions, read [open-questions.md](./open-questions.md)
 - the documentation maintenance plan, read [documentation-quality-checklist.md](./documentation-quality-checklist.md)
+- the living release readiness plan and quality-check methodology, read [release-readiness.md](./release-readiness.md)
 
 ## Doc Ownership
 
@@ -59,6 +60,9 @@ Use these boundaries to keep the docs tidy:
 - `docs/code-refactor-checklist.md`
   small behavior-preserving refactor tasks for oversized files that have clear
   split points
+- `docs/release-readiness.md`
+  living release readiness plan and senior-engineer quality-check methodology;
+  coordinates with the other trackers rather than duplicating them
 
 ## Editing Rule Of Thumb
 

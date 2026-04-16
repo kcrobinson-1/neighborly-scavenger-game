@@ -5,6 +5,12 @@
 Track small, non-functional refactor tasks for files that have grown large
 enough that splitting them would improve reviewability and local ownership.
 
+Release readiness passes described in
+[`docs/release-readiness.md`](./release-readiness.md) feed cleanliness findings
+into this file. When that methodology surfaces a new oversized file or
+mixed-responsibility module, capture it here under Candidate Tasks rather than
+tracking it inside the release readiness doc.
+
 Rules for this checklist:
 
 - keep each task behavior-preserving

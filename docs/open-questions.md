@@ -14,6 +14,12 @@ Use it when:
 If a question is answered in code, docs, or platform setup, update or remove it
 here in the same change.
 
+When a quality check pass runs against an upcoming release, the subset of these
+items that blocks the current release target is mirrored under
+[Release-Blocking Open Questions in `release-readiness.md`](./release-readiness.md#release-blocking-open-questions).
+Do not duplicate the question body there; mirror the title and link back to
+this file.
+
 ## Product And Live Event Operation
 
 - Should live event QR codes always go directly to `/game/:slug`, with `/`

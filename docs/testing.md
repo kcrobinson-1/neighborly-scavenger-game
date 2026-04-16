@@ -11,7 +11,7 @@ Use it when you need:
 - clarity on when to mock Supabase and when to run against a real local Supabase stack
 - a phased todo list for rolling out test coverage without overbuilding
 
-Current setup and release workflow still live in `dev.md`. System responsibilities and trust boundaries live in `architecture.md`. UX goals live in `experience.md`.
+Current setup and release workflow still live in `dev.md`. System responsibilities and trust boundaries live in `architecture.md`. UX goals live in `experience.md`. Release gates that depend on test coverage live in [`release-readiness.md`](./release-readiness.md), which links back into the Todo List in this file rather than duplicating it.
 
 ## Current State
 

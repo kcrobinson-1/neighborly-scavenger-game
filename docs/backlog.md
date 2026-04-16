@@ -23,6 +23,7 @@ steps, and validation commands.
 - Code refactors: [`docs/code-refactor-checklist.md`](./code-refactor-checklist.md)
 - Test coverage rollout: [`docs/testing.md`](./testing.md)
 - Deferred authoring features: [`docs/quiz-authoring-plan.md`](./quiz-authoring-plan.md)
+- Release gates, quality-check methodology, and live release-blocking view: [`docs/release-readiness.md`](./release-readiness.md)
 
 ---
 
