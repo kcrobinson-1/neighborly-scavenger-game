@@ -55,7 +55,7 @@ export function GamePage({ game, onNavigate }: GamePageProps) {
     setStartError(null);
 
     try {
-      await ensureServerSession();
+      await ensureServerSession(game.id);
       start();
     } catch (error: unknown) {
       setStartError(

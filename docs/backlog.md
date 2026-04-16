@@ -48,7 +48,7 @@ Must be resolved before QR codes are printed or the first real event runs.
   engagement queries and admin authoring cannot model unsponsored questions
   correctly until this is resolved.
 
-- [ ] **`dev` Record quiz starts in Supabase**
+- [x] **`dev` Record quiz starts in Supabase**
   Add a `quiz_starts` table (columns: `event_id`, `client_session_id`,
   `issued_at`) and a single INSERT into it from the `issue-session` edge
   function. This gives the denominator for the completion funnel: starts →

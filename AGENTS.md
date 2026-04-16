@@ -385,6 +385,29 @@ Update inline comments and function/type documentation when:
 
 Do not add comments that merely restate the code.
 
+### Doc Currency Is a PR Gate
+
+Before opening or updating a PR, verify that every named doc that the branch
+should have touched actually reflects the implemented state, not the pre-implementation state.
+
+Walk through the triggers above and confirm each relevant update was made:
+
+- `docs/architecture.md` — correct if any of these changed: new migration, new
+  edge function behavior, new table, new data ownership, changed runtime flow,
+  changed trust boundary
+- `docs/product.md` — correct if the implemented capability set changed
+- `docs/backlog.md` — mark items complete or add follow-ups if the branch
+  closes or creates tracked work
+- `docs/analytics-strategy.md` (or the relevant detail doc) — mark phases or
+  decisions resolved when the branch lands the described work
+- `README.md` — correct if setup, capabilities, or repo structure changed
+- `docs/dev.md` — correct if workflow, validation commands, or tooling changed
+- `docs/open-questions.md` — close answered questions; open new unresolved ones
+
+A PR is not ready to open if any of these docs still describe the state before
+the branch's changes rather than after them. Doc updates belong in the same
+branch, not in a follow-up.
+
 ## Commit Message Expectations
 
 Use the Conventional Commits convention for commit messages in this repo.
@@ -446,6 +469,7 @@ Do not wait until the end of a large change to discover that the branch drifted.
 
 Treat pull requests as reviewable engineering work, not speculative drafts with known unverified edges hidden inside them.
 
+- Before opening or updating a PR, confirm that all docs the branch should have touched are current (see "Doc Currency Is a PR Gate" above).
 - Before opening or updating a PR, make sure every new script or validation command added by the branch is runnable by a contributor following repo docs.
 - If a PR is intentionally still exploratory, keep it clearly framed as draft work and do not present it as merge-ready.
 - For new test runners or test directories, confirm the existing runners do not accidentally pick them up or conflict with them.
@@ -634,7 +658,7 @@ Before finishing, review your own work for:
 - regressions in the existing attendee flow
 - readability and maintainability
 - duplicated logic
-- stale comments or stale docs
+- stale inline comments or stale docs — walk the "Doc Currency Is a PR Gate" triggers and confirm every relevant named doc was updated
 - missing validation
 - accessibility or usability regressions in the mobile flow
 - whether the final change is still positive value for the codebase and should

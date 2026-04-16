@@ -47,11 +47,11 @@ The `quiz_events`, `quiz_questions`, and `quiz_question_options` tables contain 
 
 ## Known Schema Dependencies
 
-Two schema issues must be resolved before the analytics views can be written correctly.
+Two schema issues had to be resolved before the analytics views can be written correctly. Both are now landed.
 
-**`quiz_starts` table does not exist yet.** This is tracked as a Tier 1 backlog item. A migration must add the table and `issue-session` must insert into it before Madrona. Without it, the funnel denominator is permanently missing for any event that runs first.
+**`quiz_starts` table** — Added via `20260416000000_add_quiz_starts.sql`. The table exists; `issue-session` inserts into it when `event_id` is provided. Must be applied to production before the first live event.
 
-**`sponsor` is currently `NOT NULL` on `quiz_questions`.** Real events will have house questions without a sponsor. Until the column is made nullable (also a Tier 1 backlog item), analytics queries that filter on non-null sponsor to identify sponsored questions will incorrectly treat every question as sponsor-attributed. Views should not be written against this column until the migration lands.
+**`sponsor` nullable on `quiz_questions`** — Resolved via `20260415010000_make_sponsor_nullable.sql`. Analytics queries can now correctly distinguish sponsored from unsponsored questions.
 
 ---
 
@@ -200,11 +200,18 @@ The design principle for the dashboard is the same as the design principle for t
 
 Two phases are the right structure. They cannot be collapsed into one because they have a hard deadline difference: Phase 1 must land before the first live event or the data is gone permanently, while Phase 2 can only be built meaningfully after real event data exists. They cannot be split further without creating phases that deliver nothing demonstrable on their own — SQL views without a reporting UI are not a meaningful organizer-facing improvement, and the starts table without views is not either. Each phase delivers one complete, verifiable outcome.
 
-### Phase 1 — Data Collection (Pre-Event)
+### Phase 1 — Data Collection (Pre-Event) ✓ Complete
 
-Add the `quiz_starts` table and the INSERT call in `issue-session`. This is tracked as a Tier 1 backlog item because start data is permanently unrecoverable for any event that runs without the table in place.
+`quiz_starts` table added via migration `20260416000000_add_quiz_starts.sql`.
+`issue-session` now accepts an optional `event_id` in the POST body and fires
+a best-effort upsert (idempotent via unique constraint) into `quiz_starts`.
+`GamePage` passes `game.id` to `ensureServerSession` at the call site.
+The `sponsor` nullable migration (`20260415010000_make_sponsor_nullable.sql`)
+landed in the preceding PR.
 
-Depends on the `sponsor` nullable migration (also Tier 1) landing first, so that views written against `quiz_questions.sponsor` can correctly distinguish sponsored from unsponsored questions.
+Both migrations must be applied to the production Supabase project before the
+first live event. The `quiz_starts` migration is a hard pre-event dependency:
+start data is permanently unrecoverable for any event that runs without it.
 
 **Demonstrable outcome:** After the first live event runs, a Supabase Studio query returns a complete funnel row — starts, completions, and raffle entries — for that event. The data exists and is correct. Engineering can verify this immediately after the event closes.
 
