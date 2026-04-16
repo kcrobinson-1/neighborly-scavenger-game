@@ -247,7 +247,7 @@ function createServerSessionHeaders(supabaseClientKey: string) {
 }
 
 /** Ensures the signed server session cookie exists before gameplay begins. */
-export async function ensureServerSession() {
+export async function ensureServerSession(eventId?: string) {
   const { enabled, supabaseClientKey, supabaseUrl } = getSupabaseConfig();
 
   if (!enabled) {
@@ -265,7 +265,7 @@ export async function ensureServerSession() {
     method: "POST",
     headers: createServerSessionHeaders(supabaseClientKey),
     credentials: "include",
-    body: JSON.stringify({}),
+    body: JSON.stringify(eventId ? { event_id: eventId } : {}),
   });
 
   if (!response.ok) {
