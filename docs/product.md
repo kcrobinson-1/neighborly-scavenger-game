@@ -33,16 +33,20 @@ Organizers configure the quiz, sell sponsored questions to local businesses, and
 
 ## Current Implemented Slice
 
-Today the repo implements a narrower engineering slice of that product:
+Today the repo implements:
 
 - a demo-overview landing page at `/`
 - published attendee quiz routes at `/game/:slug`
 - backend-verified completion with one raffle entitlement per event/session pair
 - shared quiz correctness, validation, and scoring logic
-- draft/version groundwork for future authoring, but no organizer-facing admin UI yet
+- an organizer-facing admin workspace at `/admin` for drafting, editing, publishing, and unpublishing events
+- `quiz_starts` table and session-issuance write so analytics has the funnel denominator (starts → completions → raffle entries) before the first live event
 
-Broader organizer tooling, reporting, and richer live-event operations remain
-future product work rather than completed behavior.
+What remains as future product work:
+
+- admin draft preview (let an organizer see the attendee experience before publishing)
+- organizer-visible reporting surface for post-event metrics
+- richer live-event operations (slug expiry, scheduled publish, multi-quiz events)
 
 ## Target Users
 

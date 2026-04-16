@@ -146,7 +146,9 @@ content has been loaded.
 The Supabase side is intentionally small:
 
 - `supabase/functions/issue-session/index.ts`
-  Creates or reuses the signed browser session credential.
+  Creates or reuses the signed browser session credential. When an `event_id`
+  is present in the POST body, also fires a best-effort upsert into
+  `quiz_starts` to record the funnel denominator for analytics.
 - `supabase/functions/complete-quiz/index.ts`
   Orchestrates trusted completion requests: origin and method gates, session
   verification, published content loading, shared validation and scoring, and
@@ -179,6 +181,10 @@ The Supabase side is intentionally small:
   Session signing and verification helpers shared by both the cookie and header-fallback path.
 - `supabase/migrations/20260403120000_complete_quiz_entitlements.sql`
   Database objects that store completion attempts and ensure only one raffle entitlement is granted per event/session pair.
+- `supabase/migrations/20260405171549_fix_verification_code_pgcrypto_search_path.sql`
+  Fixes the pgcrypto search path used for verification code generation.
+- `supabase/migrations/20260405175756_harden_completion_backend.sql`
+  Hardens the completion backend with additional server-side guards.
 - `supabase/migrations/20260406130000_add_published_quiz_content.sql`
   Published event, question, and option tables plus demo-event backfill and
   public read policies.
@@ -191,6 +197,21 @@ The Supabase side is intentionally small:
 - `supabase/migrations/20260410170000_add_quiz_authoring_publish_workflow.sql`
   Authoring audit log plus service-role publish and unpublish RPCs that update
   the public runtime projection transactionally.
+- `supabase/migrations/20260415000000_add_quiz_event_draft_slug_lock_trigger.sql`
+  Database trigger that enforces slug immutability once an event is first
+  published. The trigger fires under the row write lock so no concurrent
+  publish can bypass the check; the application layer also validates this
+  before upserting, but the trigger is the authoritative enforcement point.
+- `supabase/migrations/20260415010000_make_sponsor_nullable.sql`
+  Drops the `NOT NULL` constraint on `quiz_questions.sponsor` so unsponsored
+  house questions can be modeled correctly. Required before analytics views
+  can distinguish sponsored from unsponsored questions.
+- `supabase/migrations/20260416000000_add_quiz_starts.sql`
+  Adds the `quiz_starts` table (`event_id`, `client_session_id`, `issued_at`)
+  with a unique constraint on `(event_id, client_session_id)` for idempotent
+  inserts. RLS enabled; analytics-only, accessed via service role. Provides
+  the funnel denominator (starts → completions → raffle entries) that is
+  permanently unrecoverable without this table in place before an event runs.
 
 ## What Is Implemented Now
 
@@ -296,9 +317,10 @@ The current system works like this:
 4. Missing or unpublished event slugs render an explicit unavailable state
    without revealing which case occurred.
 5. When the user starts a game, the browser calls the Supabase `issue-session`
-   edge function.
+   edge function with the `event_id` in the request body.
 6. Supabase returns a signed browser session credential and attempts to set the
-   secure session cookie.
+   secure session cookie. As a best-effort side effect, it upserts a row into
+   `quiz_starts` so the event has a permanent record of this session starting.
 7. The player completes the quiz entirely in local browser state.
 8. At the end, the browser submits answers, duration, event id, and request id
    to `complete-quiz`.
@@ -316,7 +338,11 @@ This flow keeps question-to-question interaction fast while reserving the final 
 The current implementation uses:
 
 - `issue-session`
-  Prepares the signed browser session credential used as the trust boundary for the no-login MVP.
+  Prepares the signed browser session credential used as the trust boundary
+  for the no-login MVP. When `event_id` is present in the request body, also
+  writes a best-effort start row to `quiz_starts` for analytics. A DB failure
+  on the start write does not prevent the session response from returning —
+  session issuance is the trust boundary; analytics is observability.
 - `complete-quiz`
   Owns final validation, scoring, dedupe, and verification-code return.
 - direct PostgREST reads for published `quiz_events`, `quiz_questions`, and
@@ -368,6 +394,7 @@ Supabase currently owns:
 - private authoring drafts, immutable versions, and audit rows
 - draft save, publish, and unpublish transitions
 - signed browser-session trust
+- quiz start records (`quiz_starts`) for analytics funnel tracking
 - final answer validation
 - trusted score calculation
 - completion attempt persistence
@@ -418,13 +445,14 @@ option edit, publish, and unpublish. The deferred capabilities are:
 
 ### Analytics and reporting
 
-Today, the backend persists trusted completion data, but there is no reporting surface.
+The backend now persists both quiz start records (`quiz_starts`) and trusted
+completion data (`quiz_completions`, `raffle_entitlements`). This gives the
+full funnel: starts → completions → raffle entries.
 
-What is missing:
+What is still missing:
 
-- completion/start reporting
-- timing summaries
-- organizer-visible event metrics
+- SQL views for completion rate, score distribution, and timing summaries
+- organizer-visible event reporting surface in the admin workspace
 
 ### Production event lookup and publish model
 
