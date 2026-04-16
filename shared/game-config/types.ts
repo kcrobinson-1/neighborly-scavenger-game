@@ -15,7 +15,7 @@ export type SelectionMode = "single" | "multiple";
 /** Shared quiz-question shape used by the web app and edge functions. */
 export type Question = {
   id: string;
-  sponsor: string;
+  sponsor: string | null;
   prompt: string;
   options: AnswerOption[];
   selectionMode: SelectionMode;

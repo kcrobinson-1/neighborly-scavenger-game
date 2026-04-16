@@ -40,6 +40,19 @@ describe("createQuestionFormValues", () => {
       sponsorFact: sampleQuestion.sponsorFact ?? "",
     });
   });
+
+  it("maps a null sponsor to an empty string in form values", () => {
+    const gameWithUnsponsoredQuestion = {
+      ...sampleGame,
+      questions: [{ ...sampleQuestion, sponsor: null }],
+    };
+    const values = createQuestionFormValues(
+      gameWithUnsponsoredQuestion,
+      sampleQuestion.id,
+    );
+
+    expect(values.sponsor).toBe("");
+  });
 });
 
 describe("applyQuestionFormValues", () => {
@@ -93,6 +106,15 @@ describe("applyQuestionFormValues", () => {
 
     expect(nextContent.questions[0].explanation).toBeUndefined();
     expect(nextContent.questions[0].sponsorFact).toBeUndefined();
+  });
+
+  it("saves null sponsor when the sponsor field is blank", () => {
+    const nextContent = applyQuestionFormValues(sampleGame, sampleQuestion.id, {
+      ...createQuestionFormValues(sampleGame, sampleQuestion.id),
+      sponsor: " ",
+    });
+
+    expect(nextContent.questions[0].sponsor).toBeNull();
   });
 
   it("rejects blank required question fields", () => {

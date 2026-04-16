@@ -19,6 +19,7 @@ If you want:
   read [dev-workflow-improvements.md](./dev-workflow-improvements.md)
 - the testing strategy, coverage priorities, and rollout plan, read [testing.md](./testing.md)
 - the platform ownership model for GitHub, Vercel, and Supabase settings, read [operations.md](./operations.md)
+- the analytics strategy, tool recommendations, and dashboard goals, read [analytics-strategy.md](./analytics-strategy.md)
 - the unresolved product, UX, and workflow decisions, read [open-questions.md](./open-questions.md)
 - the documentation maintenance plan, read [documentation-quality-checklist.md](./documentation-quality-checklist.md)
 
@@ -51,6 +52,8 @@ Use these boundaries to keep the docs tidy:
   what is repo-managed versus manually maintained across platforms
 - `docs/open-questions.md`
   unresolved decisions that should stay explicit instead of being guessed in canonical docs
+- `docs/analytics-strategy.md`
+  end goal of analytics, approaches, evaluation criteria, third-party tool guidance, and dashboard goals
 - `docs/documentation-quality-checklist.md`
   recurring documentation maintenance checklist and quality-improvement plan
 - `docs/code-refactor-checklist.md`

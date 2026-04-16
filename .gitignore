@@ -13,3 +13,4 @@ dist/
 supabase/.temp/
 supabase/.branches/
 tmp/
+CLAUDE.md

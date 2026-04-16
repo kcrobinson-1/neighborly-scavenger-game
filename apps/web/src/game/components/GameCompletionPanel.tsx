@@ -120,7 +120,9 @@ export function GameCompletionPanel({
 
               return (
                 <article className="answer-review-card" key={question.id}>
-                  <p className="sponsor-label">Sponsored by {question.sponsor}</p>
+                  {question.sponsor ? (
+                    <p className="sponsor-label">Sponsored by {question.sponsor}</p>
+                  ) : null}
                   <h3>{question.prompt}</h3>
                   <p>
                     <strong>Your answer:</strong>{" "}

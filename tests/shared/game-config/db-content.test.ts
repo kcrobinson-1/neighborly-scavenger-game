@@ -196,4 +196,15 @@ describe("mapPublishedGameRowsToGameConfig", () => {
       'Question "q1" in game "test-event" must include at least one correct answer.',
     );
   });
+
+  it("maps a null DB sponsor to a null Question.sponsor", () => {
+    // createQuestionRows index 1 is q1 (display_order 1), which sorts first in GameConfig
+    const game = mapPublishedGameRowsToGameConfig({
+      event: createEventRow(),
+      options: createOptionRows(),
+      questions: createQuestionRows([{}, { sponsor: null }]),
+    });
+
+    expect(game.questions[0].sponsor).toBeNull();
+  });
 });

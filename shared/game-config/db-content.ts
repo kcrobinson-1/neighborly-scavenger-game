@@ -28,7 +28,7 @@ export type PublishedGameQuestionRow = {
   id: string;
   prompt: string;
   selection_mode: SelectionMode;
-  sponsor: string;
+  sponsor: string | null;
   sponsor_fact: string | null;
 };
 

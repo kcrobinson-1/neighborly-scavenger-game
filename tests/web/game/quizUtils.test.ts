@@ -73,4 +73,10 @@ describe("quizUtils", () => {
       "Correct. Sponsor One is part of the neighborhood event experience.",
     );
   });
+
+  it("returns generic fallback copy when sponsor is null and no fact or explanation", () => {
+    expect(
+      getQuestionFeedbackMessage({ ...singleSelectQuestion, sponsor: null }),
+    ).toBe("Correct.");
+  });
 });
