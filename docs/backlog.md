@@ -38,6 +38,26 @@ Must be resolved before QR codes are printed or the first real event runs.
   edit. Decision: redirect table was ruled out due to slug-recycling edge cases.
   Detail: [`docs/open-questions.md` — Product And Live Event Operation](./open-questions.md)
 
+- [ ] **`dev` Make `sponsor` nullable in `quiz_questions`**
+  The `sponsor` column is currently `NOT NULL`, which forces every question to
+  carry a sponsor attribution even when no sponsor is attached. Real events will
+  have house questions alongside sponsored ones. This needs a migration to drop
+  the `NOT NULL` constraint, a shared-type update to mark `sponsor` as
+  `string | null` in `Question`, and follow-up to any rendering or analytics
+  logic that assumes the field is always populated. Blocking: analytics sponsor
+  engagement queries and admin authoring cannot model unsponsored questions
+  correctly until this is resolved.
+
+- [ ] **`dev` Record quiz starts in Supabase**
+  Add a `quiz_starts` table (columns: `event_id`, `client_session_id`,
+  `issued_at`) and a single INSERT into it from the `issue-session` edge
+  function. This gives the denominator for the completion funnel: starts →
+  completions → raffle entries. This data is unrecoverable after the event if
+  the table is not in place before attendees arrive, which makes it a hard
+  pre-event dependency rather than a post-MVP analytics nice-to-have. The
+  broader analytics dashboard (Tier 4) depends on this row existing.
+  Detail: [`docs/analytics-strategy.md` — Approach 2 and Recommended Sequencing](./analytics-strategy.md)
+
 - [ ] **`infra` Production admin smoke workflow**
   Add a post-release or `workflow_dispatch` smoke check that verifies admin
   auth, allowlist, draft persistence, and publish/unpublish work against the
@@ -120,8 +140,14 @@ prioritization before starting.
   Detail: [`docs/quiz-authoring-plan.md` — Phase 4.7](./quiz-authoring-plan.md)
 
 - [ ] **`dev` Analytics and reporting**
-  Completion counts, timing summaries, and organizer-visible event metrics.
-  Detail: [`docs/open-questions.md` — Reporting And Sponsor Measurement](./open-questions.md)
+  SQL views on `quiz_completions`, `raffle_entitlements`, and `quiz_starts`
+  (see Tier 1) to produce per-event completion counts, score distributions,
+  timing summaries, and sponsor question engagement. Follow-on: an
+  organizer-facing reporting section in the admin workspace that surfaces those
+  views for a selected event without requiring Supabase Studio access.
+  Prerequisite: the Tier 1 quiz starts item must land before the first live
+  event or the funnel denominator will be missing.
+  Detail: [`docs/analytics-strategy.md`](./analytics-strategy.md)
 
 - [ ] **`decision` Authoring roles and root admin UI**
   Decide whether to add a root-level admin role and UI for managing allowlist
