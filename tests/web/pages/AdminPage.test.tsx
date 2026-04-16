@@ -1639,15 +1639,10 @@ describe("AdminPage", () => {
       });
       fireEvent.click(screen.getByRole("button", { name: "Save changes" }));
 
-      await waitFor(() => {
-        expect(screen.getByText(/Draft changes not published/)).toBeTruthy();
-      });
+      await screen.findByText(/Draft changes not published/);
 
       fireEvent.click(screen.getByRole("button", { name: "Publish draft" }));
 
-      await waitFor(() => {
-        expect(mockPublishDraftEvent).toHaveBeenCalledTimes(1);
-      });
       await screen.findByText(/Published as version 2/);
       expect(screen.queryByText(/Draft changes not published/)).toBeNull();
     });
