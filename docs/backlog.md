@@ -58,12 +58,13 @@ Must be resolved before QR codes are printed or the first real event runs.
   broader analytics dashboard (Tier 4) depends on this row existing.
   Detail: [`docs/analytics-strategy.md` — Approach 2 and Recommended Sequencing](./analytics-strategy.md)
 
-- [ ] **`infra` Production admin smoke workflow**
-  Add a post-release or `workflow_dispatch` smoke check that verifies admin
-  auth, allowlist, draft persistence, and publish/unpublish work against the
-  deployed production project. Currently no automated check confirms the
-  deployed admin surface after a release.
-  Detail: [`docs/testing.md` — Admin Functionality Validation Goal, item 7](./testing.md)
+- [x] **`infra` Production admin smoke workflow**
+  Added a dedicated production admin smoke workflow that supports manual
+  `workflow_dispatch` reruns and post-release automation after successful
+  `Release` runs. The smoke path validates admin auth, allowlist enforcement,
+  draft persistence, publish/unpublish, and public route state changes against
+  a dedicated production smoke event.
+  Detail: [`docs/production-admin-smoke-tracking.md`](./production-admin-smoke-tracking.md) and [`docs/testing.md` — Admin Functionality Validation Goal](./testing.md)
 
 ---
 

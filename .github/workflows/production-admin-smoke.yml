@@ -1,0 +1,88 @@
+name: Production Admin Smoke
+
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows:
+      - Release
+    types:
+      - completed
+    branches:
+      - main
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+concurrency:
+  group: production-admin-smoke
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  smoke-admin-production:
+    name: Smoke Admin On Production
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    environment: production
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
+    env:
+      PRODUCTION_SMOKE_BASE_URL: ${{ vars.PRODUCTION_SMOKE_BASE_URL }}
+      PRODUCTION_SMOKE_READY_POLL_MS: ${{ vars.PRODUCTION_SMOKE_READY_POLL_MS }}
+      PRODUCTION_SMOKE_READY_TIMEOUT_MS: ${{ vars.PRODUCTION_SMOKE_READY_TIMEOUT_MS }}
+      TEST_ADMIN_EMAIL: ${{ vars.PRODUCTION_SMOKE_ADMIN_EMAIL }}
+      TEST_ADMIN_EVENT_ID: ${{ vars.PRODUCTION_SMOKE_EVENT_ID }}
+      TEST_ADMIN_EVENT_NAME: ${{ vars.PRODUCTION_SMOKE_EVENT_NAME }}
+      TEST_ADMIN_EVENT_SLUG: ${{ vars.PRODUCTION_SMOKE_EVENT_SLUG }}
+      TEST_ADMIN_REDIRECT_URL: ${{ vars.PRODUCTION_SMOKE_ADMIN_REDIRECT_URL }}
+      TEST_DENIED_ADMIN_EMAIL: ${{ vars.PRODUCTION_SMOKE_DENIED_ADMIN_EMAIL }}
+      TEST_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.PRODUCTION_SMOKE_SUPABASE_SERVICE_ROLE_KEY }}
+      TEST_SUPABASE_URL: ${{ vars.PRODUCTION_SMOKE_SUPABASE_URL }}
+      VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY: ${{ vars.PRODUCTION_SMOKE_PUBLISHABLE_DEFAULT_KEY }}
+      VITE_SUPABASE_URL: ${{ vars.PRODUCTION_SMOKE_SUPABASE_URL }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24.14.1
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Validate smoke settings
+        run: |
+          set -eu
+          test -n "$PRODUCTION_SMOKE_BASE_URL"
+          test -n "$TEST_SUPABASE_URL"
+          test -n "$TEST_SUPABASE_SERVICE_ROLE_KEY"
+          test -n "$VITE_SUPABASE_URL"
+          test -n "$VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY"
+          test -n "$TEST_ADMIN_EMAIL"
+          test -n "$TEST_DENIED_ADMIN_EMAIL"
+          test -n "$TEST_ADMIN_EVENT_ID"
+          test -n "$TEST_ADMIN_EVENT_SLUG"
+          test -n "$TEST_ADMIN_EVENT_NAME"
+
+      - name: Run production admin smoke
+        run: npm run test:e2e:admin:production-smoke
+
+      - name: Upload smoke artifacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-admin-smoke-playwright-results
+          path: tmp/playwright/test-results-production-admin-smoke
+          if-no-files-found: ignore

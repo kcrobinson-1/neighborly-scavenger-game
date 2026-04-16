@@ -223,6 +223,14 @@ deno check --no-lock supabase/functions/unpublish-event/index.ts
 
 Those commands are also reflected in [`.github/workflows/ci.yml`](../.github/workflows/ci.yml).
 
+Production-only smoke coverage uses a separate command:
+
+```bash
+npm run test:e2e:admin:production-smoke
+```
+
+That command is intentionally not part of normal local validation or PR CI.
+
 For the full local validation flow, use:
 
 ```bash
@@ -291,6 +299,44 @@ This command is intentionally local-only in Phase 5.1:
 
 - it is not included in `.github/workflows/ci.yml`
 - it is not included in `npm run validate:local`
+
+Production smoke validation is exposed as:
+
+```bash
+npm run test:e2e:admin:production-smoke
+```
+
+This command is intended for the production smoke workflow and checks the
+deployed admin surface using dedicated smoke fixtures. It is not part of normal
+local contributor validation.
+
+The command:
+
+- polls deployed route readiness (`/admin` and `/game/:slug`) with bounded
+  timeout before browser checks start
+- runs a single-worker Playwright admin smoke suite against the deployed web
+  origin
+- expects the smoke environment contract documented in
+  [`production-admin-smoke-tracking.md`](./production-admin-smoke-tracking.md)
+
+Manual execution path:
+
+1. Open the `Production Admin Smoke` workflow in GitHub Actions.
+2. Use `Run workflow` (`workflow_dispatch`) on `main`.
+3. Confirm the `production` environment has all required smoke vars and
+   secrets documented in [`operations.md`](./operations.md).
+
+Failure triage categories:
+
+- readiness/deployment propagation
+- auth redirect/session setup
+- allowlist mismatch
+- authoring function write path (`save-draft`, `publish-draft`, `unpublish-event`)
+- public route publish-state mismatch
+
+Use the detailed runbook in
+[`production-admin-smoke-tracking.md`](./production-admin-smoke-tracking.md)
+for owner routing and first-response checks.
 
 ## UI Review Workflow
 
@@ -436,6 +482,7 @@ The intended release path is:
 4. Merge to `main`.
 5. Let Vercel Git integration publish the frontend from the merged commit.
 6. Let [`.github/workflows/release.yml`](../.github/workflows/release.yml) apply production Supabase migrations and deploy production Edge Functions from that same repo state.
+7. Let [`.github/workflows/production-admin-smoke.yml`](../.github/workflows/production-admin-smoke.yml) verify deployed admin auth and authoring workflows against dedicated production smoke fixtures (with manual rerun support).
 
 ### Pull Request Notes
 
@@ -465,6 +512,11 @@ The release workflow currently expects these GitHub Actions secrets:
 - `SUPABASE_ACCESS_TOKEN`
 - `SUPABASE_DB_PASSWORD`
 - `SUPABASE_PROJECT_REF`
+
+The production smoke workflow expects these additional `production` environment
+settings (vars and secrets):
+
+- see [`operations.md`](./operations.md) for the complete smoke settings list
 
 Important boundary:
 

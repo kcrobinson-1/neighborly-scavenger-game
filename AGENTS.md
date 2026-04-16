@@ -103,6 +103,10 @@ step count.
 - keep baseline validation, branch hygiene, implementation, automated
   code-review feedback, documentation cleanup, final validation, and PR
   preparation as separate steps when they are all relevant
+- for implementation plans, include an explicit documentation-current-state gate:
+  identify which docs with status-oriented sections (for example `Current
+  State`, `Current status`, rollout status, or phase status) are affected, and
+  include updating them as a required step before handoff
 - do not merge steps just to keep the plan visually compact
 - if a new required step is added, insert it at the correct point in the
   sequence without weakening or collapsing the surrounding steps
@@ -349,6 +353,9 @@ For structural or multi-file work, documentation is part of the execution loop, 
 - maintain or create a local README or equivalent in the relevant area when the change introduces or reorganizes module structure
 - document file responsibilities and intended ownership when the structure is non-obvious
 - update area docs as changes are made so the written structure never lags far behind the code
+- when a touched doc contains a status-oriented section (for example `Current
+  State`, `Current status`, rollout status, or phase status), update that
+  section in the same change so it reflects the implemented state
 - if a repo plan doc tracks phased work, keep its phase status current as implementation lands
 - when a tracked phase is complete in the branch, mark it complete in the relevant plan doc before handoff
 - unless the work is explicitly exploratory, keep each completed phase in a PR-ready state that could merge to `main` without waiting for a later phase

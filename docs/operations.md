@@ -41,6 +41,8 @@ For this project today, that means:
   CI behavior and required validation logic
 - [`.github/workflows/release.yml`](../.github/workflows/release.yml)
   production Supabase promotion flow after successful CI on `main`
+- [`.github/workflows/production-admin-smoke.yml`](../.github/workflows/production-admin-smoke.yml)
+  production admin smoke validation after successful release, with manual reruns
 
 ### Vercel
 
@@ -68,6 +70,8 @@ For this project today, that means:
   project entrypoint and quick-start guidance
 - [`docs/dev.md`](./dev.md)
   workflow, validation, release, and troubleshooting guidance
+- [`docs/production-admin-smoke-tracking.md`](./production-admin-smoke-tracking.md)
+  production admin smoke rollout policy, fixture ownership, and triage runbook
 
 ## Manually Maintained Settings
 
@@ -81,6 +85,22 @@ For this project today, that means:
   - `SUPABASE_ACCESS_TOKEN`
   - `SUPABASE_DB_PASSWORD`
   - `SUPABASE_PROJECT_REF`
+- GitHub `production` environment vars and secrets for production admin smoke:
+  - vars:
+    - `PRODUCTION_SMOKE_BASE_URL`
+    - `PRODUCTION_SMOKE_SUPABASE_URL`
+    - `PRODUCTION_SMOKE_PUBLISHABLE_DEFAULT_KEY`
+    - `PRODUCTION_SMOKE_ADMIN_EMAIL`
+    - `PRODUCTION_SMOKE_DENIED_ADMIN_EMAIL`
+    - `PRODUCTION_SMOKE_EVENT_ID`
+    - `PRODUCTION_SMOKE_EVENT_SLUG`
+    - `PRODUCTION_SMOKE_EVENT_NAME`
+    - optional `PRODUCTION_SMOKE_ADMIN_REDIRECT_URL`
+    - optional readiness tuning values:
+      - `PRODUCTION_SMOKE_READY_TIMEOUT_MS`
+      - `PRODUCTION_SMOKE_READY_POLL_MS`
+  - secrets:
+    - `PRODUCTION_SMOKE_SUPABASE_SERVICE_ROLE_KEY`
 - optional GitHub `production` environment approvals or reviewers
 
 Why manual for now:
@@ -144,6 +164,7 @@ For this repo today:
 - treat `supabase/migrations/`, `supabase/functions/`, and `supabase/config.toml` as the backend source of truth
 - treat GitHub workflow files as the source of truth for CI and release automation
 - treat Vercel environment variable values and Supabase secret values as platform-managed
+- treat production smoke fixture settings as manually managed production-environment configuration described in [`production-admin-smoke-tracking.md`](./production-admin-smoke-tracking.md)
 - avoid manual production edits that do not get reconciled back into the repository
 
 ## Future Option
