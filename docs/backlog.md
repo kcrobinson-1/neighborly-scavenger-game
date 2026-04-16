@@ -38,7 +38,7 @@ Must be resolved before QR codes are printed or the first real event runs.
   edit. Decision: redirect table was ruled out due to slug-recycling edge cases.
   Detail: [`docs/open-questions.md` — Product And Live Event Operation](./open-questions.md)
 
-- [ ] **`dev` Make `sponsor` nullable in `quiz_questions`**
+- [x] **`dev` Make `sponsor` nullable in `quiz_questions`**
   The `sponsor` column is currently `NOT NULL`, which forces every question to
   carry a sponsor attribution even when no sponsor is attached. Real events will
   have house questions alongside sponsored ones. This needs a migration to drop
