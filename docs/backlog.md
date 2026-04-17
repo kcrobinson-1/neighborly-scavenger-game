@@ -204,9 +204,9 @@ Execute in any order.
   fixture-file responsibility header updates in `shared/game-config`.
   Detail: [`docs/code-documentation-audit.md` — Slice B](./code-documentation-audit.md#slice-b--shared-domain-exports-and-barrel-clarity)
 
-- [ ] **`dev` Code-documentation remediation Slice C (browser API boundaries)**
-  Add required file-level ownership documentation in browser API boundary
-  modules.
+- [x] **`dev` Code-documentation remediation Slice C (browser API boundaries)**
+  Completed on 2026-04-17 with file-level boundary ownership headers in
+  `quizApi.ts`, `adminQuizApi.ts`, and `quizContentApi.ts`.
   Detail: [`docs/code-documentation-audit.md` — Slice C](./code-documentation-audit.md#slice-c--browser-api-boundary-helpers)
 
 - [ ] **`dev` Code-documentation remediation Slice D (edge function boundaries)**

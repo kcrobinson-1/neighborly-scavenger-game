@@ -14,6 +14,12 @@ import {
   readSupabaseErrorMessage,
 } from "./supabaseBrowser";
 
+/**
+ * Browser quiz-session API boundary for attendee gameplay.
+ * Owns trusted session bootstrap and completion submission calls to Supabase,
+ * plus the explicit local-only prototype fallback path for development without
+ * backend configuration.
+ */
 /** Browser storage key for prototype entitlement records. */
 const localEntitlementStorageKey = "neighborly.local-entitlements.v1";
 /** Browser storage key for per-session attempt counters. */
