@@ -56,6 +56,31 @@ describe("parseAuthoringGameDraftContent", () => {
     ).toThrow('Draft content "estimatedMinutes" must be a positive integer.');
   });
 
+  it("rejects invalid feedback mode values", () => {
+    expect(() =>
+      parseAuthoringGameDraftContent({
+        ...createAuthoringDraft(),
+        feedbackMode: "invalid_mode",
+      })
+    ).toThrow(
+      'Draft content "feedbackMode" must be "final_score_reveal" or "instant_feedback_required".',
+    );
+  });
+
+  it("rejects invalid question selection mode values", () => {
+    expect(() =>
+      parseAuthoringGameDraftContent({
+        ...createAuthoringDraft(),
+        questions: [
+          {
+            ...createAuthoringDraft().questions[0],
+            selectionMode: "not-a-mode",
+          },
+        ],
+      })
+    ).toThrow('Question "q1" selection mode must be "single" or "multiple".');
+  });
+
   it("accepts null sponsor on a question", () => {
     const draft = parseAuthoringGameDraftContent({
       ...createAuthoringDraft(),
@@ -90,6 +115,22 @@ describe("parseAuthoringGameDraftContent", () => {
         questions: [{ ...createAuthoringDraft().questions[0], sponsor: 42 }],
       })
     ).toThrow('Question "q1" sponsor must be a string or null.');
+  });
+
+  it("rejects null sponsorFact in the canonical draft payload", () => {
+    expect(() =>
+      parseAuthoringGameDraftContent({
+        ...createAuthoringDraft(),
+        questions: [
+          {
+            ...createAuthoringDraft().questions[0],
+            sponsorFact: null,
+          },
+        ],
+      })
+    ).toThrow(
+      'Question "q1" sponsorFact must be a string when provided.',
+    );
   });
 });
 
@@ -175,5 +216,16 @@ describe("mapAuthoringGameDraftContentToGameConfig", () => {
       "a",
       "b",
     ]);
+  });
+
+  it("clones authored question and option arrays", () => {
+    const draft = createAuthoringDraft();
+    const game = mapAuthoringGameDraftContentToGameConfig(draft);
+
+    expect(game.questions).not.toBe(draft.questions);
+    expect(game.questions[0].correctAnswerIds).not.toBe(
+      draft.questions[0].correctAnswerIds,
+    );
+    expect(game.questions[0].options).not.toBe(draft.questions[0].options);
   });
 });

@@ -30,7 +30,7 @@ Rules for this checklist:
 
 ## Candidate Tasks
 
-- [ ] Split authoring draft parsing primitives from draft mapping.
+- [x] Split authoring draft parsing primitives from draft mapping.
   `shared/game-config/draft-content.ts` contains JSON parsing primitives,
   question/option parsing, draft row types, validation, and draft-to-runtime
   mapping. Move generic JSON expectation helpers and question parsing into

@@ -131,7 +131,7 @@ event.
   work.
   Detail: [`docs/code-refactor-checklist.md`](./code-refactor-checklist.md)
 
-- [ ] **`dev` Split `draft-content.ts`** (refactor score 8/10)
+- [x] **`dev` Split `draft-content.ts`** (refactor score 8/10)
   Move generic JSON expectation helpers and question parsing into focused shared
   modules so `draft-content.ts` reads as the public authoring contract.
   Detail: [`docs/code-refactor-checklist.md`](./code-refactor-checklist.md)

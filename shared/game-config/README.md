@@ -21,8 +21,12 @@ It is responsible for:
 - `game-validation.ts`
   Structural validation for any `GameConfig`.
 - `draft-content.ts`
-  Parses and validates canonical authoring draft JSON, then maps it into
-  `GameConfig`.
+  Public authoring draft contract: row types plus top-level parse/validate/map
+  helpers.
+- `draft-json.ts`
+  Shared JSON expectation primitives used by authoring draft parsing.
+- `draft-question-parsing.ts`
+  Authoring question/option and enum parsing used by `draft-content.ts`.
 - `db-content.ts`
   Maps published Supabase rows into `GameConfig`.
 - `sample-games.ts`
