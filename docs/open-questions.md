@@ -34,6 +34,17 @@ this file.
 - Is one quiz experience per event enough for the MVP, or do some events need
   multiple attendee routes under one organizer-owned event?
   The current runtime model assumes one event maps to one quiz route.
+- For an MVP redemption workflow, what is the minimum volunteer check-in
+  experience needed beyond showing a completion verification code?
+  Initial design direction is documented in
+  [`reward-redemption-mvp-design.md`](./reward-redemption-mvp-design.md).
+  Decisions already made for MVP scope: keep redemption UI on non-admin routes
+  (`/event/:slug/redeem` and `/event/:slug/redemptions`), use
+  `<event-acronym>-<4-digit-code>` with event-scoped lookups, use polling
+  (not realtime subscriptions) every 5 seconds plus manual refresh for attendee
+  status updates, keep redemption as claim-tracking only, support reversible
+  redemption, keep offline fallback out of MVP, and use an event-scoped `agent`
+  role for redemption operations.
 
 ## Authoring And Publishing
 
@@ -42,6 +53,15 @@ this file.
   The current authoring model uses Supabase Auth plus `public.quiz_admin_users`
   for all admin access. It does not yet define organizer-scoped roles,
   event-level permissions, or non-admin collaborator access.
+- With `agent` and `organizer` now split into separate event-scoped roles
+  (`agent` for redemption, `organizer` for non-redemption event operations),
+  what is the MVP permission matrix between those roles and root admin?
+  **MVP decisions landed:** keep role permissions intentionally narrow, manage
+  agent/organizer assignments by direct SQL inserts (no role-management UI),
+  and require organizer/root-admin privileges for redemption reversal via
+  `/event/:slug/redemptions`.
+  **Still open for post-MVP:** broader organizer authoring/publish surface,
+  assignment self-management UX, and long-term role inheritance model.
 - Should the repo add a root-level admin role and UI for managing
   `public.quiz_admin_users` membership instead of requiring direct SQL edits?
   The current setup intentionally keeps allowlist membership as a manual

@@ -154,6 +154,19 @@ prioritization before starting.
   proof, aggregate event totals, or question-level reporting.
   Detail: [`docs/open-questions.md` — Reporting And Sponsor Measurement](./open-questions.md)
 
+- [x] **`decision` MVP reward redemption workflow**
+  Completed on 2026-04-17.
+  Decisions landed for MVP scope: use an event-scoped `agent` role for
+  redemption and a separate event-scoped `organizer` role for non-redemption
+  event operations; keep redemption on non-admin routes
+  (`/event/:slug/redeem` and `/event/:slug/redemptions`); use
+  `<event-acronym>-<4-digit-code>` with event-scoped lookup behavior; use
+  polling (not realtime subscriptions) every 5 seconds plus manual refresh for
+  attendee status updates; keep offline fallback out of MVP; keep assignment
+  management as direct SQL inserts for MVP; and allow reversal only from
+  organizer/root-admin paths.
+  Detail: [`docs/reward-redemption-mvp-design.md`](./reward-redemption-mvp-design.md) and [`docs/open-questions.md` — Product And Live Event Operation](./open-questions.md)
+
 ---
 
 ## Tier 5 — Code Health And Tooling
