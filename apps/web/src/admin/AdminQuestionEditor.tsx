@@ -6,17 +6,19 @@ import {
 } from "react";
 import type { DraftEventDetail, DraftEventSummary } from "../lib/adminQuizApi";
 import {
+  createQuestionFormValues,
+  updateQuestionFormValues,
+  type AdminQuestionFormValues,
+} from "./questionFormMapping";
+import {
   addOption,
   addQuestion,
-  createQuestionFormValues,
   deleteOption,
   deleteQuestion,
   duplicateQuestion,
   moveQuestion,
-  updateQuestionFormValues,
   updateQuestionSelectionMode,
-  type AdminQuestionFormValues,
-} from "./questionBuilder";
+} from "./questionStructure";
 
 type AdminQuestionEditorProps = {
   disabled: boolean;
@@ -70,11 +72,18 @@ export function AdminQuestionEditor({
   const saveMessage = localMessage ?? message;
   const saveMessageKind = localMessage ? "error" : messageKind;
 
-  const updateValues = (nextValues: AdminQuestionFormValues) => {
-    setEditableContent((currentContent) =>
-      updateQuestionFormValues(currentContent, focusedQuestionId, nextValues),
-    );
+  const applyContentChange = (
+    updater: (
+      content: DraftEventDetail["content"],
+    ) => DraftEventDetail["content"],
+  ) => {
+    setEditableContent((currentContent) => updater(currentContent));
     setLocalMessage(null);
+  };
+
+  const updateValues = (nextValues: AdminQuestionFormValues) => {
+    applyContentChange((currentContent) =>
+      updateQuestionFormValues(currentContent, focusedQuestionId, nextValues));
   };
 
   const updateTextValue =
@@ -90,14 +99,12 @@ export function AdminQuestionEditor({
     };
 
   const updateSelectionMode = (event: ChangeEvent<HTMLSelectElement>) => {
-    setEditableContent((currentContent) =>
+    applyContentChange((currentContent) =>
       updateQuestionSelectionMode(
         updateQuestionFormValues(currentContent, focusedQuestionId, values),
         focusedQuestionId,
         event.target.value as AdminQuestionFormValues["selectionMode"],
-      ),
-    );
-    setLocalMessage(null);
+      ));
   };
 
   const updateOptionLabel =
@@ -168,18 +175,14 @@ export function AdminQuestionEditor({
   };
 
   const handleAddOption = () => {
-    setEditableContent((currentContent) =>
-      addOption(currentContent, focusedQuestionId),
-    );
-    setLocalMessage(null);
+    applyContentChange((currentContent) =>
+      addOption(currentContent, focusedQuestionId));
   };
 
   const handleDeleteOption = (optionId: string) => {
     try {
-      setEditableContent((currentContent) =>
-        deleteOption(currentContent, focusedQuestionId, optionId),
-      );
-      setLocalMessage(null);
+      applyContentChange((currentContent) =>
+        deleteOption(currentContent, focusedQuestionId, optionId));
     } catch (error: unknown) {
       setLocalMessage(
         error instanceof Error ? error.message : "We couldn't delete the option.",
