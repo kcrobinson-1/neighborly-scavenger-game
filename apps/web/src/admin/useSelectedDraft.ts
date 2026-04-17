@@ -12,7 +12,7 @@ import {
   applyEventDetailsFormValues,
   type AdminEventDetailsFormValues,
 } from "./eventDetails";
-import { prepareQuestionContentForSave } from "./questionBuilder";
+import { prepareQuestionContentForSave } from "./questionFormMapping";
 import type { useAdminSession } from "./useAdminSession";
 
 // Structural subset of AdminDashboardState — only the fields useSelectedDraft
