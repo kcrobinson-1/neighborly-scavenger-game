@@ -85,9 +85,11 @@ Reduce deployment risk and contributor friction before the live event.
   then retries successfully.
   Detail: [`docs/testing.md` — Trust-Path Validation Strategy](./testing.md)
 
-- [ ] **`infra` Attendee smoke bootstrap failure messaging**
-  Add a smoke check for missing Supabase env or backend bootstrap failure so the
-  attendee UI shows an actionable setup/integration error state.
+- [x] **`infra` Attendee smoke bootstrap failure messaging**
+  Completed: trusted-backend attendee smoke now forces a one-shot
+  `issue-session` bootstrap failure, then asserts intro-screen error messaging
+  (`Can't start the quiz right now.` + backend failure detail) while preserving
+  recoverable start state.
   Detail: [`docs/testing.md` — What Needs Coverage](./testing.md)
 
 - [ ] **`decision` Staging or branch-based Supabase promotion path**

@@ -49,7 +49,7 @@ Use this table to pick the smallest useful command for your change.
 | Edge Function request/helper logic | `npm run test:functions` | Deno-level function helper and handler behavior | Real Supabase runtime wiring and DB/RPC integration | Edge Function logic changes |
 | Trust-path backend integration | `npm run test:supabase` | Local Supabase stack, function integration (`issue-session` + `complete-quiz`), pgTAP DB checks | Browser/admin UX path, production deployment wiring | Backend trust/data/auth changes |
 | Attendee browser smoke (fallback mode) | `npm run test:e2e` | Mobile browser smoke for attendee route flow with explicit prototype fallback mode | Trusted backend persistence assertions, admin flows | Attendee UX/route-shell changes |
-| Attendee browser smoke (trusted backend) | `npm run test:e2e:attendee:trusted-backend` | Mobile attendee completion flow against local Supabase + local functions runtime, with DB assertions for success persistence and malformed-submission non-persistence | PR CI wiring, production deployment behavior, admin flows | Attendee trust-path smoke updates and backend completion-path confidence checks |
+| Attendee browser smoke (trusted backend) | `npm run test:e2e:attendee:trusted-backend` | Mobile attendee flow against local Supabase + local functions runtime, with assertions for success persistence, malformed-submission non-persistence, and session-bootstrap failure messaging | PR CI wiring, production deployment behavior, admin flows | Attendee trust-path smoke updates and backend completion-path confidence checks |
 | Admin local e2e | `npm run test:e2e:admin` | Real local Supabase-backed `/admin` auth/allowlist/save/publish/unpublish flow | Deployed production auth redirect and production infrastructure wiring | Admin auth/authoring/publish or related UI changes |
 | Full local default gate | `npm run validate:local` | Lint, unit tests, Deno function tests, attendee Playwright smoke, local Supabase validation, web build, Deno checks | Admin local e2e and production smoke | Before handoff when you need broad local confidence |
 | Production admin smoke | `npm run test:e2e:admin:production-smoke` (normally via workflow) | Deployed production admin auth/allowlist/save/publish/unpublish on dedicated smoke fixtures | General attendee production coverage, non-smoke event data, PR CI checks | Post-release validation or manual production smoke rerun |
@@ -63,7 +63,7 @@ Use this table to pick the smallest useful command for your change.
 - Edge Function helpers and handler request validation
 - local Supabase trust-path integration and pgTAP database rules
 - attendee mobile browser smoke (fallback-mode deterministic path)
-- attendee mobile browser smoke (trusted backend with success + rejection DB assertions)
+- attendee mobile browser smoke (trusted backend with success + rejection DB assertions and bootstrap-failure messaging)
 - local admin e2e against real local Supabase
 - production admin smoke (manual + post-release workflow) against dedicated smoke fixtures
 
@@ -589,6 +589,7 @@ Everything beyond that should earn its keep.
 - [x] Add an integration test that exercises `issue-session` plus `complete-quiz` against a local Supabase stack.
 - [x] Add trusted-backend attendee Playwright smoke coverage that runs against local Supabase + local Edge Functions and asserts completion persistence through database reads.
 - [x] Add attendee smoke malformed-submission rejection coverage that forces a backend `400`, asserts no completion persistence for the malformed request, and verifies retry-to-success.
+- [x] Add attendee smoke bootstrap-failure messaging coverage that forces `issue-session` startup failure and asserts the intro error banner plus backend failure detail.
 - [ ] Add PR CI coverage for the Playwright smoke suite.
 - [x] Add PR CI coverage for Deno function tests.
 - [x] Add local end-to-end admin functionality coverage for sign-in/session
