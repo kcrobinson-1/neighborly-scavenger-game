@@ -219,14 +219,19 @@ Release bar (see G1, G2, G3, G8):
 Scope:
 
 - repo-level docs in `README.md` and `docs/`
-- inline function and type documentation at trust, persistence, migration, and
-  workflow boundaries
+- TSDoc/JSDoc or concise inline comments at shared domain, trust, persistence,
+  migration, API, and workflow boundaries
 - area readmes where module ownership would otherwise be non-obvious
 - comments that explain non-obvious logic or constraint rules
 
-This dimension does not cover JSDoc coverage metrics or any heavyweight
-generated documentation site. The repo intentionally keeps docs human-edited,
-per [documentation-quality-checklist.md](./documentation-quality-checklist.md).
+This dimension does not require coverage metrics, blanket JSDoc on every
+symbol, or a generated documentation site. The repo intentionally keeps docs
+human-edited, per
+[documentation-quality-checklist.md](./documentation-quality-checklist.md).
+
+The project standard is: document intent, contracts, invariants, and
+non-obvious failure behavior at durable boundaries; do not document obvious
+implementation details that names and TypeScript types already explain.
 
 How to run:
 
@@ -235,13 +240,19 @@ How to run:
    branch. For each named doc, confirm it reflects the shipped state.
 2. Open the top ~15 largest source files (see the size observation under
    [4. Code Cleanliness And Quality](#4-code-cleanliness-and-quality)) and
-   audit public function, hook, and type-level comments for the following:
-   - exported symbols at trust, persistence, or publish boundaries have a
-     comment that names intent, invariants, and failure modes
+   audit public function, hook, constant, and type-level comments for the
+   following:
+   - exported symbols at shared domain, trust, persistence, authorization,
+     idempotency, completion verification, entitlement, publish, unpublish, API
+     client, or workflow boundaries have a comment or self-explanatory
+     contract that names intent, invariants, and failure modes
    - non-obvious behavior (for example best-effort inserts, retry semantics,
-     canonical answer shape) is documented at its definition
+     canonical answer shape, local prototype fallback, smoke-only fixtures, or
+     magic-link redirect assumptions) is documented at its definition
    - deprecated or transitional behavior (for example the local prototype
      fallback in `apps/web/src/lib/quizApi.ts`) is clearly labeled
+   - comments do not merely restate names, types, or straightforward control
+     flow
 3. Confirm area readmes still describe the current module ownership for any
    area that has been restructured since the last pass (today that includes
    `apps/web/src/game/`, `apps/web/src/admin/`, and `shared/game-config/`).
@@ -258,6 +269,9 @@ Where findings live:
   behavior; if discovered post-hoc, record a short item under
   [Running Findings — Documentation](#running-findings) and resolve it before
   the release candidate ships
+- broad comment-coverage uncertainty: add a bounded audit item to
+  [backlog.md](./backlog.md) that requires a gap list and remediation plan
+  before implementation
 - docs drift: add to
   [documentation-quality-checklist.md](./documentation-quality-checklist.md)
   under the appropriate subsection, and update any stale doc in the same PR as
@@ -269,8 +283,11 @@ Release bar (see G7):
 
 - every doc named under [AGENTS.md — Doc Currency Is a PR Gate](../AGENTS.md)
   that the release branch should have touched has been updated
-- no new exported seam at the trust, persistence, or publish boundary ships
-  without an inline comment that explains its intent and failure behavior
+- no new exported seam at a shared domain, trust, persistence, authorization,
+  idempotency, completion verification, entitlement, API, publish, unpublish,
+  or workflow boundary ships without either self-explanatory types/names or a
+  short TSDoc/JSDoc/inline comment that explains its intent and failure
+  behavior
 - `open-questions.md` has been reviewed for newly answered or newly opened
   items
 

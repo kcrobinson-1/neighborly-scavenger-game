@@ -57,6 +57,40 @@ The main working areas are:
 
 ## Implementation Decisions That Matter During Development
 
+### Code documentation standard
+
+Use TypeScript types, clear names, and small modules as the first layer of
+documentation. Add TSDoc/JSDoc or concise inline comments only where the code's
+contract, intent, or failure behavior is not obvious from the implementation.
+
+Required comment targets:
+
+- exported functions, hooks, types, and constants at shared domain boundaries
+  such as scoring, answer validation, published quiz mapping, and config
+  construction
+- trust, persistence, authorization, idempotency, completion verification,
+  entitlement, publish, and unpublish boundaries
+- API clients and Edge Function helpers whose callers need to understand
+  fallback behavior, trusted versus untrusted inputs, or expected failures
+- durable SQL functions, triggers, or migrations when the database enforces a
+  non-obvious invariant
+- surprising internal behavior such as best-effort observability writes,
+  retry semantics, local prototype fallback, smoke-only fixtures, or magic-link
+  redirect assumptions
+
+Avoid comment noise:
+
+- do not add comments that merely restate names, types, or straightforward
+  control flow
+- do not use inline comments as phase tracking, release status, or TODO storage;
+  put durable follow-up work in `docs/backlog.md`, `docs/open-questions.md`, or
+  the relevant detail doc
+- keep comments short and update them in the same change as the behavior they
+  describe
+
+Release-readiness documentation checks are defined in
+[`release-readiness.md` — Code Documentation And Comments](./release-readiness.md#2-code-documentation-and-comments).
+
 ### DB-backed content with a shared runtime model
 
 Published quiz content now lives in Supabase tables, not in the default shared
