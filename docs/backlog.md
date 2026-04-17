@@ -199,8 +199,9 @@ Execute in any order.
   contract comments in the targeted admin modules.
   Detail: [`docs/code-documentation-audit.md` — Slice A](./code-documentation-audit.md#slice-a--admin-orchestration-and-form-modules)
 
-- [ ] **`dev` Code-documentation remediation Slice B (shared barrel clarity)**
-  Add required shared-domain barrel boundary documentation updates.
+- [x] **`dev` Code-documentation remediation Slice B (shared barrel clarity)**
+  Completed on 2026-04-17 with shared barrel boundary documentation and
+  fixture-file responsibility header updates in `shared/game-config`.
   Detail: [`docs/code-documentation-audit.md` — Slice B](./code-documentation-audit.md#slice-b--shared-domain-exports-and-barrel-clarity)
 
 - [ ] **`dev` Code-documentation remediation Slice C (browser API boundaries)**
