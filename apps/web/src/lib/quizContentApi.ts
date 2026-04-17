@@ -15,6 +15,11 @@ import {
   readSupabaseErrorMessage,
 } from "./supabaseBrowser";
 
+/**
+ * Browser published-content read boundary for landing summaries and game routes.
+ * Owns Supabase PostgREST reads when configured and explicit fixture fallback
+ * reads only in local prototype mode.
+ */
 type PublishedGameSummaryRow = Pick<
   PublishedGameEventRow,
   "id" | "slug" | "name" | "summary" | "feedback_mode"

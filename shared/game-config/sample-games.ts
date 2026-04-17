@@ -1,9 +1,11 @@
 import { featuredGameSlug } from "./constants.ts";
 import type { GameConfig } from "./types.ts";
 
-// These sample games are now explicit fixtures for tests and the browser-only
-// prototype fallback. Published runtime content should come from the database
-// and be mapped into GameConfig through db-content.ts instead.
+/**
+ * Sample quiz fixtures for tests and explicit local-only prototype fallback.
+ * Published runtime content should come from database rows mapped through
+ * db-content.ts, not from this fixture file.
+ */
 
 /** Sample game that demonstrates a standard quiz with final score reveal. */
 const firstSampleGame: GameConfig = {

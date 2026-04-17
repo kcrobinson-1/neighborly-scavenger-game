@@ -32,54 +32,32 @@ steps, and validation commands.
 Must be resolved before QR codes are printed or the first real event runs.
 
 - [x] **`feat` Lock slug after first publish**
-  Slugs are read-only once an event is published. The admin UI now locks the
-  slug field after first publish and explains why with inline copy plus tooltip
-  text (printed QR codes and URLs depend on it). The backend enforces the same
-  rule in `save-draft`, and a DB trigger enforces it atomically during updates
-  so concurrent publish/save races cannot bypass the lock. Decision: redirect
-  table was ruled out due to slug-recycling edge cases.
+  Completed: slug is now locked after first publish across admin UI, edge
+  function, and DB trigger enforcement.
   Detail: [`docs/open-questions.md` — Authoring And Publishing](./open-questions.md)
 
 - [x] **`dev` Make `sponsor` nullable in `quiz_questions`**
-  The `sponsor` column is currently `NOT NULL`, which forces every question to
-  carry a sponsor attribution even when no sponsor is attached. Real events will
-  have house questions alongside sponsored ones. This needs a migration to drop
-  the `NOT NULL` constraint, a shared-type update to mark `sponsor` as
-  `string | null` in `Question`, and follow-up to any rendering or analytics
-  logic that assumes the field is always populated. Blocking: analytics sponsor
-  engagement queries and admin authoring cannot model unsponsored questions
-  correctly until this is resolved.
+  Completed: unsponsored questions are supported in schema and shared runtime
+  types.
 
 - [x] **`dev` Record quiz starts in Supabase**
-  Add a `quiz_starts` table (columns: `event_id`, `client_session_id`,
-  `issued_at`) and a single INSERT into it from the `issue-session` edge
-  function. This gives the denominator for the completion funnel: starts →
-  completions → raffle entries. This data is unrecoverable after the event if
-  the table is not in place before attendees arrive, which makes it a hard
-  pre-event dependency rather than a post-MVP analytics nice-to-have. The
-  broader analytics dashboard (Tier 4) depends on this row existing.
+  Completed: `quiz_starts` persistence is wired from `issue-session` for funnel
+  denominator coverage.
   Detail: [`docs/analytics-strategy.md` — Approach 2 and Recommended Sequencing](./analytics-strategy.md)
 
 - [x] **`infra` Production admin smoke workflow**
-  Added a dedicated production admin smoke workflow that supports manual
-  `workflow_dispatch` reruns and post-release automation after successful
-  `Release` runs. The smoke path validates admin auth, allowlist enforcement,
-  draft persistence, publish/unpublish, and public route state changes against
-  a dedicated production smoke event.
+  Completed: workflow covers deployed admin auth, allowlist, draft save,
+  publish/unpublish, and public route state transitions.
   Detail: [`docs/production-admin-smoke-tracking.md`](./production-admin-smoke-tracking.md) and [`docs/testing.md` — Admin Functionality Validation Goal](./testing.md)
 
 - [x] **`infra` Configure production admin smoke settings and rerun release-candidate smoke**
-  GitHub `production` environment settings are configured, and
-  `Production Admin Smoke` passed on the release-readiness branch in run
-  `24541137250`. The smoke path validated deployed admin auth, allowlist
-  enforcement, draft persistence, publish/unpublish, and public route state
-  changes against the dedicated production smoke event.
+  Completed: production environment settings are configured and release-candidate
+  smoke evidence is tracked in the owning doc.
   Detail: [`docs/production-admin-smoke-tracking.md`](./production-admin-smoke-tracking.md)
 
 - [x] **`decision` Volunteer verification affordance**
-  For the pre-launch Madrona release milestone, the current completion screen
-  plus verification code is sufficient for volunteer raffle handoff. Stronger
-  proof treatments can be revisited after this release is finished.
+  Completed decision: pre-launch relies on completion screen + verification code;
+  stronger proof is deferred.
   Detail: [`docs/open-questions.md` — Product And Live Event Operation](./open-questions.md)
 
 ---
@@ -125,20 +103,15 @@ event.
   Detail: [`docs/admin-ux-roadmap.md` — Clarify the desktop admin workspace hierarchy](./admin-ux-roadmap.md)
 
 - [x] **`dev` Split `useAdminDashboard.ts`** (refactor score 9/10)
-  Extract selected-draft and mutation state machines into focused hooks so the
-  top-level dashboard is auth/loading orchestration rather than one long event
-  handler module. Highest-scored refactor; the most-touched file during admin
-  work.
+  Completed.
   Detail: [`docs/code-refactor-checklist.md`](./code-refactor-checklist.md)
 
 - [x] **`dev` Split `draft-content.ts`** (refactor score 8/10)
-  Move generic JSON expectation helpers and question parsing into focused shared
-  modules so `draft-content.ts` reads as the public authoring contract.
+  Completed.
   Detail: [`docs/code-refactor-checklist.md`](./code-refactor-checklist.md)
 
 - [x] **`dev` Split `questionBuilder.ts`** (refactor score 8/10)
-  Move structure helpers into a focused module while preserving the existing
-  public helper behavior. Affects the authoring data path alongside the above.
+  Completed.
   Detail: [`docs/code-refactor-checklist.md`](./code-refactor-checklist.md)
 
 ---
@@ -188,20 +161,30 @@ prioritization before starting.
 Internal maintainability and contributor workflow. No user-facing impact.
 Execute in any order.
 
-- [ ] **`dev` Audit file-level TSDoc/JSDoc and inline code-documentation gaps**
-  Do a thorough source audit against the code documentation standard in
-  `docs/dev.md` and the release-readiness Dimension 2 gate. Produce a concrete
-  gap list and remediation plan before editing implementation code. The audit
-  should prioritize file-level responsibility headers for large route-level,
-  orchestration, and boundary modules, plus exported seams and durable
-  boundaries in `shared/`, `apps/web/src/lib/`, `apps/web/src/admin/`,
-  `apps/web/src/game/`, `supabase/functions/`, and database migrations/RPCs.
-  Files like `AdminEventWorkspace.tsx` should be evaluated for whether a reader
-  can quickly understand what the file owns and what it delegates. The output
-  should separate required comments from comment noise, name the files/symbols
-  that need work, and recommend PR-sized follow-up slices with validation
-  commands.
-  Detail: [`docs/dev.md` — Code documentation standard](./dev.md#code-documentation-standard) and [`docs/release-readiness.md` — Code Documentation And Comments](./release-readiness.md#2-code-documentation-and-comments)
+- [x] **`dev` Audit file-level TSDoc/JSDoc and inline code-documentation gaps**
+  Completed on 2026-04-17.
+  Detail: [`docs/code-documentation-audit.md`](./code-documentation-audit.md),
+  [`docs/dev.md` — Code documentation standard](./dev.md#code-documentation-standard), and [`docs/release-readiness.md` — Code Documentation And Comments](./release-readiness.md#2-code-documentation-and-comments)
+
+- [x] **`dev` Code-documentation remediation Slice A (admin modules)**
+  Completed on 2026-04-17.
+  Detail: [`docs/code-documentation-audit.md` — Slice A](./code-documentation-audit.md#slice-a--admin-orchestration-and-form-modules)
+
+- [x] **`dev` Code-documentation remediation Slice B (shared barrel clarity)**
+  Completed on 2026-04-17.
+  Detail: [`docs/code-documentation-audit.md` — Slice B](./code-documentation-audit.md#slice-b--shared-domain-exports-and-barrel-clarity)
+
+- [x] **`dev` Code-documentation remediation Slice C (browser API boundaries)**
+  Completed on 2026-04-17.
+  Detail: [`docs/code-documentation-audit.md` — Slice C](./code-documentation-audit.md#slice-c--browser-api-boundary-helpers)
+
+- [x] **`dev` Code-documentation remediation Slice D (edge function boundaries)**
+  Completed on 2026-04-17.
+  Detail: [`docs/code-documentation-audit.md` — Slice D](./code-documentation-audit.md#slice-d--edge-function-boundary-helpers-and-handler-dependencies)
+
+- [x] **`dev` Code-documentation remediation Slice E (migration/RPC invariants)**
+  Completed on 2026-04-17.
+  Detail: [`docs/code-documentation-audit.md` — Slice E](./code-documentation-audit.md#slice-e--migrationrpc-invariant-comments)
 
 - [ ] **`dev` Split `quizApi.ts` local fallback** (refactor score 8/10)
   Extract local prototype entitlement storage and completion into a separate

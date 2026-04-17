@@ -5,6 +5,12 @@ import {
   type SelectionMode,
 } from "../../../../shared/game-config";
 
+/**
+ * Form-state mapping and save-time canonicalization for admin question editing.
+ * Owns how question form values are converted into canonical draft content.
+ * Does not own structure operations (add/delete/move); those live in
+ * questionStructure.ts.
+ */
 export type AdminQuestionOptionFormValues = {
   id: string;
   isCorrect: boolean;
@@ -122,6 +128,10 @@ function createNormalizedQuestion(question: Question): Question {
   };
 }
 
+/**
+ * Canonicalizes every question before persistence and validates the whole draft.
+ * Throws when required fields or correct-answer invariants are invalid.
+ */
 export function prepareQuestionContentForSave(
   content: AuthoringGameDraftContent,
 ): AuthoringGameDraftContent {
@@ -136,6 +146,10 @@ export function prepareQuestionContentForSave(
   return nextContent;
 }
 
+/**
+ * Applies UI form values to one question without running full draft validation.
+ * This is used for local editing state before explicit save.
+ */
 export function updateQuestionFormValues(
   content: AuthoringGameDraftContent,
   questionId: string,
@@ -166,6 +180,10 @@ export function updateQuestionFormValues(
   }));
 }
 
+/**
+ * Builds UI-editable form values for one question in draft content.
+ * Throws when the requested question id is not present.
+ */
 export function createQuestionFormValues(
   content: AuthoringGameDraftContent,
   questionId: string,
@@ -193,6 +211,10 @@ export function createQuestionFormValues(
   };
 }
 
+/**
+ * Applies question form values and returns save-ready canonical content.
+ * Throws when option/correct-answer constraints are invalid.
+ */
 export function applyQuestionFormValues(
   content: AuthoringGameDraftContent,
   questionId: string,

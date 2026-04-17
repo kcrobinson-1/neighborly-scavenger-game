@@ -646,6 +646,29 @@ progresses.
 - <link to backlog/tracker item created by this pass>
 ```
 
+### Pass 2026-04-17 (Scoped — Dimension 2 Documentation Audit)
+
+**Reviewer:** docs/code-doc-audit Codex session
+**Release target:** Madrona Music in the Playfield
+**Scope:** Documentation-only follow-up for the Tier 5 code-documentation audit backlog item
+
+**Documentation:**
+
+- Completed a scoped code-documentation audit artifact at
+  [`docs/code-documentation-audit.md`](./code-documentation-audit.md), covering
+  `shared/game-config`, `apps/web/src/lib`, `apps/web/src/admin`,
+  `apps/web/src/game`, `supabase/functions`, and `supabase/migrations`.
+- Classified findings as `Required`, `Optional`, and `Noise` with rationale and
+  opened PR-sized remediation slices A-E.
+- This pass was audit-only; no implementation code-documentation edits were
+  applied yet.
+
+**Follow-ups opened:**
+
+- Tier 5 remediation slices in [`backlog.md`](./backlog.md) for Slice A (admin),
+  B (shared barrel), C (browser API), D (edge function boundaries), and E
+  (migration/RPC invariants).
+
 ### Pass 2026-04-16
 
 **Reviewer:** coordinator Codex thread

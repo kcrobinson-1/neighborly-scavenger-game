@@ -11,6 +11,11 @@ import {
   readSupabaseErrorMessage,
 } from "./supabaseBrowser";
 
+/**
+ * Browser admin authoring API boundary for `/admin`.
+ * Owns auth session restoration, allowlist checks, draft reads, and authenticated
+ * authoring function calls using the signed-in admin JWT.
+ */
 type DraftEventRow = {
   content?: AuthoringGameDraftContent;
   created_at?: string;

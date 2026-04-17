@@ -1,3 +1,9 @@
+/**
+ * Public shared quiz-domain entrypoint consumed by frontend and edge functions.
+ * Exports canonical runtime types plus mapping/validation/scoring helpers.
+ * Intentionally excludes sample fixtures, which stay in sample-fixtures.ts for
+ * tests and explicit local prototype fallback usage.
+ */
 export {
   answersMatch,
   normalizeOptionIds,

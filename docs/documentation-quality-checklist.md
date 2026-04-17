@@ -72,3 +72,7 @@ Use it as:
   commands and release workflow.
 - [ ] Check whether docs duplicate the same procedure in multiple places instead
   of linking to one canonical owner.
+- [ ] During code-documentation passes, explicitly review shared barrel files,
+  edge-function helper modules, and large SQL migrations for missing
+  file-level responsibility or invariant comments before marking Dimension 2
+  documentation status as complete.
