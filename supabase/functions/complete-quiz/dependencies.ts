@@ -13,6 +13,11 @@ import {
   persistCompletion,
 } from "./persistence.ts";
 
+/**
+ * Dependency boundary for the trusted completion handler.
+ * Keeps runtime wiring (env, loaders, persistence, trust helpers) explicit and
+ * replaceable for tests without changing completion handler behavior.
+ */
 export type CompleteQuizHandlerDependencies = {
   createCorsHeaders: typeof createCorsHeaders;
   getAllowedOrigin: typeof getAllowedOrigin;
@@ -35,6 +40,7 @@ export type CompleteQuizHandlerDependencies = {
   validateSubmittedAnswers: typeof validateSubmittedAnswers;
 };
 
+/** Default production dependency wiring for the trusted completion handler. */
 export const defaultCompleteQuizHandlerDependencies:
   CompleteQuizHandlerDependencies = {
     createCorsHeaders,

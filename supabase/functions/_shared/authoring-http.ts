@@ -1,8 +1,14 @@
 import { type AdminAuthResult, authenticateQuizAdmin } from "./admin-auth.ts";
 import { createCorsHeaders, getAllowedOrigin } from "./cors.ts";
 
+/**
+ * Shared authoring HTTP boundary for authenticated admin write functions.
+ * Owns origin/method/config gates, admin allowlist auth, and consistent JSON
+ * response wiring so each authoring endpoint can focus on domain logic.
+ */
 type JsonBody = Record<string, unknown>;
 
+/** Injectable dependencies for the shared authoring HTTP handler factory. */
 export type AuthoringHttpDependencies = {
   authenticateQuizAdmin: (
     request: Request,
@@ -17,6 +23,7 @@ export type AuthoringHttpDependencies = {
   getSupabaseUrl: () => string | undefined;
 };
 
+/** Trusted context passed to one authenticated authoring request handler. */
 export type AuthoringRequestContext = {
   admin: Extract<AdminAuthResult, { status: "ok" }>;
   jsonResponse: (status: number, body: JsonBody) => Response;
@@ -35,6 +42,7 @@ export const defaultAuthoringHttpDependencies: AuthoringHttpDependencies = {
   getSupabaseUrl: () => Deno.env.get("SUPABASE_URL"),
 };
 
+/** Builds one JSON response with shared authoring CORS headers applied. */
 export function createAuthoringJsonResponse(
   status: number,
   body: JsonBody,
@@ -50,6 +58,11 @@ export function createAuthoringJsonResponse(
   });
 }
 
+/**
+ * Creates a POST-only authoring handler with shared trust checks.
+ * The returned handler enforces allowed origin, CORS preflight, server config,
+ * and admin allowlist auth before executing `handleRequest`.
+ */
 export function createAuthoringPostHandler(
   dependencies: AuthoringHttpDependencies,
   handleRequest: (
