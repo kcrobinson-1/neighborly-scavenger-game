@@ -78,9 +78,11 @@ Reduce deployment risk and contributor friction before the live event.
   `raffle_entitlements`, `quiz_completions`, and `quiz_starts`.
   Detail: [`docs/testing.md` — Developer Test Guide](./testing.md)
 
-- [ ] **`infra` Attendee smoke invalid submission rejection**
-  Add one smoke assertion for a malformed or invalid completion submission so
-  trust-path rejection behavior is caught before release.
+- [x] **`infra` Attendee smoke invalid submission rejection**
+  Completed: trusted-backend attendee smoke now tampers one completion payload
+  to trigger backend `400` rejection, asserts the error UI and retry action,
+  verifies no `quiz_completions` row persisted for the malformed request id,
+  then retries successfully.
   Detail: [`docs/testing.md` — Trust-Path Validation Strategy](./testing.md)
 
 - [ ] **`infra` Attendee smoke bootstrap failure messaging**
