@@ -5,6 +5,12 @@ import {
   type AdminEventDetailsFormValues,
 } from "./eventDetails";
 
+/**
+ * Event-details form UI for one selected draft event.
+ * Owns local field buffering and submit handoff.
+ * Does not own canonical validation/persistence rules, which stay in
+ * eventDetails.ts and admin save APIs.
+ */
 type AdminEventDetailsFormProps = {
   disabled: boolean;
   draft: DraftEventDetail;

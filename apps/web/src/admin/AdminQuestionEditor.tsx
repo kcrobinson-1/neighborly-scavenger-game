@@ -20,6 +20,12 @@ import {
   updateQuestionSelectionMode,
 } from "./questionStructure";
 
+/**
+ * Question-editor workspace for one selected draft event.
+ * Owns local question-content buffering, structural edits, and save handoff.
+ * Does not own canonical content validation or persistence contracts; those are
+ * delegated to question mapping/structure helpers and admin authoring APIs.
+ */
 type AdminQuestionEditorProps = {
   disabled: boolean;
   draft: DraftEventDetail;

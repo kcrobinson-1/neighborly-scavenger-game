@@ -4,6 +4,11 @@ import {
   type FeedbackMode,
 } from "../../../../shared/game-config";
 
+/**
+ * Event-details form mapping for the admin workspace.
+ * Owns converting between form fields and canonical draft event-detail content.
+ * Does not own persistence; callers pass the mapped payload to save APIs.
+ */
 export type AdminEventDetailsFormValues = {
   allowBackNavigation: boolean;
   allowRetake: boolean;
@@ -67,6 +72,9 @@ function trimRequiredString(
   return value;
 }
 
+/**
+ * Projects canonical draft content into editable event-details form values.
+ */
 export function createEventDetailsFormValues(
   content: AuthoringGameDraftContent,
 ): AdminEventDetailsFormValues {
@@ -84,6 +92,10 @@ export function createEventDetailsFormValues(
   };
 }
 
+/**
+ * Converts event-details form values into canonical draft content for save.
+ * Throws when required fields are blank or estimated minutes is not a positive integer.
+ */
 export function applyEventDetailsFormValues(
   content: AuthoringGameDraftContent,
   values: AdminEventDetailsFormValues,

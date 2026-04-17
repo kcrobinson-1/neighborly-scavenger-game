@@ -4,6 +4,12 @@ import type {
   SelectionMode,
 } from "../../../../shared/game-config";
 
+/**
+ * Question and option structure transforms for the admin editor.
+ * Owns deterministic id generation and focus handoff for structural edits.
+ * Does not own persistence validation; save-time canonical validation happens
+ * in questionFormMapping and shared draft validators.
+ */
 export type QuestionStructureResult = {
   content: AuthoringGameDraftContent;
   focusedQuestionId: string;
@@ -90,6 +96,10 @@ function replaceQuestion(
   };
 }
 
+/**
+ * Ensures a question keeps at least one valid correct-answer id.
+ * If edits remove all valid ids, this falls back to the first remaining option.
+ */
 function normalizeCorrectAnswerIds(question: Question) {
   const optionIds = new Set(question.options.map((option) => option.id));
   const validCorrectAnswerIds = question.correctAnswerIds.filter((optionId) =>
@@ -112,6 +122,7 @@ function normalizeCorrectAnswerIds(question: Question) {
       : [];
 }
 
+/** Adds a new placeholder question with a deterministic unused `qN` id. */
 export function addQuestion(
   content: AuthoringGameDraftContent,
 ): QuestionStructureResult {
@@ -129,6 +140,7 @@ export function addQuestion(
   };
 }
 
+/** Duplicates one question in place and focuses the new copy. */
 export function duplicateQuestion(
   content: AuthoringGameDraftContent,
   questionId: string,
@@ -157,6 +169,7 @@ export function duplicateQuestion(
   };
 }
 
+/** Reorders one question by one slot and preserves focus on that question id. */
 export function moveQuestion(
   content: AuthoringGameDraftContent,
   questionId: string,
@@ -185,6 +198,7 @@ export function moveQuestion(
   };
 }
 
+/** Removes one question while guaranteeing at least one question remains. */
 export function deleteQuestion(
   content: AuthoringGameDraftContent,
   questionId: string,
@@ -216,6 +230,10 @@ export function deleteQuestion(
   };
 }
 
+/**
+ * Adds an option with a deterministic unused id and then normalizes
+ * `correctAnswerIds` so selection-mode invariants remain valid.
+ */
 export function addOption(
   content: AuthoringGameDraftContent,
   questionId: string,
@@ -240,6 +258,10 @@ export function addOption(
   });
 }
 
+/**
+ * Removes one option while guaranteeing at least one option remains, then
+ * normalizes `correctAnswerIds` to a valid non-empty set.
+ */
 export function deleteOption(
   content: AuthoringGameDraftContent,
   questionId: string,
@@ -265,6 +287,10 @@ export function deleteOption(
   });
 }
 
+/**
+ * Updates selection mode and normalizes `correctAnswerIds` so the result stays
+ * valid for both single-select and multi-select modes.
+ */
 export function updateQuestionSelectionMode(
   content: AuthoringGameDraftContent,
   questionId: string,
