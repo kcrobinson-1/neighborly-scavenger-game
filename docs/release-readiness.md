@@ -316,11 +316,11 @@ How to run:
 3. Confirm the production Supabase project has `quiz_starts` migration applied
    before the first live event. Start data is permanently unrecoverable
    otherwise — see [analytics-strategy.md](./analytics-strategy.md).
-4. Walk the operator runbook for a live event: which dashboards or queries
-   would the on-call contributor open at minute five if attendees reported the
-   flow was broken? Record the answer, even if the answer is "Supabase
-   function logs plus Vercel logs". A recorded answer is the deliverable;
-   absence of an answer is the finding.
+4. Walk the operator runbook for a live event in
+   [operations.md — Live Monitoring And Log Triage](./operations.md#live-monitoring-and-log-triage):
+   which dashboards or queries would the on-call contributor open at minute
+   five if attendees reported the flow was broken? A recorded answer is the
+   deliverable; absence of an answer is the finding.
 5. Identify the smallest useful observability improvement that would reduce
    time-to-diagnose at a live event. Candidates worth evaluating:
    - a single structured-log line in each Edge Function error branch
@@ -338,9 +338,10 @@ Where findings live:
 
 - observability gaps: add a Tier 1 or Tier 2 item to
   [backlog.md](./backlog.md) with a link to this doc for context
-- operator runbook content: record under
-  [Running Findings — Monitoring, Logging, Observability](#running-findings);
-  migrate into a dedicated runbook doc if it grows beyond a short paragraph
+- operator runbook content: keep the durable runbook in
+  [operations.md — Live Monitoring And Log Triage](./operations.md#live-monitoring-and-log-triage)
+  and summarize release-specific evidence under
+  [Running Findings — Monitoring, Logging, Observability](#running-findings)
 - analytics-adjacent gaps: add to
   [analytics-strategy.md](./analytics-strategy.md) in the relevant phase
 
@@ -632,7 +633,7 @@ progresses.
 - G3 Admin production smoke: met — GitHub run `24541137250` passed on the release-readiness branch after fixture defaults and GitHub `production` environment settings were configured
 - G4 Starts + completion instrumentation: met — `npm run validate:local` exercised start-row Deno tests, local Supabase integration, and pgTAP; release workflow run `24537097693` successfully applied migrations and deployed functions at `d08f65e`, which already contained `20260416000000_add_quiz_starts.sql` and `20260416010000_add_quiz_starts_event_fk.sql`; `70977d6` is docs-only and its release job was skipped
 - G5 Release-blocking open questions: met — Madrona pre-launch volunteer handoff uses the current completion screen plus verification code; stronger proof treatment is deferred until after this release
-- G6 Observability: met for the coordinator branch — manual operator surfaces are identified below, and `Production Admin Smoke` run `24541137250` now provides the release-candidate deployed admin signal
+- G6 Observability: met for the coordinator branch — the live monitoring runbook in [operations.md](./operations.md#live-monitoring-and-log-triage) identifies the manual operator surfaces, and `Production Admin Smoke` run `24541137250` now provides the release-candidate deployed admin signal
 - G7 Docs currency: met for the coordinator branch — Dimension 2 doc-currency audit completed, with stale README release-flow and production-smoke status docs updated
 - G8 PR CI depth: not met — no PR CI evidence exists for the coordinator branch yet; `.github/workflows/ci.yml` covers lint, unit tests, Deno function tests, local Supabase integration/database tests, build, and function `deno check`, while attendee Playwright smoke in PR CI remains tracked in [backlog.md](./backlog.md)
 
@@ -680,12 +681,14 @@ progresses.
 - Browser-visible failures are not silently dropped: attendee start errors and
   completion retry states surface through `GamePage`, and admin API failures
   throw user-facing messages consumed by the admin dashboard state.
-- Live-event operator path, if attendees report failure at minute five: check
-  the latest `Production Admin Smoke` workflow result first; inspect Vercel
-  deployment/runtime logs for frontend route availability; inspect Supabase
-  Edge Function logs for `issue-session`, `complete-quiz`, `save-draft`,
-  `publish-draft`, and `unpublish-event`; then verify Supabase table activity
-  in `quiz_starts`, `quiz_completions`, and `raffle_entitlements` for the event.
+- Live-event operator path is now documented in
+  [operations.md — Live Monitoring And Log Triage](./operations.md#live-monitoring-and-log-triage):
+  check the latest `Production Admin Smoke` workflow result first; inspect
+  Vercel deployment/runtime logs for frontend route availability; inspect
+  Supabase Edge Function logs for `issue-session`, `complete-quiz`,
+  `save-draft`, `publish-draft`, and `unpublish-event`; then verify Supabase
+  table activity in `quiz_starts`, `quiz_completions`, and
+  `raffle_entitlements` for the event.
 - Analytics-critical data is present in code and local validation:
   `issue-session` records `quiz_starts`, and completions/entitlements are
   persisted through the trusted RPC. Production promotion evidence exists from

@@ -8,6 +8,7 @@ Use it when:
 
 - setting up a fresh deployment from a fork
 - checking whether a dashboard edit should instead be a repo change
+- monitoring or triaging a live event
 - reviewing what still has to be configured manually after merge-driven releases are in place
 
 Contributor workflow details live in `dev.md`. Current system shape lives in `architecture.md`.
@@ -86,19 +87,20 @@ For this project today, that means:
   - `SUPABASE_DB_PASSWORD`
   - `SUPABASE_PROJECT_REF`
 - GitHub `production` environment vars and secrets for production admin smoke:
-  - vars:
+  - required vars:
     - `PRODUCTION_SMOKE_BASE_URL`
     - `PRODUCTION_SMOKE_SUPABASE_URL`
     - `PRODUCTION_SMOKE_PUBLISHABLE_DEFAULT_KEY`
+  - optional fixture override vars:
     - `PRODUCTION_SMOKE_ADMIN_EMAIL`
     - `PRODUCTION_SMOKE_DENIED_ADMIN_EMAIL`
     - `PRODUCTION_SMOKE_EVENT_ID`
     - `PRODUCTION_SMOKE_EVENT_SLUG`
     - `PRODUCTION_SMOKE_EVENT_NAME`
-    - optional `PRODUCTION_SMOKE_ADMIN_REDIRECT_URL`
-    - optional readiness tuning values:
-      - `PRODUCTION_SMOKE_READY_TIMEOUT_MS`
-      - `PRODUCTION_SMOKE_READY_POLL_MS`
+    - `PRODUCTION_SMOKE_ADMIN_REDIRECT_URL`
+  - optional readiness tuning vars:
+    - `PRODUCTION_SMOKE_READY_TIMEOUT_MS`
+    - `PRODUCTION_SMOKE_READY_POLL_MS`
   - secrets:
     - `PRODUCTION_SMOKE_SUPABASE_SERVICE_ROLE_KEY`
 - optional GitHub `production` environment approvals or reviewers
@@ -156,6 +158,196 @@ For a new deployment from a fork:
 8. Recreate the desired GitHub branch protection and Actions secret
    configuration, including the `SUPABASE_ACCESS_TOKEN`,
    `SUPABASE_DB_PASSWORD`, and `SUPABASE_PROJECT_REF` release secrets.
+
+## Live Monitoring And Log Triage
+
+Current pre-launch posture:
+
+- there is no dedicated live monitoring dashboard, uptime monitor, alerting
+  service, or third-party error tracking SDK configured in the repo
+- the release operator monitors manually through GitHub Actions, Vercel, and
+  Supabase
+- the `Production Admin Smoke` workflow is the strongest deployed-path signal
+  currently available, but it runs after release or by manual dispatch; it is
+  not continuous monitoring
+
+Use this runbook during a live event or final pre-event check when someone
+reports that the site, quiz start, completion flow, or admin publishing is not
+working.
+
+### First Signal: Production Smoke
+
+Start with GitHub Actions:
+
+1. Open the `Production Admin Smoke` workflow.
+2. Check the latest run for the release candidate or `main`.
+3. If needed, run it manually with `workflow_dispatch`.
+4. Read the failing step before changing platform settings.
+
+Interpretation:
+
+- readiness failures usually point at Vercel deployment propagation, a bad
+  `PRODUCTION_SMOKE_BASE_URL`, or route availability
+- auth/session failures usually point at Supabase Auth Site URL, redirect URLs,
+  or session setup
+- save/publish/unpublish failures usually point at Supabase Edge Functions,
+  database policies, RPCs, or function secrets
+- public route state failures usually point at frontend data loading, published
+  event state, or slug mapping
+
+Detailed smoke-specific triage lives in
+[`production-admin-smoke-tracking.md`](./production-admin-smoke-tracking.md).
+
+### Site And Frontend Checks: Vercel
+
+Use Vercel for deployment and frontend availability questions:
+
+1. Open the Vercel project for the web app.
+2. Confirm the latest production deployment points at the expected Git commit.
+3. Inspect deployment build logs if the site did not deploy.
+4. Inspect runtime or project logs if a route loads incorrectly or returns an
+   unexpected status.
+5. Confirm the production URL from `PRODUCTION_SMOKE_BASE_URL` loads:
+
+```bash
+curl -I "$PRODUCTION_SMOKE_BASE_URL"
+curl -I "${PRODUCTION_SMOKE_BASE_URL%/}/admin"
+curl -I "${PRODUCTION_SMOKE_BASE_URL%/}/game/production-smoke-event"
+```
+
+Notes:
+
+- this app is a Vite SPA, so most attendee/admin behavior runs in the browser
+  and will not produce rich Vercel server logs
+- Vercel logs are still useful for deployment state, build errors, route
+  rewrites, and static asset availability
+- browser console/network errors on an affected device are useful evidence when
+  Vercel says the deployment is healthy
+
+### Backend Checks: Supabase
+
+Use Supabase for backend behavior, auth, function errors, and persisted event
+activity.
+
+Open the production Supabase project and inspect:
+
+- Edge Function logs for:
+  - `issue-session`
+  - `complete-quiz`
+  - `save-draft`
+  - `publish-draft`
+  - `unpublish-event`
+- Auth configuration:
+  - Site URL is the deployed web origin
+  - redirect URLs include the deployed `/admin` origin
+- project secrets:
+  - `SESSION_SIGNING_SECRET`
+  - `ALLOWED_ORIGINS`
+- database logs when Edge Function logs indicate an RPC, policy, or migration
+  failure
+
+Function-specific interpretation:
+
+- `issue-session` failures affect quiz start and usually involve origin
+  allowlisting, event availability, request validation, or the best-effort
+  `quiz_starts` write
+- `complete-quiz` failures affect final verification and usually involve a
+  missing/invalid session, answer validation, or completion/entitlement writes
+- `save-draft`, `publish-draft`, and `unpublish-event` failures affect admin
+  authoring and usually involve Supabase Auth, admin allowlist policy, draft
+  persistence, or publish-state RPCs
+
+### Database Activity Queries
+
+Run these in the production Supabase SQL editor when you need to confirm
+whether users are reaching the backend. Replace placeholders before running.
+
+Recent quiz starts:
+
+```sql
+select
+  event_id,
+  count(*) as starts,
+  max(issued_at) as latest_start
+from public.quiz_starts
+group by event_id
+order by latest_start desc;
+```
+
+Recent completions:
+
+```sql
+select
+  event_id,
+  count(*) as completions,
+  max(completed_at) as latest_completion
+from public.quiz_completions
+group by event_id
+order by latest_completion desc;
+```
+
+Active raffle entitlements:
+
+```sql
+select
+  event_id,
+  count(*) as active_entitlements
+from public.raffle_entitlements
+where status = 'active'
+group by event_id
+order by active_entitlements desc;
+```
+
+Event funnel by slug:
+
+```sql
+select
+  e.id,
+  e.slug,
+  count(distinct s.client_session_id) as starts,
+  count(distinct c.client_session_id) as completed_sessions,
+  count(distinct r.client_session_id) filter (where r.status = 'active') as active_entitlements
+from public.quiz_events e
+left join public.quiz_starts s on s.event_id = e.id
+left join public.quiz_completions c on c.event_id = e.id
+left join public.raffle_entitlements r on r.event_id = e.id
+where e.slug = '<event-slug>'
+group by e.id, e.slug;
+```
+
+Smoke fixture state:
+
+```sql
+select
+  id,
+  slug,
+  case when published_at is null then 'unpublished' else 'published' end as publish_state,
+  published_at,
+  updated_at
+from public.quiz_events
+where slug = 'production-smoke-event';
+```
+
+### Minute-Five Triage Path
+
+If attendees report that the event is broken:
+
+1. Check whether the production URL and event route load in a browser.
+2. Check the latest `Production Admin Smoke` run.
+3. If the site does not load, inspect Vercel deployment/build/runtime logs.
+4. If the quiz loads but cannot start, inspect `issue-session` logs and query
+   `quiz_starts`.
+5. If the quiz starts but cannot complete, inspect `complete-quiz` logs and
+   query `quiz_completions` plus `raffle_entitlements`.
+6. If admin save/publish/unpublish is broken, inspect the admin Edge Function
+   logs and Auth/allowlist configuration.
+7. Record whether the failure is a deployment issue, frontend route issue,
+   Supabase Auth/config issue, Edge Function issue, database/RPC issue, or data
+   issue before changing settings.
+
+If the event needs stronger operational coverage after this pre-launch
+milestone, the next step is a separate observability project: uptime checks,
+alert routing, browser error capture, and lightweight event reporting.
 
 ## Current Operating Discipline
 

@@ -340,6 +340,9 @@ Use the detailed runbook in
 [`production-admin-smoke-tracking.md`](./production-admin-smoke-tracking.md)
 for owner routing and first-response checks.
 
+For live-event monitoring beyond the smoke workflow, use
+[`operations.md` — Live Monitoring And Log Triage](./operations.md#live-monitoring-and-log-triage).
+
 ## UI Review Workflow
 
 Use browser review when validating UI changes, especially mobile-first flow changes.
@@ -530,6 +533,10 @@ Important boundary:
   secret values
 
 ## Integration Troubleshooting
+
+For live site, admin, Supabase Edge Function, or database triage during an
+event, start with the operator runbook in
+[`operations.md` — Live Monitoring And Log Triage](./operations.md#live-monitoring-and-log-triage).
 
 ### Session bootstrap succeeds but completion returns 401
 

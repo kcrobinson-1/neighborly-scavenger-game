@@ -87,7 +87,8 @@ The main docs are:
 - [Testing Strategy](./docs/testing.md)
   what should be tested across the site, shared logic, Supabase, and UX flows
 - [Operations Guide](./docs/operations.md)
-  which settings are repo-managed versus manually maintained across GitHub, Vercel, and Supabase
+  which settings are repo-managed versus manually maintained across GitHub,
+  Vercel, and Supabase, plus the current live monitoring and log-triage runbook
 - [Open Questions](./docs/open-questions.md)
   unresolved product, workflow, and operational decisions that should stay explicit
 - [Documentation Quality Checklist](./docs/documentation-quality-checklist.md)
