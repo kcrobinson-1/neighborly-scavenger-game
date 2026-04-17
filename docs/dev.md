@@ -467,6 +467,17 @@ That Playwright suite starts the local Vite server in explicit prototype-fallbac
 
 The Playwright config also clears inherited Supabase browser env vars for that run so local shell config does not silently switch the smoke suite onto a remote backend.
 
+For an attendee smoke pass that must exercise trusted backend completion, run:
+
+```bash
+npm run test:e2e:attendee:trusted-backend
+```
+
+That command starts the local Supabase stack and local Edge Functions runtime,
+runs a mobile attendee completion flow with prototype fallback disabled, and
+asserts backend persistence through `raffle_entitlements`, `quiz_completions`,
+and `quiz_starts`.
+
 If Chromium is not installed yet, either run `npm run test:setup:local`, `npm run test:e2e:install`, or:
 
 ```bash

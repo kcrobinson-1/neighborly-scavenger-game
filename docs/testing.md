@@ -22,6 +22,7 @@ Today the repo validation surface includes:
 - `npm run test:functions`
 - `npm run test:functions:integration`
 - `npm run test:e2e`
+- `npm run test:e2e:attendee:trusted-backend`
 - `npm run test:e2e:admin`
 - `npm run test:e2e:admin:production-smoke`
 - `npm run test:db`
@@ -36,7 +37,7 @@ Today the repo validation surface includes:
 - [`.github/workflows/production-admin-smoke.yml`](../.github/workflows/production-admin-smoke.yml)
   for post-release and manual production admin smoke runs against dedicated smoke fixtures
 
-That baseline is now a real first-wave strategy, not just static validation. The repo already has focused shared-domain tests, frontend behavior tests, a mobile Playwright smoke suite, pgTAP coverage for the completion RPC, Deno coverage for the Edge Function trust boundary, and a real local Supabase integration test for the full session-plus-completion path.
+That baseline is now a real first-wave strategy, not just static validation. The repo already has focused shared-domain tests, frontend behavior tests, a mobile Playwright smoke suite (fallback mode plus trusted-backend mode), pgTAP coverage for the completion RPC, Deno coverage for the Edge Function trust boundary, and a real local Supabase integration test for the full session-plus-completion path.
 
 ## Developer Test Guide
 
@@ -47,7 +48,8 @@ Use this table to pick the smallest useful command for your change.
 | Fast static + unit confidence | `npm run lint` and `npm test` | TypeScript/frontend/shared-domain/unit behavior and linting | Real Supabase stack, browser e2e, production behavior | Almost every PR |
 | Edge Function request/helper logic | `npm run test:functions` | Deno-level function helper and handler behavior | Real Supabase runtime wiring and DB/RPC integration | Edge Function logic changes |
 | Trust-path backend integration | `npm run test:supabase` | Local Supabase stack, function integration (`issue-session` + `complete-quiz`), pgTAP DB checks | Browser/admin UX path, production deployment wiring | Backend trust/data/auth changes |
-| Attendee browser smoke | `npm run test:e2e` | Mobile browser smoke for attendee route flow | Real backend path (runs with local fallback mode), admin flows | Attendee UX/route-shell changes |
+| Attendee browser smoke (fallback mode) | `npm run test:e2e` | Mobile browser smoke for attendee route flow with explicit prototype fallback mode | Trusted backend persistence assertions, admin flows | Attendee UX/route-shell changes |
+| Attendee browser smoke (trusted backend) | `npm run test:e2e:attendee:trusted-backend` | Mobile attendee completion flow against local Supabase + local functions runtime, with DB assertions for completion and entitlement persistence | PR CI wiring, production deployment behavior, admin flows | Attendee trust-path smoke updates and backend completion-path confidence checks |
 | Admin local e2e | `npm run test:e2e:admin` | Real local Supabase-backed `/admin` auth/allowlist/save/publish/unpublish flow | Deployed production auth redirect and production infrastructure wiring | Admin auth/authoring/publish or related UI changes |
 | Full local default gate | `npm run validate:local` | Lint, unit tests, Deno function tests, attendee Playwright smoke, local Supabase validation, web build, Deno checks | Admin local e2e and production smoke | Before handoff when you need broad local confidence |
 | Production admin smoke | `npm run test:e2e:admin:production-smoke` (normally via workflow) | Deployed production admin auth/allowlist/save/publish/unpublish on dedicated smoke fixtures | General attendee production coverage, non-smoke event data, PR CI checks | Post-release validation or manual production smoke rerun |
@@ -61,6 +63,7 @@ Use this table to pick the smallest useful command for your change.
 - Edge Function helpers and handler request validation
 - local Supabase trust-path integration and pgTAP database rules
 - attendee mobile browser smoke (fallback-mode deterministic path)
+- attendee mobile browser smoke (trusted backend with DB persistence assertions)
 - local admin e2e against real local Supabase
 - production admin smoke (manual + post-release workflow) against dedicated smoke fixtures
 
@@ -205,6 +208,10 @@ The current setup includes a few deliberate choices that are worth documenting:
   it checks Docker, starts `npx supabase start` when needed, runs pgTAP, and only stops the stack afterward if it started it itself
 - `npm run validate:local` is the repo-level local validation shortcut
   it runs lint, unit tests, Edge Function Deno tests, Playwright smoke, the shared local Supabase validation command, the web build, and the two Deno checks in one pass
+- `npm run test:e2e:attendee:trusted-backend` is the local attendee trusted-backend smoke command
+  it starts local Supabase + local functions runtime, runs the mobile attendee
+  flow against published content, and verifies completion persistence via
+  service-role database assertions
 - `npm run test:e2e:admin` is the local admin end-to-end validation command
   it prepares deterministic admin auth and draft fixtures, then runs Playwright
   against the real local Supabase-backed `/admin` workflow
@@ -394,7 +401,10 @@ UX tests should verify:
 - progress and completion states remain understandable
 - direct route loading still works after routing or deploy config changes
 
-The current smoke suite is intentionally a fallback-mode browser check, not a real backend integration test. It proves the attendee UI wiring and route behavior in a real browser, and it should be paired with local Supabase integration coverage for backend trust.
+The fallback-mode smoke suite intentionally stays deterministic and independent
+from Supabase configuration. The trusted-backend attendee smoke suite exists
+alongside it to prove browser completion reaches the real local backend
+persistence path.
 
 ## When To Mock Supabase
 
@@ -475,12 +485,14 @@ Run the smallest relevant set while iterating:
 - Edge Function changes: lint, `deno check`, Deno tests, relevant local integration tests
 - migration changes: `npm run test:db` against a local Supabase stack
 - UX changes: `npm run test:e2e` plus the screenshot capture workflow when visuals materially changed
+- attendee trust-path smoke changes: `npm run test:e2e:attendee:trusted-backend`
 
 Notes:
 
 - `npm run test:supabase` and `npm run test:db` require a Docker API-compatible runtime because the local Supabase stack depends on it
 - `npm run test:setup:local` is the easiest one-time setup path for local contributors
-- `npm run test:e2e` currently exercises the browser flow in explicit local fallback mode, so it complements rather than replaces real backend integration coverage
+- `npm run test:e2e` exercises fallback-mode route and interaction behavior
+- `npm run test:e2e:attendee:trusted-backend` proves browser completion reaches local backend persistence; use both commands when attendee trust-path smoke changes are involved
 
 ### Pull Request CI
 
@@ -554,6 +566,7 @@ The first useful wave should probably include:
 - `quizApi` session bootstrap, missing env, offline fallback, and `401` retry tests
 - RPC tests for idempotency, single entitlement, attempt numbering, and verification code reuse
 - Playwright mobile smoke for featured flow, spotlight wrong-answer path, and direct route loading
+- Playwright mobile trusted-backend smoke with DB assertions for completion and entitlement persistence
 
 Everything beyond that should earn its keep.
 
@@ -574,6 +587,7 @@ Everything beyond that should earn its keep.
 - [x] Add Deno tests for `session-cookie.ts` and `cors.ts`.
 - [x] Refactor Edge Function request handling slightly if needed so validation and response logic are directly testable.
 - [x] Add an integration test that exercises `issue-session` plus `complete-quiz` against a local Supabase stack.
+- [x] Add trusted-backend attendee Playwright smoke coverage that runs against local Supabase + local Edge Functions and asserts completion persistence through database reads.
 - [ ] Add PR CI coverage for the Playwright smoke suite.
 - [x] Add PR CI coverage for Deno function tests.
 - [x] Add local end-to-end admin functionality coverage for sign-in/session

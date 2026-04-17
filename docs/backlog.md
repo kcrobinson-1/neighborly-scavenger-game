@@ -71,6 +71,23 @@ Reduce deployment risk and contributor friction before the live event.
   merge can break the attendee flow without CI catching it.
   Detail: [`docs/testing.md` — Where Tests Should Run](./testing.md)
 
+- [x] **`infra` Attendee smoke path must exercise trusted backend completion**
+  Completed: `npm run test:e2e:attendee:trusted-backend` now runs a mobile
+  attendee smoke flow against local Supabase + local Edge Functions (prototype
+  fallback disabled) and asserts trusted backend persistence in
+  `raffle_entitlements`, `quiz_completions`, and `quiz_starts`.
+  Detail: [`docs/testing.md` — Developer Test Guide](./testing.md)
+
+- [ ] **`infra` Attendee smoke invalid submission rejection**
+  Add one smoke assertion for a malformed or invalid completion submission so
+  trust-path rejection behavior is caught before release.
+  Detail: [`docs/testing.md` — Trust-Path Validation Strategy](./testing.md)
+
+- [ ] **`infra` Attendee smoke bootstrap failure messaging**
+  Add a smoke check for missing Supabase env or backend bootstrap failure so the
+  attendee UI shows an actionable setup/integration error state.
+  Detail: [`docs/testing.md` — What Needs Coverage](./testing.md)
+
 - [ ] **`decision` Staging or branch-based Supabase promotion path**
   Decide whether the current local-validation-plus-direct-to-production release
   model is sufficient or whether a staging backend is needed before the first
