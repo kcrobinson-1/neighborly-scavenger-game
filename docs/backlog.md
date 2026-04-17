@@ -194,9 +194,9 @@ Execute in any order.
   Detail: [`docs/code-documentation-audit.md`](./code-documentation-audit.md),
   [`docs/dev.md` — Code documentation standard](./dev.md#code-documentation-standard), and [`docs/release-readiness.md` — Code Documentation And Comments](./release-readiness.md#2-code-documentation-and-comments)
 
-- [ ] **`dev` Code-documentation remediation Slice A (admin modules)**
-  Add required file-level and exported-seam documentation updates for admin
-  orchestration and form modules.
+- [x] **`dev` Code-documentation remediation Slice A (admin modules)**
+  Completed on 2026-04-17 with file-level ownership headers and exported-seam
+  contract comments in the targeted admin modules.
   Detail: [`docs/code-documentation-audit.md` — Slice A](./code-documentation-audit.md#slice-a--admin-orchestration-and-form-modules)
 
 - [ ] **`dev` Code-documentation remediation Slice B (shared barrel clarity)**
