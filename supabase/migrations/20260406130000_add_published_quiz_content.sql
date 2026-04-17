@@ -1,3 +1,6 @@
+-- Published quiz projection schema.
+-- This migration defines the attendee-facing read model and constrains anonymous
+-- reads to rows whose parent event is currently published.
 create table if not exists public.quiz_events (
   id text primary key,
   slug text not null unique,

@@ -215,9 +215,9 @@ Execute in any order.
   `complete-quiz/dependencies.ts`.
   Detail: [`docs/code-documentation-audit.md` — Slice D](./code-documentation-audit.md#slice-d--edge-function-boundary-helpers-and-handler-dependencies)
 
-- [ ] **`dev` Code-documentation remediation Slice E (migration/RPC invariants)**
-  Add required migration-level and RPC-invariant documentation for durable SQL
-  trust/persistence boundaries.
+- [x] **`dev` Code-documentation remediation Slice E (migration/RPC invariants)**
+  Completed on 2026-04-17 with migration-level responsibility headers and
+  RPC/function invariant comments in the targeted SQL boundaries.
   Detail: [`docs/code-documentation-audit.md` — Slice E](./code-documentation-audit.md#slice-e--migrationrpc-invariant-comments)
 
 - [ ] **`dev` Split `quizApi.ts` local fallback** (refactor score 8/10)

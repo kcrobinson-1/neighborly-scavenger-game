@@ -1,3 +1,6 @@
+-- Trusted completion persistence and raffle entitlement invariants.
+-- Enforces one entitlement per (event_id, client_session_id) while keeping
+-- completion request handling idempotent by request_id.
 create extension if not exists pgcrypto;
 
 create or replace function public.generate_neighborly_verification_code()
@@ -85,10 +88,14 @@ declare
   v_attempt_number integer;
   v_entitlement_status text;
 begin
+  -- Serialize writes per event/session so concurrent completions cannot race
+  -- entitlement creation or attempt-number assignment.
   perform pg_advisory_xact_lock(
     hashtextextended(p_event_id || ':' || p_client_session_id, 0)
   );
 
+  -- Idempotency guard: if this request_id already produced a completion, return
+  -- the stored result instead of creating another completion row.
   select *
   into v_existing_completion
   from public.quiz_completions
@@ -180,6 +187,7 @@ begin
   returning *
   into v_completion;
 
+  -- Persist the first completion id once so later retakes cannot rewrite it.
   if v_entitlement.first_completion_id is null then
     update public.raffle_entitlements
     set first_completion_id = v_completion.id

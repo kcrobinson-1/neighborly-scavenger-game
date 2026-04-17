@@ -1,3 +1,6 @@
+-- Authoring access-control primitives.
+-- Defines the admin allowlist table plus helper SQL functions used by RLS and
+-- edge-function auth checks for draft and version access.
 create table if not exists public.quiz_admin_users (
   email text primary key,
   user_id uuid unique references auth.users (id) on delete set null,
@@ -16,6 +19,8 @@ revoke all on table public.quiz_admin_users
 grant select, insert, update, delete on table public.quiz_admin_users
   to service_role;
 
+-- Reads normalized email from JWT claims; returns null when claims are absent
+-- or malformed.
 create or replace function public.current_request_email()
 returns text
 language sql
@@ -31,6 +36,7 @@ as $$
   from claims;
 $$;
 
+-- Reads caller user id from JWT claims and rejects non-UUID `sub` values.
 create or replace function public.current_request_user_id()
 returns uuid
 language sql
@@ -49,6 +55,8 @@ as $$
   from claims;
 $$;
 
+-- Security-definer helper used by RLS policies and authenticated function
+-- callers to test active allowlist membership.
 create or replace function public.is_quiz_admin()
 returns boolean
 language sql

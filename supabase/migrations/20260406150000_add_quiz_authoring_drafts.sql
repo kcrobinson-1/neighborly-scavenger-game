@@ -1,3 +1,5 @@
+-- Private authoring draft/version schema plus one-time backfill from the
+-- already-published quiz projection so publish history starts at version 1.
 create table if not exists public.quiz_event_drafts (
   id text primary key,
   slug text not null unique,
@@ -47,6 +49,8 @@ grant select, insert, update, delete on table public.quiz_event_drafts
 grant select, insert, update, delete on table public.quiz_event_versions
   to service_role;
 
+-- Backfill creates canonical draft/version rows only for already-published
+-- events; future draft and publish writes happen through authoring functions.
 with backfilled_events as (
   select
     event.id,
