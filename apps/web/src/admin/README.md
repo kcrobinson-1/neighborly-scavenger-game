@@ -34,8 +34,10 @@ It is responsible for:
   uniqueness
 - keep event-level form mapping and validation in `eventDetails.ts`; preserve
   draft ids and question content when saving Phase 4.3 edits
-- keep existing-question form mapping, question/option structure transforms,
-  id generation, delete guards, and correctness repair in `questionBuilder.ts`;
+- keep existing-question form mapping and save-time normalization in
+  `questionFormMapping.ts`, and keep question/option structure transforms,
+  id generation, delete guards, and correctness repair in
+  `questionStructure.ts`; `questionBuilder.ts` remains a compatibility facade;
   preserve event details while saving Phase 4.4 edits
 - keep selected question edits in a local draft buffer until the admin uses the
   explicit save action; structural changes do not call authoring APIs on their

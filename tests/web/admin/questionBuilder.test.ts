@@ -1,17 +1,20 @@
 import { describe, expect, it } from "vitest";
 import { getGameById } from "../../../shared/game-config/sample-fixtures";
 import {
-  addOption,
-  addQuestion,
   applyQuestionFormValues,
   createQuestionFormValues,
+  prepareQuestionContentForSave,
+  updateQuestionFormValues,
+} from "../../../apps/web/src/admin/questionFormMapping";
+import {
+  addOption,
+  addQuestion,
   deleteOption,
   deleteQuestion,
   duplicateQuestion,
   moveQuestion,
-  prepareQuestionContentForSave,
   updateQuestionSelectionMode,
-} from "../../../apps/web/src/admin/questionBuilder";
+} from "../../../apps/web/src/admin/questionStructure";
 import { validateAuthoringGameDraftContent } from "../../../shared/game-config";
 
 const sampleGame = getGameById("madrona-music-2026");
@@ -52,6 +55,12 @@ describe("createQuestionFormValues", () => {
     );
 
     expect(values.sponsor).toBe("");
+  });
+
+  it("throws when the requested question does not exist", () => {
+    expect(() => createQuestionFormValues(sampleGame, "missing-question")).toThrow(
+      "Question not found.",
+    );
   });
 });
 
@@ -173,6 +182,27 @@ describe("applyQuestionFormValues", () => {
       }),
     ).toThrow('Correct answer "missing-option" is not an option.');
   });
+
+  it("throws when applying values to a missing question", () => {
+    expect(() =>
+      applyQuestionFormValues(
+        sampleGame,
+        "missing-question",
+        createQuestionFormValues(sampleGame, sampleQuestion.id),
+      ),
+    ).toThrow("Question not found.");
+  });
+
+  it("throws when option form values are missing for an existing option id", () => {
+    const values = createQuestionFormValues(sampleGame, sampleQuestion.id);
+
+    expect(() =>
+      updateQuestionFormValues(sampleGame, sampleQuestion.id, {
+        ...values,
+        options: values.options.filter((option) => option.id !== "a"),
+      }),
+    ).toThrow('Option "a" is missing.');
+  });
 });
 
 describe("question structure helpers", () => {
@@ -229,6 +259,23 @@ describe("question structure helpers", () => {
     expect(movedBackUp.content.questions).toEqual(sampleGame.questions);
   });
 
+  it("returns the original content when a move would go out of bounds", () => {
+    const firstQuestionId = sampleGame.questions[0]?.id;
+    const lastQuestionId = sampleGame.questions[sampleGame.questions.length - 1]?.id;
+
+    if (!firstQuestionId || !lastQuestionId) {
+      throw new Error("Expected sample game questions for move bounds tests.");
+    }
+
+    const moveUpResult = moveQuestion(sampleGame, firstQuestionId, "up");
+    const moveDownResult = moveQuestion(sampleGame, lastQuestionId, "down");
+
+    expect(moveUpResult.content).toBe(sampleGame);
+    expect(moveUpResult.focusedQuestionId).toBe(firstQuestionId);
+    expect(moveDownResult.content).toBe(sampleGame);
+    expect(moveDownResult.focusedQuestionId).toBe(lastQuestionId);
+  });
+
   it("deletes questions with next-question focus and rejects deleting the final question", () => {
     const { content, focusedQuestionId } = deleteQuestion(
       sampleGame,
@@ -281,6 +328,33 @@ describe("question structure helpers", () => {
 
     expect(content.questions[0].options.at(-1)).toEqual({
       id: "option-1",
+      label: "New option",
+    });
+  });
+
+  it("increments option-N fallback ids when prior fallback ids already exist", () => {
+    const overflowQuestion = {
+      ...sampleQuestion,
+      correctAnswerIds: ["a"],
+      options: [
+        ...Array.from({ length: 26 }, (_, index) => ({
+          id: String.fromCharCode(97 + index),
+          label: `Option ${index + 1}`,
+        })),
+        { id: "option-1", label: "Overflow option" },
+      ],
+    };
+
+    const content = addOption(
+      {
+        ...sampleGame,
+        questions: [overflowQuestion],
+      },
+      overflowQuestion.id,
+    );
+
+    expect(content.questions[0].options.at(-1)).toEqual({
+      id: "option-2",
       label: "New option",
     });
   });

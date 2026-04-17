@@ -136,7 +136,7 @@ event.
   modules so `draft-content.ts` reads as the public authoring contract.
   Detail: [`docs/code-refactor-checklist.md`](./code-refactor-checklist.md)
 
-- [ ] **`dev` Split `questionBuilder.ts`** (refactor score 8/10)
+- [x] **`dev` Split `questionBuilder.ts`** (refactor score 8/10)
   Move structure helpers into a focused module while preserving the existing
   public helper behavior. Affects the authoring data path alongside the above.
   Detail: [`docs/code-refactor-checklist.md`](./code-refactor-checklist.md)

@@ -57,7 +57,7 @@ Rules for this checklist:
   Validation: `npm test -- tests/web/pages/AdminPage.test.tsx` and
   `npm run build:web`.
 
-- [ ] Split admin question structure helpers from question form mapping.
+- [x] Split admin question structure helpers from question form mapping.
   `apps/web/src/admin/questionBuilder.ts` now owns form-value mapping,
   save-time normalization, id generation, question structure transforms,
   option structure transforms, and correctness repair. Move structure helpers
