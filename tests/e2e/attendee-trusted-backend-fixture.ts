@@ -24,6 +24,16 @@ type TrustedStartRecord = {
   event_id: string;
 };
 
+export type TamperedCompletionRequestCapture = {
+  eventId: string | null;
+  requestId: string | null;
+};
+
+type AttendeeFunctionProxyOptions = {
+  captureTamperedCompletionRequest?: TamperedCompletionRequestCapture;
+  tamperFirstCompletionPayload?: boolean;
+};
+
 function readRequiredEnv(name: string) {
   const value = process.env[name];
 
@@ -112,9 +122,38 @@ export async function assertTrustedAttendeeCompletionPersisted(
   expect(startRow?.client_session_id).toBe(entitlement.client_session_id);
 }
 
-export async function installAttendeeFunctionProxy(page: Page) {
+export async function assertNoTrustedCompletionPersistedForRequest(
+  eventId: string,
+  requestId: string,
+) {
+  const serviceRoleClient = createServiceRoleClient();
+  const { data: completionRows, error: completionError } = await serviceRoleClient
+    .from("quiz_completions")
+    .select("id")
+    .eq("event_id", eventId)
+    .eq("request_id", requestId)
+    .returns<Array<{ id: string }>>();
+
+  if (completionError) {
+    throw new Error(
+      `Failed to verify malformed completion non-persistence: ${completionError.message}`,
+    );
+  }
+
+  expect(completionRows).toHaveLength(0);
+}
+
+export async function installAttendeeFunctionProxy(
+  page: Page,
+  options: AttendeeFunctionProxyOptions = {},
+) {
+  const {
+    captureTamperedCompletionRequest,
+    tamperFirstCompletionPayload = false,
+  } = options;
   const supabaseUrl = readRequiredEnv("TEST_SUPABASE_URL").replace(/\/$/, "");
   const functionNames = new Set(["issue-session", "complete-quiz"]);
+  let hasTamperedFirstCompletionPayload = false;
 
   await page.route(`${supabaseUrl}/functions/v1/**`, async (route) => {
     const request = route.request();
@@ -174,8 +213,52 @@ export async function installAttendeeFunctionProxy(page: Page) {
       headers.cookie = requestCookie;
     }
 
+    const shouldTamperCompletionPayload =
+      tamperFirstCompletionPayload &&
+      functionName === "complete-quiz" &&
+      request.method() === "POST" &&
+      !hasTamperedFirstCompletionPayload;
+    let originalPayload:
+      | {
+          eventId?: unknown;
+          requestId?: unknown;
+        }
+      | undefined;
+
+    try {
+      originalPayload = request.postDataJSON() as
+        | {
+            eventId?: unknown;
+            requestId?: unknown;
+          }
+        | undefined;
+    } catch {
+      originalPayload = undefined;
+    }
+    let requestBody = request.postData() ?? undefined;
+
+    if (shouldTamperCompletionPayload) {
+      hasTamperedFirstCompletionPayload = true;
+
+      if (captureTamperedCompletionRequest) {
+        captureTamperedCompletionRequest.eventId =
+          typeof originalPayload?.eventId === "string"
+            ? originalPayload.eventId
+            : null;
+        captureTamperedCompletionRequest.requestId =
+          typeof originalPayload?.requestId === "string"
+            ? originalPayload.requestId
+            : null;
+      }
+
+      requestBody = JSON.stringify({
+        ...(originalPayload ?? {}),
+        durationMs: "invalid-duration",
+      });
+    }
+
     const response = await fetch(request.url(), {
-      body: request.postData() ?? undefined,
+      body: requestBody,
       headers,
       method: request.method(),
     });

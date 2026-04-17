@@ -1,7 +1,9 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import {
+  assertNoTrustedCompletionPersistedForRequest,
   assertTrustedAttendeeCompletionPersisted,
   installAttendeeFunctionProxy,
+  type TamperedCompletionRequestCapture,
 } from "./attendee-trusted-backend-fixture";
 
 /** Scrolls the target into view so Playwright can use its normal actionability checks. */
@@ -43,6 +45,67 @@ test("completes the attendee flow against trusted backend persistence", async ({
   await clickOptionAndSubmit(page, "Finishing the quiz");
   await clickOptionAndSubmit(page, "One card at a time");
   await clickOptionAndSubmit(page, "That the attendee is officially done");
+
+  await expect(
+    page.getByRole("heading", { name: "Show this screen at the raffle table" }),
+  ).toBeVisible();
+  await expect(page.getByText("You're checked in for the raffle.")).toBeVisible();
+
+  const verificationCodeLocator = page.locator(".token-block strong");
+  await expect(verificationCodeLocator).not.toHaveText("Loading...");
+  const verificationCode = (await verificationCodeLocator.innerText()).trim();
+  await expect(verificationCode).toMatch(/^[A-Z0-9-]+$/);
+
+  await assertTrustedAttendeeCompletionPersisted(verificationCode);
+});
+
+test("rejects malformed completion payload before persistence, then succeeds on retry", async ({
+  page,
+}) => {
+  const tamperedRequest: TamperedCompletionRequestCapture = {
+    eventId: null,
+    requestId: null,
+  };
+
+  await installAttendeeFunctionProxy(page, {
+    captureTamperedCompletionRequest: tamperedRequest,
+    tamperFirstCompletionPayload: true,
+  });
+
+  await page.goto("/game/first-sample", { waitUntil: "networkidle" });
+  await expect(
+    page.getByRole("heading", { name: "Madrona Music in the Playfield" }),
+  ).toBeVisible();
+
+  await activate(page.getByRole("button", { exact: true, name: "Start quiz" }));
+  await expect(
+    page.getByRole("heading", {
+      name: "Which local spot is sponsoring this neighborhood music series question?",
+    }),
+  ).toBeVisible();
+
+  await clickOptionAndSubmit(page, "Hi Spot Cafe");
+  await clickOptionAndSubmit(page, "A quick neighborhood game");
+  await clickOptionAndSubmit(page, "5 to 7");
+  await clickOptionAndSubmit(page, "Finishing the quiz");
+  await clickOptionAndSubmit(page, "One card at a time");
+  await clickOptionAndSubmit(page, "That the attendee is officially done");
+
+  await expect(
+    page.getByRole("heading", { name: "We couldn't load your check-in code" }),
+  ).toBeVisible();
+  const retryButton = page.getByRole("button", { exact: true, name: "Try again" });
+  await expect(retryButton).toBeVisible();
+  await expect(page.getByText("Invalid completion payload.")).toBeVisible();
+
+  expect(tamperedRequest.eventId).toBe("madrona-music-2026");
+  expect(tamperedRequest.requestId).toBeTruthy();
+  await assertNoTrustedCompletionPersistedForRequest(
+    tamperedRequest.eventId ?? "",
+    tamperedRequest.requestId ?? "",
+  );
+
+  await activate(retryButton);
 
   await expect(
     page.getByRole("heading", { name: "Show this screen at the raffle table" }),
