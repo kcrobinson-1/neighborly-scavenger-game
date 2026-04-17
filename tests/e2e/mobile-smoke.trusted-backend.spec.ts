@@ -1,0 +1,58 @@
+import { expect, test, type Locator, type Page } from "@playwright/test";
+import {
+  assertTrustedAttendeeCompletionPersisted,
+  installAttendeeFunctionProxy,
+} from "./attendee-trusted-backend-fixture";
+
+/** Scrolls the target into view so Playwright can use its normal actionability checks. */
+async function activate(locator: Locator) {
+  await locator.scrollIntoViewIfNeeded();
+  await locator.click();
+}
+
+/** Selects an answer and submits the question with normal browser-like interactions. */
+async function clickOptionAndSubmit(
+  page: Page,
+  optionLabel: string,
+  submitLabel = "Submit answer",
+) {
+  await activate(page.getByText(optionLabel, { exact: true }));
+  await activate(page.getByRole("button", { exact: true, name: submitLabel }));
+}
+
+test("completes the attendee flow against trusted backend persistence", async ({
+  page,
+}) => {
+  await installAttendeeFunctionProxy(page);
+
+  await page.goto("/game/first-sample", { waitUntil: "networkidle" });
+  await expect(
+    page.getByRole("heading", { name: "Madrona Music in the Playfield" }),
+  ).toBeVisible();
+
+  await activate(page.getByRole("button", { exact: true, name: "Start quiz" }));
+  await expect(
+    page.getByRole("heading", {
+      name: "Which local spot is sponsoring this neighborhood music series question?",
+    }),
+  ).toBeVisible();
+
+  await clickOptionAndSubmit(page, "Hi Spot Cafe");
+  await clickOptionAndSubmit(page, "A quick neighborhood game");
+  await clickOptionAndSubmit(page, "5 to 7");
+  await clickOptionAndSubmit(page, "Finishing the quiz");
+  await clickOptionAndSubmit(page, "One card at a time");
+  await clickOptionAndSubmit(page, "That the attendee is officially done");
+
+  await expect(
+    page.getByRole("heading", { name: "Show this screen at the raffle table" }),
+  ).toBeVisible();
+  await expect(page.getByText("You're checked in for the raffle.")).toBeVisible();
+
+  const verificationCodeLocator = page.locator(".token-block strong");
+  await expect(verificationCodeLocator).not.toHaveText("Loading...");
+  const verificationCode = (await verificationCodeLocator.innerText()).trim();
+  await expect(verificationCode).toMatch(/^[A-Z0-9-]+$/);
+
+  await assertTrustedAttendeeCompletionPersisted(verificationCode);
+});
