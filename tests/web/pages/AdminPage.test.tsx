@@ -1609,6 +1609,24 @@ describe("AdminPage", () => {
   });
 
   describe("draft changes not published label", () => {
+    async function expectDraftChangesNotPublishedVisible() {
+      await waitFor(
+        () => {
+          expect(screen.getByText(/Draft changes not published/)).toBeTruthy();
+        },
+        { timeout: 3000 },
+      );
+    }
+
+    async function expectDraftChangesNotPublishedHidden() {
+      await waitFor(
+        () => {
+          expect(screen.queryByText(/Draft changes not published/)).toBeNull();
+        },
+        { timeout: 3000 },
+      );
+    }
+
     it("shows the status label after a save on a live event, then clears it after publish", async () => {
       mockUseAdminSession.mockReturnValue({
         email: "admin@example.com",
@@ -1643,13 +1661,15 @@ describe("AdminPage", () => {
         target: { value: "Updated Name" },
       });
       fireEvent.click(screen.getByRole("button", { name: "Save changes" }));
-
-      await screen.findByText(/Draft changes not published/);
+      await waitFor(() => {
+        expect(mockSaveDraftEvent).toHaveBeenCalledTimes(1);
+      });
+      await expectDraftChangesNotPublishedVisible();
 
       fireEvent.click(screen.getByRole("button", { name: "Publish draft" }));
 
       await screen.findByText(/Published as version 2/);
-      expect(screen.queryByText(/Draft changes not published/)).toBeNull();
+      await expectDraftChangesNotPublishedHidden();
     });
 
     it("shows the label again when the draft is edited after publish", async () => {
@@ -1683,12 +1703,15 @@ describe("AdminPage", () => {
         target: { value: "Updated Name" },
       });
       fireEvent.click(screen.getByRole("button", { name: "Save changes" }));
-      await screen.findByText(/Draft changes not published/);
+      await waitFor(() => {
+        expect(mockSaveDraftEvent).toHaveBeenCalledTimes(1);
+      });
+      await expectDraftChangesNotPublishedVisible();
 
       // Publish clears the label
       fireEvent.click(screen.getByRole("button", { name: "Publish draft" }));
       await screen.findByText(/Published as version 2/);
-      expect(screen.queryByText(/Draft changes not published/)).toBeNull();
+      await expectDraftChangesNotPublishedHidden();
 
       // Save again — label should reappear
       fireEvent.change(screen.getByLabelText("Event name"), {
@@ -1696,8 +1719,9 @@ describe("AdminPage", () => {
       });
       fireEvent.click(screen.getByRole("button", { name: "Save changes" }));
       await waitFor(() => {
-        expect(screen.getByText(/Draft changes not published/)).toBeTruthy();
+        expect(mockSaveDraftEvent).toHaveBeenCalledTimes(2);
       });
+      await expectDraftChangesNotPublishedVisible();
     });
   });
 
