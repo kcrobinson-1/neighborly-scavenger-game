@@ -502,8 +502,9 @@ PR CI currently runs:
 - `npm test`
 - `npm run test:functions`
 - `npm run test:supabase`
+- `npm run test:e2e:attendee:trusted-backend`
 - `npm run build:web`
-- `deno check` for both Edge Functions
+- `deno check` for all shipped Edge Function entrypoints
 
 The shared `test:supabase` step now owns local Supabase startup for the backend validation slice, so CI only pays that setup cost once for the trust-path integration and database tests.
 
@@ -515,9 +516,8 @@ Keep PR CI focused on fast confidence:
 
 Still worth adding to PR CI:
 
-- the small Playwright mobile smoke suite
-- the local admin functionality suite after it exists and is stable enough to
-  run deterministically before release
+- the local admin functionality suite once it is stable enough to run
+  deterministically before release
 
 ### Post-Merge Or Nightly
 
@@ -545,15 +545,15 @@ Completed second wave:
 5. Add a few Deno tests for session/cors helpers and request validation.
 6. Add a local Supabase integration test that exercises the full function path.
 
-Remaining next wave:
+Completed third wave:
 
-7. Decide whether the Playwright smoke suite should also run in PR CI.
+7. Add trusted-backend attendee Playwright smoke coverage to PR CI.
 
 That order still gives the most confidence for the least complexity.
 
 Progress note:
 
-- steps 5 and 6 are now complete
+- steps 5 through 7 are now complete
 
 ## Proposed Test Inventory
 
@@ -590,7 +590,7 @@ Everything beyond that should earn its keep.
 - [x] Add trusted-backend attendee Playwright smoke coverage that runs against local Supabase + local Edge Functions and asserts completion persistence through database reads.
 - [x] Add attendee smoke malformed-submission rejection coverage that forces a backend `400`, asserts no completion persistence for the malformed request, and verifies retry-to-success.
 - [x] Add attendee smoke bootstrap-failure messaging coverage that forces `issue-session` startup failure and asserts the intro error banner plus backend failure detail.
-- [ ] Add PR CI coverage for the Playwright smoke suite.
+- [x] Add PR CI coverage for the Playwright smoke suite.
 - [x] Add PR CI coverage for Deno function tests.
 - [x] Add local end-to-end admin functionality coverage for sign-in/session
   setup, allowlist authorization, draft reads, save, publish, unpublish, and
