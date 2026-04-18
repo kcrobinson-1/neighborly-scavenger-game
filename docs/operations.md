@@ -109,6 +109,28 @@ Why manual for now:
 
 - workflows are repo-managed, but branch protection, environment approvals, and secret values still live in GitHub settings
 
+Beta baseline settings for this repo's solo-operator workflow:
+
+- keep pull requests optional on `main`
+- do not require reviewer approvals
+- allow force pushes for repository owner use cases such as docs-history cleanup
+- block branch deletion on `main`
+- require this status check on `main`:
+  - `Lint, Tests, Build, and Supabase Checks / Lint, Tests, Build, and Supabase Checks`
+- monitor `Release / Sync Supabase Production` as the post-CI production
+  deployment gate; it runs after successful CI on `main` and should not be a
+  pre-merge required branch check
+- treat `Production Admin Smoke / Smoke Admin On Production` as post-release
+  operational confidence, not a pre-merge required check
+
+CI docs-only trigger policy:
+
+- `.github/workflows/ci.yml` ignores markdown/docs-only diffs at the workflow
+  trigger level
+- docs-only pushes to `main` do not run CI and do not trigger the production
+  Supabase release workflow
+- any non-doc change continues to run full CI validation before release
+
 ### Vercel
 
 - Vercel project creation and linking

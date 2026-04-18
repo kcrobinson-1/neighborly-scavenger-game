@@ -19,6 +19,7 @@ concurrency:
 
 permissions:
   contents: read
+  actions: read
 
 jobs:
   sync-supabase-production:
@@ -35,12 +36,24 @@ jobs:
       SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
       SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
       SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+      GH_TOKEN: ${{ github.token }}
 
     steps:
+      - name: Resolve release target SHA
+        id: release_target
+        run: |
+          set -eu
+          target_sha="${{ github.event.workflow_run.head_sha || github.sha }}"
+          if [ -z "$target_sha" ] || [ "$target_sha" = "null" ]; then
+            echo "Unable to resolve release target SHA."
+            exit 1
+          fi
+          echo "sha=$target_sha" >> "$GITHUB_OUTPUT"
+
       - name: Checkout
         uses: actions/checkout@v6
         with:
-          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+          ref: ${{ steps.release_target.outputs.sha }}
 
       - name: Setup Supabase CLI
         uses: supabase/setup-cli@v1
@@ -49,9 +62,34 @@ jobs:
 
       - name: Validate release secrets
         run: |
+          set -eu
           test -n "$SUPABASE_ACCESS_TOKEN"
           test -n "$SUPABASE_DB_PASSWORD"
           test -n "$SUPABASE_PROJECT_REF"
+          printf '%s' "$SUPABASE_PROJECT_REF" | grep -Eq '^[a-z0-9]{20}$'
+
+      - name: Validate target SHA passed CI on main
+        env:
+          TARGET_SHA: ${{ steps.release_target.outputs.sha }}
+        run: |
+          set -euo pipefail
+
+          api_url="https://api.github.com/repos/${{ github.repository }}/actions/runs?head_sha=${TARGET_SHA}&event=push&status=completed&per_page=100"
+          ci_success_count="$(
+            curl -fsSL -H "Accept: application/vnd.github+json" \
+              -H "Authorization: Bearer $GH_TOKEN" \
+              "$api_url" \
+              | jq '[.workflow_runs[]
+                  | select(.name == "CI")
+                  | select(.head_branch == "main")
+                  | select(.conclusion == "success")
+                ] | length'
+          )"
+
+          if [ "$ci_success_count" -eq 0 ]; then
+            echo "No successful CI push run on main found for target SHA: $TARGET_SHA"
+            exit 1
+          fi
 
       - name: Link production project
         run: supabase link --project-ref "$SUPABASE_PROJECT_REF" --password "$SUPABASE_DB_PASSWORD"

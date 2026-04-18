@@ -538,12 +538,17 @@ historical row, set `active = false` for that email.
 The intended release path is:
 
 1. Reproduce and validate the change locally.
-2. Open a pull request.
-3. Let CI run the repo checks.
-4. Merge to `main`.
-5. Let Vercel Git integration publish the frontend from the merged commit.
-6. Let [`.github/workflows/release.yml`](../.github/workflows/release.yml) apply production Supabase migrations and deploy production Edge Functions from that same repo state.
-7. Let [`.github/workflows/production-admin-smoke.yml`](../.github/workflows/production-admin-smoke.yml) verify deployed admin auth and authoring workflows against dedicated production smoke fixtures (with manual rerun support).
+2. Open a pull request or push directly to `main` under the configured solo-safe
+   branch protection policy.
+3. Let CI run the repo checks. Markdown/docs-only changes skip CI and therefore
+   do not trigger production Supabase release.
+4. Let Vercel Git integration publish the frontend from the validated commit.
+5. Let [`.github/workflows/release.yml`](../.github/workflows/release.yml) apply
+   production Supabase migrations and deploy production Edge Functions from that
+   same validated SHA.
+6. Let [`.github/workflows/production-admin-smoke.yml`](../.github/workflows/production-admin-smoke.yml)
+   verify deployed admin auth and authoring workflows against dedicated
+   production smoke fixtures (with manual rerun support).
 
 ### Pull Request Notes
 
@@ -573,6 +578,12 @@ The release workflow currently expects these GitHub Actions secrets:
 - `SUPABASE_ACCESS_TOKEN`
 - `SUPABASE_DB_PASSWORD`
 - `SUPABASE_PROJECT_REF`
+
+Release integrity guard:
+
+- the release workflow resolves an explicit target SHA and verifies that SHA has
+  a successful `CI` push run on `main` before applying migrations or deploying
+  Edge Functions
 
 The production smoke workflow expects these additional `production` environment
 settings (vars and secrets):
