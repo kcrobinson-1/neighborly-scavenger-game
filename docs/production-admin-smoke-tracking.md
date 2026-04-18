@@ -33,8 +33,8 @@ The production smoke workflow verifies all of the following against a dedicated 
 1. Admin magic-link auth/session setup to `/admin`
 2. Allowlisted admin can access drafts and workspace
 3. Draft save path succeeds and persists expected state
-4. Publish path succeeds and makes `/game/:slug` live
-5. Unpublish path succeeds and returns `/game/:slug` to unavailable state
+4. Publish path succeeds and makes `/event/:slug/game` live
+5. Unpublish path succeeds and returns `/event/:slug/game` to unavailable state
 6. A signed-in non-allowlisted account is denied admin authoring access
 
 ### Out Of Scope

@@ -231,6 +231,9 @@ The Supabase side is intentionally small:
   Renames authoring draft/version JSON from the historical `raffleLabel` key to
   `entitlementLabel` and updates `publish_game_event_draft()` so it projects
   draft content into `game_events.entitlement_label`.
+- `supabase/migrations/20260418020000_update_demo_game_copy.sql`
+  Updates seeded demo event, question, and answer-option copy to the Phase 4
+  game/reward wording used by the frontend fixtures and browser tests.
 
 ## What Is Implemented Now
 

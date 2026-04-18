@@ -221,7 +221,12 @@ async function captureFeaturedFlow(page, baseUrl, runDirectory) {
 /** Captures the incorrect and correct feedback states in the spotlight mode. */
 async function captureSpotlightFlow(page, baseUrl, runDirectory) {
   await openHome(page, baseUrl);
-  await activate(page.getByRole("button", { name: "Try this demo", exact: true }).nth(0));
+  await activate(
+    page
+      .locator(".sample-game-row")
+      .filter({ hasText: "Sponsor Spotlight Challenge" })
+      .getByRole("button", { name: "Try this demo", exact: true }),
+  );
   await page.waitForURL(`${baseUrl}/event/sponsor-spotlight/game`);
   await page.getByRole("heading", { name: "Sponsor Spotlight Challenge" }).waitFor();
   await activate(page.getByRole("button", { name: "Start game", exact: true }));
@@ -241,7 +246,12 @@ async function captureSpotlightFlow(page, baseUrl, runDirectory) {
 /** Captures the multiple-selection state in the checklist sample. */
 async function captureCommunityChecklist(page, baseUrl, runDirectory) {
   await openHome(page, baseUrl);
-  await activate(page.getByRole("button", { name: "Try this demo", exact: true }).nth(1));
+  await activate(
+    page
+      .locator(".sample-game-row")
+      .filter({ hasText: "Community Checklist Game" })
+      .getByRole("button", { name: "Try this demo", exact: true }),
+  );
   await page.waitForURL(`${baseUrl}/event/community-checklist/game`);
   await page.getByRole("heading", { name: "Community Checklist Game" }).waitFor();
   await activate(page.getByRole("button", { name: "Start game", exact: true }));
@@ -306,6 +316,24 @@ const ADMIN_MOCK_SESSION = {
     user_metadata: {},
   },
 };
+
+function getSupabaseAuthStorageKey(supabaseUrl) {
+  const hostname = new URL(supabaseUrl).hostname;
+  const projectRef = hostname.split(".")[0];
+  return `sb-${projectRef}-auth-token`;
+}
+
+async function installMockAdminSession(page, supabaseUrl) {
+  await page.addInitScript(
+    ({ session, storageKey }) => {
+      globalThis.localStorage.setItem(storageKey, JSON.stringify(session));
+    },
+    {
+      session: ADMIN_MOCK_SESSION,
+      storageKey: getSupabaseAuthStorageKey(supabaseUrl),
+    },
+  );
+}
 
 const ADMIN_DRAFT_SUMMARY_FIXTURE = [
   {
@@ -406,6 +434,8 @@ function buildAdminMocks(supabaseUrl, overrides = {}) {
    * @param {import("playwright").Page} page
    */
   async function installMocks(page) {
+    await installMockAdminSession(page, supabaseUrl);
+
     // Auth session restore (GET)
     await page.route(`${supabaseUrl}/auth/v1/session`, (route) => {
       if (route.request().method() === "GET") {
@@ -475,14 +505,15 @@ function buildAdminMocks(supabaseUrl, overrides = {}) {
 
     // save-draft Edge Function (POST)
     const defaultSaveResponse = {
+      hasBeenPublished: true,
       id: ADMIN_DRAFT_DETAIL_FIXTURE[0].id,
-      live_version_number: ADMIN_DRAFT_DETAIL_FIXTURE[0].live_version_number,
+      liveVersionNumber: ADMIN_DRAFT_DETAIL_FIXTURE[0].live_version_number,
       name: ADMIN_DRAFT_DETAIL_FIXTURE[0].name,
       slug: ADMIN_DRAFT_DETAIL_FIXTURE[0].slug,
-      updated_at: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     };
 
-    await page.route(`${supabaseUrl}/functions/v1/save-draft`, (route) => {
+    await page.route("**/functions/v1/save-draft", (route) => {
       if (saveDraftStatus !== 200) {
         void route.fulfill({
           status: saveDraftStatus,
@@ -708,8 +739,7 @@ async function captureAdminWorkspaceStates(baseUrl, runDirectory, installMocks) 
     // Install the base mocks first (session + auth + allowlist + draft reads)
     await installMocks(page);
     // Then override save-draft to return 500 — Playwright uses most-recently-added handler first
-    const supabaseUrl = getAdminCaptureSupabaseUrl();
-    await page.route(`${supabaseUrl}/functions/v1/save-draft`, (route) => {
+    await page.route("**/functions/v1/save-draft", (route) => {
       void route.fulfill({
         status: 500,
         contentType: "application/json",

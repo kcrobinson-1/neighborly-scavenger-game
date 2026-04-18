@@ -145,7 +145,9 @@ existing draft/version JSON from `raffleLabel` to `entitlementLabel` and updates
 **Implementation status:** complete in this branch. Frontend modules, exports,
 style partials, route helpers, web copy, frontend tests, Playwright route
 expectations, UI review helpers, and production/admin smoke helpers now use the
-target Phase 4 naming.
+target Phase 4 naming. Migration
+`20260418020000_update_demo_game_copy.sql` keeps seeded database demo content in
+sync with the frontend fixture copy used by trusted-backend browser tests.
 
 ### File renames
 
