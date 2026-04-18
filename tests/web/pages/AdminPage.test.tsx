@@ -336,7 +336,7 @@ describe("AdminPage", () => {
     );
 
     expect(navigate).toHaveBeenCalledWith("/admin/events/madrona-music-2026");
-    expect(navigate).toHaveBeenCalledWith("/game/first-sample");
+    expect(navigate).toHaveBeenCalledWith("/event/first-sample/game");
     expect(screen.getAllByRole("button", { name: "Open live quiz" })).toHaveLength(1);
   });
 

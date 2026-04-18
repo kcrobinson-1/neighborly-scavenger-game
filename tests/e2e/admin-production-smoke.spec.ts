@@ -50,7 +50,7 @@ test.describe("production admin smoke", () => {
     expect(publishedState?.publishedAt).not.toBeNull();
     expect(publishedState?.slug).toBe(fixture.eventSlug);
 
-    await page.goto(`/game/${fixture.eventSlug}`, { waitUntil: "networkidle" });
+    await page.goto(`/event/${fixture.eventSlug}/game`, { waitUntil: "networkidle" });
     await expect(page.getByRole("heading", { name: editedEventName })).toBeVisible();
     await expect(page.getByRole("button", { name: "Start quiz" })).toBeVisible();
 
@@ -66,7 +66,7 @@ test.describe("production admin smoke", () => {
     expect(unpublishedState?.publishedAt).toBeNull();
     expect(unpublishedState?.slug).toBe(fixture.eventSlug);
 
-    await page.goto(`/game/${fixture.eventSlug}`, { waitUntil: "networkidle" });
+    await page.goto(`/event/${fixture.eventSlug}/game`, { waitUntil: "networkidle" });
     await expect(
       page.getByRole("heading", { name: "This quiz isn't available right now." }),
     ).toBeVisible();

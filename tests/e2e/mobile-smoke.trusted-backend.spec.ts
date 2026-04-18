@@ -27,7 +27,7 @@ test("completes the attendee flow against trusted backend persistence", async ({
 }) => {
   await installAttendeeFunctionProxy(page);
 
-  await page.goto("/game/first-sample", { waitUntil: "networkidle" });
+  await page.goto("/event/first-sample/game", { waitUntil: "networkidle" });
   await expect(
     page.getByRole("heading", { name: "Madrona Music in the Playfield" }),
   ).toBeVisible();
@@ -72,7 +72,7 @@ test("rejects malformed completion payload before persistence, then succeeds on 
     tamperFirstCompletionPayload: true,
   });
 
-  await page.goto("/game/first-sample", { waitUntil: "networkidle" });
+  await page.goto("/event/first-sample/game", { waitUntil: "networkidle" });
   await expect(
     page.getByRole("heading", { name: "Madrona Music in the Playfield" }),
   ).toBeVisible();
@@ -127,7 +127,7 @@ test("shows bootstrap failure messaging when trusted session bootstrap fails", a
     failFirstIssueSessionRequest: true,
   });
 
-  await page.goto("/game/first-sample", { waitUntil: "networkidle" });
+  await page.goto("/event/first-sample/game", { waitUntil: "networkidle" });
   await expect(
     page.getByRole("heading", { name: "Madrona Music in the Playfield" }),
   ).toBeVisible();

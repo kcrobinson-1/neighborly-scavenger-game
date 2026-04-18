@@ -17,7 +17,7 @@ async function clickOptionAndSubmit(
 }
 
 test("loads the featured attendee route directly", async ({ page }) => {
-  await page.goto("/game/first-sample", { waitUntil: "networkidle" });
+  await page.goto("/event/first-sample/game", { waitUntil: "networkidle" });
 
   await expect(
     page.getByRole("heading", { name: "Madrona Music in the Playfield" }),
@@ -29,7 +29,7 @@ test("completes the featured attendee flow on mobile", async ({ page }) => {
   await page.goto("/", { waitUntil: "networkidle" });
 
   await activate(page.getByRole("button", { exact: true, name: "Try the attendee demo" }));
-  await expect(page).toHaveURL(/\/game\/first-sample$/);
+  await expect(page).toHaveURL(/\/event\/first-sample\/game$/);
   await expect(
     page.getByRole("heading", { name: "Madrona Music in the Playfield" }),
   ).toBeVisible();
@@ -107,7 +107,7 @@ test("shows the not-found fallback for invalid routes and missing game slugs", a
   ).toBeVisible();
   await expect(page.getByRole("button", { name: "Go to demo overview" })).toBeVisible();
 
-  await page.goto("/game/not-a-real-sample", { waitUntil: "networkidle" });
+  await page.goto("/event/not-a-real-sample/game", { waitUntil: "networkidle" });
 
   await expect(
     page.getByRole("heading", { name: "This quiz isn't available right now." }),

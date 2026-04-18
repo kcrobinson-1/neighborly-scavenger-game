@@ -137,7 +137,7 @@ async function capture(page, runDirectory, fileName) {
 
 /** Verifies that direct navigation to the featured route works before deeper flow checks. */
 async function verifyDirectRoute(page, baseUrl) {
-  await page.goto(`${baseUrl}/game/first-sample`, { waitUntil: "networkidle" });
+  await page.goto(`${baseUrl}/event/first-sample/game`, { waitUntil: "networkidle" });
   await page.getByRole("heading", { name: "Madrona Music in the Playfield" }).waitFor();
 }
 
@@ -167,7 +167,7 @@ async function captureLandingStates(baseUrl, runDirectory) {
 async function captureFeaturedFlow(page, baseUrl, runDirectory) {
   await openHome(page, baseUrl);
   await activate(page.getByRole("button", { name: "Try the attendee demo", exact: true }));
-  await page.waitForURL(`${baseUrl}/game/first-sample`);
+  await page.waitForURL(`${baseUrl}/event/first-sample/game`);
   await page.getByRole("heading", { name: "Madrona Music in the Playfield" }).waitFor();
   await capture(page, runDirectory, "03-featured-intro.png");
 
@@ -222,7 +222,7 @@ async function captureFeaturedFlow(page, baseUrl, runDirectory) {
 async function captureSpotlightFlow(page, baseUrl, runDirectory) {
   await openHome(page, baseUrl);
   await activate(page.getByRole("button", { name: "Try this demo", exact: true }).nth(0));
-  await page.waitForURL(`${baseUrl}/game/sponsor-spotlight`);
+  await page.waitForURL(`${baseUrl}/event/sponsor-spotlight/game`);
   await page.getByRole("heading", { name: "Sponsor Spotlight Challenge" }).waitFor();
   await activate(page.getByRole("button", { name: "Start quiz", exact: true }));
   await page.getByRole("heading", {
@@ -242,7 +242,7 @@ async function captureSpotlightFlow(page, baseUrl, runDirectory) {
 async function captureCommunityChecklist(page, baseUrl, runDirectory) {
   await openHome(page, baseUrl);
   await activate(page.getByRole("button", { name: "Try this demo", exact: true }).nth(1));
-  await page.waitForURL(`${baseUrl}/game/community-checklist`);
+  await page.waitForURL(`${baseUrl}/event/community-checklist/game`);
   await page.getByRole("heading", { name: "Community Checklist Quiz" }).waitFor();
   await activate(page.getByRole("button", { name: "Start quiz", exact: true }));
   await page.getByRole("heading", {
@@ -260,7 +260,7 @@ async function captureNotFoundStates(page, baseUrl, runDirectory) {
   await page.getByRole("heading", { name: "That page isn't available in this demo." }).waitFor();
   await capture(page, runDirectory, "10-not-found-route.png");
 
-  await page.goto(`${baseUrl}/game/not-a-real-sample`, { waitUntil: "networkidle" });
+  await page.goto(`${baseUrl}/event/not-a-real-sample/game`, { waitUntil: "networkidle" });
   await page.getByRole("heading", { name: "This quiz isn't available right now." }).waitFor();
   await capture(page, runDirectory, "11-unavailable-game-route.png");
 }
@@ -277,7 +277,7 @@ async function captureRouteLoadError(errorBaseUrl, runDirectory) {
   });
   const page = await context.newPage();
 
-  await page.goto(`${errorBaseUrl}/game/first-sample`, { waitUntil: "networkidle" });
+  await page.goto(`${errorBaseUrl}/event/first-sample/game`, { waitUntil: "networkidle" });
   await page.getByRole("heading", { name: "This quiz couldn't load right now." }).waitFor();
   await capture(page, runDirectory, "12-route-load-error.png");
 

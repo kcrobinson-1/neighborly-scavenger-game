@@ -59,7 +59,7 @@ describe("LandingPage", () => {
     expect(screen.getByText("Secondary summary")).toBeTruthy();
 
     fireEvent.click(screen.getByRole("button", { name: "Try featured demo" }));
-    expect(onNavigate).toHaveBeenCalledWith("/game/first-sample");
+    expect(onNavigate).toHaveBeenCalledWith("/event/first-sample/game");
   });
 
   it("shows a retryable load error when published demos fail to load", async () => {

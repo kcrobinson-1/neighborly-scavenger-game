@@ -1,5 +1,9 @@
 /** Application routes supported by the lightweight client-side router. */
-export type AppPath = "/" | "/admin" | `/admin/events/${string}` | `/game/${string}`;
+export type AppPath =
+  | "/"
+  | "/admin"
+  | `/admin/events/${string}`
+  | `/event/${string}/game`;
 
 /** Central route definitions used by the pathname-based client router. */
 export const routes = {
@@ -8,9 +12,9 @@ export const routes = {
   adminEventsPrefix: "/admin/events",
   adminEvent: (eventId: string): AppPath =>
     `/admin/events/${encodeURIComponent(eventId)}`,
-  gamePrefix: "/game",
+  gamePrefix: "/event",
   game: (slug: string): AppPath =>
-    `/game/${encodeURIComponent(slug)}`,
+    `/event/${encodeURIComponent(slug)}/game`,
 } as const;
 
 /** Removes trailing slashes so route comparisons stay stable. */
@@ -61,12 +65,20 @@ export function matchAdminEventPath(pathname: string) {
 export function matchGamePath(pathname: string) {
   const normalizedPath = normalizePathname(pathname);
   const prefix = `${routes.gamePrefix}/`;
+  const suffix = "/game";
 
   if (!normalizedPath.startsWith(prefix)) {
     return null;
   }
 
-  const encodedSlug = normalizedPath.slice(prefix.length);
+  if (!normalizedPath.endsWith(suffix)) {
+    return null;
+  }
+
+  const encodedSlug = normalizedPath.slice(
+    prefix.length,
+    normalizedPath.length - suffix.length,
+  );
 
   if (!encodedSlug || encodedSlug.includes("/")) {
     return null;
