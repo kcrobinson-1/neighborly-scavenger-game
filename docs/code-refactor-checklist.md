@@ -39,7 +39,7 @@ Rules for this checklist:
   Validation: `npm test -- tests/shared/game-config/draft-content.test.ts` and
   `npm run build:web`.
 
-- [ ] Split browser quiz API local fallback from Supabase transport.
+- [ ] Split browser game API local fallback from Supabase transport.
   `apps/web/src/lib/gameApi.ts` owns local prototype entitlement storage,
   server-session bootstrap, completion submission, retry handling, and response
   mapping. Extract local fallback storage/completion into a separate module so
