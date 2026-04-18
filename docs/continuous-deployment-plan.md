@@ -162,6 +162,57 @@ Release target integrity:
 - keep production deploy pinned to the validated target SHA rather than a moving
   branch head
 
+### Beta completion checklist
+
+After the beta guardrail workflow changes merge, finish the milestone with
+these platform and proof-run steps:
+
+- configure GitHub `main` branch protection or ruleset settings:
+  - keep pull requests optional and do not require reviewer approvals
+  - block branch deletion
+  - allow owner force-push if preserving docs-history cleanup remains useful
+  - require `Lint, Tests, Build, and Supabase Checks / Lint, Tests, Build, and Supabase Checks`
+- configure or verify the GitHub `production` environment:
+  - confirm `Release` and `Production Admin Smoke` use the `production`
+    environment
+  - confirm release secrets exist: `SUPABASE_ACCESS_TOKEN`,
+    `SUPABASE_DB_PASSWORD`, and `SUPABASE_PROJECT_REF`
+  - confirm production smoke vars and secrets exist, including
+    `PRODUCTION_SMOKE_BASE_URL`, `PRODUCTION_SMOKE_SUPABASE_URL`,
+    `PRODUCTION_SMOKE_PUBLISHABLE_DEFAULT_KEY`, and
+    `PRODUCTION_SMOKE_SUPABASE_SERVICE_ROLE_KEY`
+  - keep production environment approval disabled for solo beta unless a
+    deliberate manual pause before Supabase deployment is desired
+- verify Vercel production behavior:
+  - production deploys remain tied to `main`
+  - preview deployments remain enabled for branches and pull requests
+  - production env vars point at production Supabase:
+    `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY`
+  - decide whether automatic frontend production deploys before CI completion
+    are acceptable for beta; if not, move Vercel production promotion behind CI
+    in a follow-up
+- verify Supabase production settings:
+  - no Supabase staging project, branching setup, or account upgrade is required
+    for beta
+  - production function secrets exist: `SESSION_SIGNING_SECRET` and
+    `ALLOWED_ORIGINS`
+  - `ALLOWED_ORIGINS` includes the production Vercel origin
+  - Supabase Auth Site URL and redirect URLs include the production `/admin`
+    origin
+  - at least one active admin email exists in `public.quiz_admin_users`
+- run beta acceptance checks after merge:
+  - push or merge a non-doc change and confirm full `CI` runs
+  - confirm `Release / Sync Supabase Production` runs only after successful `CI`
+  - confirm release checks out and deploys the validated target SHA
+  - push a docs-only change and confirm `CI` and Supabase release do not run
+  - run `Production Admin Smoke / Smoke Admin On Production` after a release
+    and confirm it passes
+- test the operator runbook once:
+  - trigger production smoke manually from GitHub Actions
+  - confirm smoke failure artifacts would upload on failure
+  - walk the first triage locations in `operations.md`: GitHub Actions, Vercel
+    deployment state, Supabase function logs, and database state
+
 ## Compatibility Strategy (Frontend + Backend)
 
 Use backward-compatible rollout patterns by default:
