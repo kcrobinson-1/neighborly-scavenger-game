@@ -22,73 +22,33 @@ this file.
 
 ## Product And Live Event Operation
 
-- Should live event QR codes always go directly to `/game/:slug`, with `/`
-  remaining a demo-overview route only?
-  The current web app treats `/` as a preview surface and `/game/:slug` as the
-  attendee route.
-  **MVP direction:** keep current behavior.
-  **Post-MVP direction:** `/` is expected to evolve into a marketing page while
-  live entry remains event/game-route driven.
-- **Pre-launch decision:** For the Madrona pre-launch release milestone, the
-  current completion screen plus verification code is sufficient for volunteer
-  raffle handoff. Revisit stronger proof treatments after this release is
-  finished. Redemption follow-up is now tracked in
-  [`reward-redemption-mvp-design.md`](./reward-redemption-mvp-design.md).
 - Is one quiz experience per event enough for the MVP, or do some events need
   multiple attendee routes under one organizer-owned event?
   The current runtime model assumes one event maps to one game route.
   **Post-MVP product direction:** events should not be limited to a single game
   and are expected to have their own event page concept.
-- For an MVP redemption workflow, what is the minimum volunteer check-in
-  experience needed beyond showing a completion verification code?
-  Initial design direction is documented in
-  [`reward-redemption-mvp-design.md`](./reward-redemption-mvp-design.md).
-  Decisions already made for MVP scope: keep redemption UI on non-admin routes
-  (`/event/:slug/redeem` and `/event/:slug/redemptions`), use
-  `<event-acronym>-<4-digit-code>` with event-scoped lookups, use polling
-  (not realtime subscriptions) every 5 seconds plus manual refresh for attendee
-  status updates, keep redemption as claim-tracking only, support reversible
-  redemption, keep offline fallback out of MVP, and use an event-scoped `agent`
-  role for redemption operations.
+- Should live event QR codes always route directly to event/game entry surfaces
+  while `/` becomes a marketing page post-MVP?
+  Current behavior is `/` preview plus `/game/:slug` attendee route; long-term
+  URL contract is not finalized.
 
 ## Authoring And Publishing
 
-- What authenticated roles are needed after the first global quiz-admin
-  allowlist?
-  The current authoring model uses Supabase Auth plus `public.quiz_admin_users`
-  for all admin access. It does not yet define organizer-scoped roles,
-  event-level permissions, or non-admin collaborator access.
-  **MVP direction:** start with three roles:
-  - `admin`: global permissions
-  - `organizer`: full permissions for assigned event(s)
-  - `agent`: redeem-only permissions for assigned event(s)
-  Detailed enforcement boundaries for redemption are in
-  [`reward-redemption-mvp-design.md`](./reward-redemption-mvp-design.md).
-- With `agent` and `organizer` now split into separate event-scoped roles
-  (`agent` for redemption, `organizer` for non-redemption event operations),
-  what is the MVP permission matrix between those roles and root admin?
-  **MVP decisions landed:** keep role permissions intentionally narrow, manage
-  agent/organizer assignments by direct SQL inserts (no role-management UI),
-  and require organizer/root-admin privileges for redemption reversal via
-  `/event/:slug/redemptions`.
-  **Still open for post-MVP:** broader organizer authoring/publish surface,
-  assignment self-management UX, and long-term role inheritance model.
 - Should the repo add a root-level admin role and UI for managing
   `public.quiz_admin_users` membership instead of requiring direct SQL edits?
   The current setup intentionally keeps allowlist membership as a manual
   Supabase operation, but that is operationally awkward once more than one
   trusted operator needs to grant or revoke access.
   Priority direction: next milestone.
+- After the MVP role split (`admin`, `organizer`, `agent`), what is the
+  long-term permission model?
+  Open points include organizer authoring/publish scope, assignment
+  self-management UX, and long-term role inheritance across event boundaries.
 - Do organizers need expiry, scheduled publish, or friendlier inactive-event
   behavior beyond immediate unpublish?
   The current backend supports explicit publish and unpublish by clearing
   `quiz_events.published_at`, but richer lifecycle controls are still deferred.
   Priority direction: low priority; not in current roadmap.
-- **Decided:** Slugs are locked after first publish. The admin UI makes the
-  slug field read-only once an event has been published, with explanatory inline
-  copy and tooltip text. The backend enforces the same rule, and the DB trigger
-  protects against concurrent publish/save races. Redirect table approach was
-  ruled out due to slug-recycling complexity.
 
 Detailed authoring-specific scope questions are expanded further in
 [`quiz-authoring-plan.md`](./quiz-authoring-plan.md).
