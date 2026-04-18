@@ -18,6 +18,7 @@ steps, and validation commands.
 **Detail file locations:**
 
 - Open questions and product decisions: [`docs/open-questions.md`](./open-questions.md)
+- Terminology migration planning: [`docs/terminology-migration-strategy.md`](./terminology-migration-strategy.md)
 - Admin UX polish: [`docs/admin-ux-roadmap.md`](./admin-ux-roadmap.md)
 - Contributor workflow tooling: [`docs/dev-workflow-improvements.md`](./dev-workflow-improvements.md)
 - Continuous deployment planning: [`docs/continuous-deployment-plan.md`](./continuous-deployment-plan.md)
@@ -67,7 +68,7 @@ Must be resolved before QR codes are printed or the first real event runs.
   database schema/contracts, and UX copy before launch makes broad cleanup
   risky. Include compatibility/rollout approach so existing paths and data
   references remain stable during transition.
-  Detail: [`docs/architecture.md`](./architecture.md) and [`docs/reward-redemption-mvp-design.md`](./reward-redemption-mvp-design.md)
+  Detail: [`docs/terminology-migration-strategy.md`](./terminology-migration-strategy.md)
 
 ---
 
