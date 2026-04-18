@@ -1,13 +1,13 @@
 /** Completion-state panel for verification, retries, retakes, and answer review. */
 import { answersMatch } from "../../../../../shared/game-config";
 import type { GameConfig } from "../../data/games";
-import { getOptionLabels } from "../quizUtils";
-import type { Answers, QuizCompletionResult } from "../../types/quiz";
+import { getOptionLabels } from "../gameUtils";
+import type { Answers, GameCompletionResult } from "../../types/game";
 
-/** Props for the quiz completion screen. */
+/** Props for the game completion screen. */
 type GameCompletionPanelProps = {
   answers: Answers;
-  completion: QuizCompletionResult | null;
+  completion: GameCompletionResult | null;
   completionError: string | null;
   game: GameConfig;
   isSubmitting: boolean;
@@ -38,8 +38,8 @@ export function GameCompletionPanel({
     Boolean(completion) && game.feedbackMode === "final_score_reveal";
   const completionMessage = completion
     ? isEntitlementNew
-      ? "You're checked in for the raffle."
-      : "You're still checked in for the raffle. Playing again does not add another ticket."
+      ? "You're checked in for the reward."
+      : "You're still checked in for the reward. Playing again does not add another reward entry."
     : null;
 
   return (
@@ -49,7 +49,7 @@ export function GameCompletionPanel({
       >
         {completion
           ? isEntitlementNew
-            ? "Raffle entry ready"
+            ? "Reward entry ready"
             : "Already checked in"
           : isSubmitting
             ? "Generating proof"
@@ -57,7 +57,7 @@ export function GameCompletionPanel({
       </span>
       <h2>
         {completion
-          ? "Show this screen at the raffle table"
+          ? "Show this screen at the volunteer table"
           : isSubmitting
             ? "Generating your check-in code"
             : "We couldn't load your check-in code"}
@@ -68,7 +68,7 @@ export function GameCompletionPanel({
           : isSubmitting
             ? "Keep this screen open while we save your completion and create the volunteer check-in code."
             : completionError ??
-              "Try again to finish your raffle check-in."}
+              "Try again to finish your reward check-in."}
       </p>
 
       {shouldShowVerification ? (
@@ -90,8 +90,8 @@ export function GameCompletionPanel({
           <span className="token-meta">
             {completion
               ? isEntitlementNew
-                ? "Your raffle entry is now recorded."
-                : "Your earlier raffle entry still counts. This replay does not add another one."
+                ? "Your reward entry is now recorded."
+                : "Your earlier reward entry still counts. This replay does not add another one."
               : "This usually takes just a moment, even on slower service."}
           </span>
         </div>

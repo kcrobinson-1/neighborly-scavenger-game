@@ -1,10 +1,10 @@
 import { scoreAnswers } from "../../../../shared/game-config";
 import { getGameById } from "../../../../shared/game-config/sample-fixtures.ts";
 import type {
-  QuizCompletionEntitlement,
-  QuizCompletionResult,
-  SubmitQuizCompletionInput,
-} from "../types/quiz";
+  GameCompletionEntitlement,
+  GameCompletionResult,
+  SubmitGameCompletionInput,
+} from "../types/game";
 import { createOpaqueId } from "./session";
 import {
   createSupabaseAuthHeaders,
@@ -15,7 +15,7 @@ import {
 } from "./supabaseBrowser";
 
 /**
- * Browser quiz-session API boundary for attendee gameplay.
+ * Browser game-session API boundary for attendee gameplay.
  * Owns trusted session bootstrap and completion submission calls to Supabase,
  * plus the explicit local-only prototype fallback path for development without
  * backend configuration.
@@ -31,7 +31,7 @@ const localPrototypeSessionStorageKey = "neighborly.local-session.v1";
 /** Browser storage key for the signed server session token fallback. */
 const serverSessionTokenStorageKey = "neighborly.server-session-token.v1";
 
-/** Stored raffle entitlement for a prototype browser session. */
+/** Stored reward entitlement for a prototype browser session. */
 type LocalEntitlementRecord = {
   createdAt: string;
   verificationCode: string;
@@ -42,7 +42,7 @@ type LocalEntitlementsStore = Record<string, LocalEntitlementRecord>;
 /** Browser-side attempt counter per event/session pair. */
 type LocalAttemptsStore = Record<string, number>;
 /** Browser-side cache of completion results keyed by request id. */
-type LocalCompletionsStore = Record<string, QuizCompletionResult>;
+type LocalCompletionsStore = Record<string, GameCompletionResult>;
 /** Response shape returned when the backend prepares the signed session. */
 type IssueSessionResponse = {
   issuedNewSession: boolean;
@@ -156,17 +156,17 @@ function getOrCreateLocalPrototypeSessionId() {
   return sessionId;
 }
 
-/** Returns the user-facing entitlement copy for a new or reused raffle entry. */
-function buildEntitlementMessage(status: QuizCompletionEntitlement["status"]) {
+/** Returns the user-facing entitlement copy for a new or reused reward entry. */
+function buildEntitlementMessage(status: GameCompletionEntitlement["status"]) {
   return status === "new"
-    ? "You're checked in for the raffle."
-    : "You're still checked in for the raffle. Playing again does not add another ticket.";
+    ? "You're checked in for the reward."
+    : "You're still checked in for the reward. Playing again does not add another reward entry.";
 }
 
 /** Simulates the backend completion flow when running locally without Supabase. */
 function buildLocalCompletionResult(
-  input: SubmitQuizCompletionInput,
-): QuizCompletionResult {
+  input: SubmitGameCompletionInput,
+): GameCompletionResult {
   const prototypeSessionId = getOrCreateLocalPrototypeSessionId();
   const lookupKey = getStorageKey(input.eventId, prototypeSessionId);
   const completionLookupKey = `${lookupKey}:${input.requestId}`;
@@ -187,14 +187,14 @@ function buildLocalCompletionResult(
   const game = getGameById(input.eventId);
 
   if (!game) {
-    throw new Error("This quiz event could not be found.");
+    throw new Error("This game event could not be found.");
   }
 
   const nextAttemptNumber = (attempts[lookupKey] ?? 0) + 1;
   attempts[lookupKey] = nextAttemptNumber;
 
   let entitlement = entitlements[lookupKey];
-  let entitlementStatus: QuizCompletionEntitlement["status"] = "existing";
+  let entitlementStatus: GameCompletionEntitlement["status"] = "existing";
 
   if (!entitlement) {
     entitlement = {
@@ -219,7 +219,7 @@ function buildLocalCompletionResult(
     message: buildEntitlementMessage(entitlementStatus),
     entitlementEligible: entitlementStatus === "new",
     score: scoreAnswers(game, input.answers),
-  } satisfies QuizCompletionResult;
+  } satisfies GameCompletionResult;
 
   completions[completionLookupKey] = result;
   writeStoredJson(localCompletionStorageKey, completions);
@@ -232,13 +232,13 @@ async function handleCompletionResponse(response: Response) {
   if (!response.ok) {
     const errorMessage = await readSupabaseErrorMessage(
       response,
-      "We couldn't finish your raffle check-in right now.",
+      "We couldn't finish your reward check-in right now.",
     );
 
     throw Object.assign(new Error(errorMessage), { status: response.status });
   }
 
-  return (await response.json()) as QuizCompletionResult;
+  return (await response.json()) as GameCompletionResult;
 }
 
 /** Builds the shared fetch headers for backend session-aware requests. */
@@ -266,7 +266,7 @@ export async function ensureServerSession(eventId?: string) {
 
   // We bootstrap the signed server session before gameplay starts so the
   // entitlement flow fails early and recoverably on the intro screen instead
-  // of only surfacing a problem after the user finishes the quiz.
+  // of only surfacing a problem after the user finishes the game.
   const response = await fetch(`${supabaseUrl}/functions/v1/issue-session`, {
     method: "POST",
     headers: createServerSessionHeaders(supabaseClientKey),
@@ -278,7 +278,7 @@ export async function ensureServerSession(eventId?: string) {
     throw new Error(
       await readSupabaseErrorMessage(
         response,
-        "We couldn't get the quiz ready right now.",
+        "We couldn't get the game ready right now.",
       ),
     );
   }
@@ -287,9 +287,9 @@ export async function ensureServerSession(eventId?: string) {
   writeStoredServerSessionToken(payload.sessionToken ?? null);
 }
 
-/** Submits quiz completion to Supabase and retries once after a 401 response. */
-async function submitQuizCompletionToSupabase(
-  input: SubmitQuizCompletionInput,
+/** Submits game completion to Supabase and retries once after a 401 response. */
+async function submitGameCompletionToSupabase(
+  input: SubmitGameCompletionInput,
   retryOnUnauthorized = true,
 ) {
   const { supabaseClientKey, supabaseUrl } = getSupabaseConfig();
@@ -307,14 +307,14 @@ async function submitQuizCompletionToSupabase(
     // also records a start row — without it, a 401-retry path would produce a
     // completion row with no corresponding game_starts entry.
     await ensureServerSession(input.eventId);
-    return submitQuizCompletionToSupabase(input, false);
+    return submitGameCompletionToSupabase(input, false);
   }
 
   return handleCompletionResponse(response);
 }
 
-/** Finalizes quiz completion using Supabase or the local prototype fallback. */
-export async function submitQuizCompletion(input: SubmitQuizCompletionInput) {
+/** Finalizes game completion using Supabase or the local prototype fallback. */
+export async function submitGameCompletion(input: SubmitGameCompletionInput) {
   if (!getSupabaseConfig().enabled) {
     if (isPrototypeFallbackEnabled()) {
       return buildLocalCompletionResult(input);
@@ -323,5 +323,5 @@ export async function submitQuizCompletion(input: SubmitQuizCompletionInput) {
     throw new Error(getMissingSupabaseConfigMessage());
   }
 
-  return submitQuizCompletionToSupabase(input);
+  return submitGameCompletionToSupabase(input);
 }

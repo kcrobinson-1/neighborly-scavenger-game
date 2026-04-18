@@ -160,8 +160,8 @@ export async function signOutAdmin() {
   }
 }
 
-/** Checks whether the current authenticated session is allowlisted for quiz authoring. */
-export async function getQuizAdminStatus() {
+/** Checks whether the current authenticated session is allowlisted for game authoring. */
+export async function getGameAdminStatus() {
   const { data, error } = await getBrowserSupabaseClient().rpc("is_admin");
 
   if (error) {
@@ -171,7 +171,7 @@ export async function getQuizAdminStatus() {
   return Boolean(data);
 }
 
-/** Lists the private draft events visible to an authenticated quiz admin. */
+/** Lists the private draft events visible to an authenticated game admin. */
 export async function listDraftEventSummaries(): Promise<DraftEventSummary[]> {
   const { data, error } = await getBrowserSupabaseClient()
     .from("game_event_drafts")
@@ -185,7 +185,7 @@ export async function listDraftEventSummaries(): Promise<DraftEventSummary[]> {
   return (data ?? []).map((row: DraftEventRow) => mapDraftSummary(row));
 }
 
-/** Loads one private draft event document for an authenticated quiz admin. */
+/** Loads one private draft event document for an authenticated game admin. */
 export async function loadDraftEvent(eventId: string): Promise<DraftEventDetail | null> {
   const { data, error } = await getBrowserSupabaseClient()
     .from("game_event_drafts")
@@ -209,7 +209,7 @@ export async function loadDraftEvent(eventId: string): Promise<DraftEventDetail 
   };
 }
 
-/** Saves a private quiz draft through the authenticated authoring function. */
+/** Saves a private game draft through the authenticated authoring function. */
 export async function saveDraftEvent(
   content: AuthoringGameDraftContent,
 ): Promise<DraftEventSummary> {
@@ -220,7 +220,7 @@ export async function saveDraftEvent(
   );
 }
 
-/** Publishes a private draft into the live attendee-facing quiz projection. */
+/** Publishes a private draft into the live attendee-facing game projection. */
 export async function publishDraftEvent(eventId: string): Promise<PublishDraftResult> {
   return await callAuthoringFunction<PublishDraftResult>(
     "publish-draft",
@@ -229,7 +229,7 @@ export async function publishDraftEvent(eventId: string): Promise<PublishDraftRe
   );
 }
 
-/** Unpublishes a live quiz event without deleting draft or version history. */
+/** Unpublishes a live game event without deleting draft or version history. */
 export async function unpublishEvent(eventId: string): Promise<UnpublishEventResult> {
   return await callAuthoringFunction<UnpublishEventResult>(
     "unpublish-event",

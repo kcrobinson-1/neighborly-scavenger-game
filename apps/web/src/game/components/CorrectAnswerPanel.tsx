@@ -1,4 +1,4 @@
-/** Success panel shown between questions in instant-feedback quiz mode. */
+/** Success panel shown between questions in instant-feedback game mode. */
 import type { Question } from "../../data/games";
 
 /** Props for the instant-feedback success panel. */
@@ -9,7 +9,7 @@ type CorrectAnswerPanelProps = {
   question: Question;
 };
 
-/** Success panel shown in the instant-feedback quiz mode. */
+/** Success panel shown in the instant-feedback game mode. */
 export function CorrectAnswerPanel({
   feedbackMessage,
   isLastQuestion,

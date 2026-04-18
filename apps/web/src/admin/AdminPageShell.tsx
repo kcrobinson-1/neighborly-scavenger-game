@@ -34,7 +34,7 @@ export function AdminPageShell({
         <header className="topbar">
           <div>
             <p className="eyebrow">Admin authoring</p>
-            <h1>Quiz draft access</h1>
+            <h1>Game draft access</h1>
           </div>
           {isSignedIn ? (
             <button
@@ -52,7 +52,7 @@ export function AdminPageShell({
           <div className="admin-copy">
             <span className="chip">Admin event workspace</span>
             <p>
-              Review private event drafts, open live quiz routes, and select an
+              Review private event drafts, open live game routes, and select an
               event workspace before the editing, preview, and publish phases
               land.
             </p>

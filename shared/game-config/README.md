@@ -1,8 +1,8 @@
-# Shared Quiz Config
+# Shared Game Config
 
 ## Purpose
 
-This folder owns the shared quiz domain model used by both the web app and the
+This folder owns the shared game domain model used by both the web app and the
 Supabase backend.
 
 It is responsible for:
@@ -15,7 +15,7 @@ It is responsible for:
 ## Module Boundaries
 
 - `types.ts`
-  Canonical shared quiz types.
+  Canonical shared game types.
 - `answers.ts`
   Shared answer normalization, validation, and scoring.
 - `game-validation.ts`
@@ -42,7 +42,7 @@ It is responsible for:
 
 ## Ownership Rules
 
-- Keep quiz correctness, answer validation, and scoring in this folder rather
+- Keep game correctness, answer validation, and scoring in this folder rather
   than duplicating rules in the browser or the backend.
 - Keep database loading concerns out of `answers.ts`; DB reads should happen in
   app/backend code and be mapped into `GameConfig` through `db-content.ts`.

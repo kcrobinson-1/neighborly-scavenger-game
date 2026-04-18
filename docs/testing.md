@@ -92,7 +92,7 @@ The trust-path validation layer landed in four steps:
 The intended split is:
 
 - helper and handler tests should stay fast and deterministic, using dependency injection instead of a real database
-- the local integration test should prove the full trust path with real Supabase services, real function wiring, and the shared quiz config
+- the local integration test should prove the full trust path with real Supabase services, real function wiring, and the shared game config
 - local contributor workflow and CI should expose this trust-path validation as a first-class command instead of leaving it implicit
 
 ## Trust-Path Execution Checklist
@@ -173,7 +173,7 @@ Recommended rollout status:
    allowlisted state, and confirm draft summaries render.
 4. [x] Add local mutation coverage for authoring APIs.
    Exercise `save-draft`, `publish-draft`, and `unpublish-event` against only a
-   dedicated test event, then verify the public `/game/:slug` route reflects
+   dedicated test event, then verify the public `/event/:slug/game` route reflects
    the expected publish state.
 5. [x] Expose the suite as a repo command.
    Landed as `npm run test:e2e:admin`, intentionally separate from
@@ -233,7 +233,7 @@ The current setup includes a few deliberate choices that are worth documenting:
 The right shape for this repo is:
 
 1. Keep static validation fast and mandatory.
-2. Add focused unit tests for the pure shared quiz logic that acts as the source of truth.
+2. Add focused unit tests for the pure shared game logic that acts as the source of truth.
 3. Add a small number of frontend integration tests around the reducer flow and browser API boundary.
 4. Add real database tests for the SQL RPC and entitlement rules.
 5. Add a small set of browser-driven end-to-end and UX checks for the mobile attendee flow.
@@ -248,7 +248,7 @@ This is a small MVP-stage product. The goal is confidence at the trust boundarie
 The highest-value seams in this repo are:
 
 - shared answer validation and scoring
-- frontend quiz progression and completion retry behavior
+- frontend game progression and completion retry behavior
 - backend session verification and request validation
 - SQL idempotency and single-entitlement enforcement
 - the mobile browser flow from intro to completion screen
@@ -267,7 +267,7 @@ Use mocks when isolating browser code from network behavior.
 
 Do not mock:
 
-- the shared quiz domain logic when it is the thing being trusted
+- the shared game domain logic when it is the thing being trusted
 - the SQL RPC when testing entitlement and idempotency behavior
 - the reducer flow with shallow component tests that only assert implementation details
 
@@ -311,7 +311,7 @@ Why this matters:
 
 ### Frontend Site
 
-The site does not need exhaustive tests for every presentational component. It does need focused behavior tests around the quiz flow and API boundary.
+The site does not need exhaustive tests for every presentational component. It does need focused behavior tests around the game flow and API boundary.
 
 Test:
 
@@ -323,14 +323,14 @@ Test:
   read-only derived state such as progress, phase booleans, and current-question selection
 - `gameUtils`
   selection behavior, selection labels, feedback copy helpers where logic exists
-- extracted quiz components
+- extracted game components
   focused rendering and interaction checks where the extracted component boundary now carries meaningful UI logic
 - `gameApi`
   missing env handling, explicit offline fallback gating, stored session token handling, `401` retry path, idempotent request reuse on retry, local fallback persistence behavior
 - route-level rendering
   landing page, featured game route, missing route, missing game route
 - focused wiring tests around `GamePage`
-  enough to prove the intro, active-question, start-error, and completion flows are still wired correctly after quiz-module refactors
+  enough to prove the intro, active-question, start-error, and completion flows are still wired correctly after game-module refactors
 
 Do not aim for:
 
@@ -417,7 +417,7 @@ Good mock use cases:
 - offline fallback behavior when env vars are absent
 - `GamePage` integration tests that need stable completion results
 
-Prefer mocking at the `fetch` boundary or using `msw` instead of mocking internal React hooks or shared quiz logic.
+Prefer mocking at the `fetch` boundary or using `msw` instead of mocking internal React hooks or shared game logic.
 One exception in this repo is route-shell wiring around `GamePage`, where mocking
 `useGameSession` is acceptable because the hook itself has direct behavior
 coverage and the page test is intentionally verifying shell-to-module wiring.
@@ -446,7 +446,7 @@ The following would be too much for the current MVP stage:
 - testing the development-only offline fallback as deeply as the real backend path
 - snapshot testing big JSX trees as a substitute for meaningful assertions
 
-If a test does not protect quiz correctness, completion trust, or the mobile attendee flow, it is probably not first-wave coverage.
+If a test does not protect game correctness, completion trust, or the mobile attendee flow, it is probably not first-wave coverage.
 
 ## Recommended Tooling
 
@@ -561,8 +561,8 @@ The first useful wave should probably include:
 
 - shared answer normalization, validation, scoring, and catalog tests
 - `useGameSession` happy path, instant-feedback mode, back navigation, retry, and retake tests
-- `gameSessionState`, `gameSessionSelectors`, and `gameUtils` tests for the pure quiz module seams
-- focused `GamePage` route-shell wiring tests plus extracted quiz component tests
+- `gameSessionState`, `gameSessionSelectors`, and `gameUtils` tests for the pure game module seams
+- focused `GamePage` route-shell wiring tests plus extracted game component tests
 - `gameApi` session bootstrap, missing env, offline fallback, and `401` retry tests
 - RPC tests for idempotency, single entitlement, attempt numbering, and verification code reuse
 - Playwright mobile smoke for featured flow, spotlight wrong-answer path, and direct route loading

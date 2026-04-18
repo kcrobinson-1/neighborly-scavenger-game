@@ -1,11 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
 import type { GameConfig } from "../../../apps/web/src/data/games.ts";
-import type { QuizCompletionResult } from "../../../apps/web/src/types/quiz.ts";
+import type { GameCompletionResult } from "../../../apps/web/src/types/game.ts";
 import {
   createCompletionRequestId,
-  createQuizState,
-  quizReducer,
-} from "../../../apps/web/src/game/quizSessionState.ts";
+  createGameState,
+  gameReducer,
+} from "../../../apps/web/src/game/gameSessionState.ts";
 
 const { mockCreateRequestId } = vi.hoisted(() => ({
   mockCreateRequestId: vi.fn(),
@@ -16,8 +16,8 @@ vi.mock("../../../apps/web/src/lib/session.ts", () => ({
 }));
 
 function createCompletionResult(
-  overrides: Partial<QuizCompletionResult> = {},
-): QuizCompletionResult {
+  overrides: Partial<GameCompletionResult> = {},
+): GameCompletionResult {
   return {
     attemptNumber: 1,
     completionId: "cmp-123",
@@ -26,7 +26,7 @@ function createCompletionResult(
       status: "new",
       verificationCode: "MMP-1234ABCD",
     },
-    message: "You're checked in for the raffle.",
+    message: "You're checked in for the reward.",
     entitlementEligible: true,
     score: 2,
     ...overrides,
@@ -50,9 +50,9 @@ function createQuestion(
   };
 }
 
-describe("quizSessionState", () => {
+describe("gameSessionState", () => {
   it("creates a fresh intro state by default", () => {
-    expect(createQuizState()).toEqual({
+    expect(createGameState()).toEqual({
       answers: {},
       completionError: null,
       completionRequestId: null,
@@ -73,9 +73,9 @@ describe("quizSessionState", () => {
     expect(createCompletionRequestId(1, 2)).toBe("req-123");
   });
 
-  it("moves a final-score quiz into completion submission on the last question", () => {
+  it("moves a final-score game into completion submission on the last question", () => {
     const state = {
-      ...createQuizState("question", 100),
+      ...createGameState("question", 100),
       answers: { q0: ["a"] },
       currentIndex: 1,
       pendingSelection: ["c", "a"],
@@ -92,7 +92,7 @@ describe("quizSessionState", () => {
     });
 
     expect(
-      quizReducer(state, {
+      gameReducer(state, {
         type: "submitFinalScore",
         completionRequestId: "req-123",
         nextQuestionId: null,
@@ -115,17 +115,17 @@ describe("quizSessionState", () => {
     });
   });
 
-  it("keeps instant-feedback quizzes on the same question until the answer is correct", () => {
+  it("keeps instant-feedback games on the same question until the answer is correct", () => {
     const question = createQuestion({
       explanation: "Choose the right answer to move on.",
     });
     const questionState = {
-      ...createQuizState("question", 100),
+      ...createGameState("question", 100),
       pendingSelection: ["a"],
     };
 
     expect(
-      quizReducer(questionState, {
+      gameReducer(questionState, {
         type: "submitRequired",
         question,
       }),
@@ -137,7 +137,7 @@ describe("quizSessionState", () => {
     });
 
     expect(
-      quizReducer(
+      gameReducer(
         {
           ...questionState,
           pendingSelection: ["b"],
@@ -163,7 +163,7 @@ describe("quizSessionState", () => {
 
   it("restores the saved answer when going back to a previous question", () => {
     const state = {
-      ...createQuizState("question", 100),
+      ...createGameState("question", 100),
       answers: {
         q1: ["b"],
       },
@@ -172,7 +172,7 @@ describe("quizSessionState", () => {
     };
 
     expect(
-      quizReducer(state, {
+      gameReducer(state, {
         type: "goBack",
         previousQuestionId: "q1",
       }),
@@ -187,9 +187,9 @@ describe("quizSessionState", () => {
   });
 
   it("allows a failed completion to retry with the same request id", () => {
-    const failedState = quizReducer(
+    const failedState = gameReducer(
       {
-        ...createQuizState("submitting_completion", 100),
+        ...createGameState("submitting_completion", 100),
         completionRequestId: "req-123",
       },
       {
@@ -199,7 +199,7 @@ describe("quizSessionState", () => {
     );
 
     expect(
-      quizReducer(failedState, {
+      gameReducer(failedState, {
         type: "beginCompletionSubmit",
         completionRequestId: "req-123",
       }),
@@ -213,9 +213,9 @@ describe("quizSessionState", () => {
 
   it("resets the reducer into an active run for retakes", () => {
     expect(
-      quizReducer(
+      gameReducer(
         {
-          ...createQuizState("complete", 100),
+          ...createGameState("complete", 100),
           latestCompletion: createCompletionResult(),
         },
         {
@@ -223,6 +223,6 @@ describe("quizSessionState", () => {
           startedAt: 500,
         },
       ),
-    ).toEqual(createQuizState("question", 500));
+    ).toEqual(createGameState("question", 500));
   });
 });

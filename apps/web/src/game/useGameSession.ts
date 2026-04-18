@@ -1,21 +1,21 @@
 import { useEffect, useMemo, useReducer, useRef } from "react";
 import { scoreAnswers } from "../../../../shared/game-config";
 import type { GameConfig } from "../data/games";
-import { submitQuizCompletion } from "../lib/quizApi";
+import { submitGameCompletion } from "../lib/gameApi";
 import { createRequestId } from "../lib/session";
 import {
-  getQuizSessionScore,
-  getQuizSessionViewState,
-} from "./quizSessionSelectors";
+  getGameSessionScore,
+  getGameSessionViewState,
+} from "./gameSessionSelectors";
 import {
   createCompletionRequestId,
-  createQuizState,
-  quizReducer,
-} from "./quizSessionState";
+  createGameState,
+  gameReducer,
+} from "./gameSessionState";
 
-/** Manages the complete quiz session lifecycle for a single game instance. */
-export function useQuizSession(game: GameConfig) {
-  const [state, dispatch] = useReducer(quizReducer, undefined, () => createQuizState());
+/** Manages the complete game session lifecycle for a single game instance. */
+export function useGameSession(game: GameConfig) {
+  const [state, dispatch] = useReducer(gameReducer, undefined, () => createGameState());
   const handledSubmissionRequestId = useRef<string | null>(null);
 
   useEffect(() => {
@@ -25,8 +25,8 @@ export function useQuizSession(game: GameConfig) {
 
   const questions = game.questions;
   const localScore = useMemo(() => scoreAnswers(game, state.answers), [game, state.answers]);
-  const score = getQuizSessionScore(state.latestCompletion, localScore);
-  const viewState = getQuizSessionViewState(game, state);
+  const score = getGameSessionScore(state.latestCompletion, localScore);
+  const viewState = getGameSessionViewState(game, state);
   const {
     allowRetake,
     canGoBack,
@@ -58,7 +58,7 @@ export function useQuizSession(game: GameConfig) {
       state.startedAt === null ? 0 : Math.max(0, Date.now() - state.startedAt);
     let isCancelled = false;
 
-    void submitQuizCompletion({
+    void submitGameCompletion({
       answers: state.answers,
       durationMs,
       eventId: game.id,
@@ -76,7 +76,7 @@ export function useQuizSession(game: GameConfig) {
             message:
               error instanceof Error
                 ? error.message
-                : "We couldn't finish your raffle check-in right now.",
+                : "We couldn't finish your reward check-in right now.",
           });
         }
       });

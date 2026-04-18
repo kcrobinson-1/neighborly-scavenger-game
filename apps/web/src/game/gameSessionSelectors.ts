@@ -1,10 +1,10 @@
-/** Pure selectors for the React-facing quiz session view state. */
+/** Pure selectors for the React-facing game session view state. */
 import type { GameConfig } from "../data/games";
-import type { QuizCompletionResult } from "../types/quiz";
-import type { QuizState } from "./quizSessionState";
+import type { GameCompletionResult } from "../types/game";
+import type { GameState } from "./gameSessionState";
 
-/** Read-only quiz state derived from the reducer plus game configuration. */
-export type QuizSessionViewState = {
+/** Read-only game state derived from the reducer plus game configuration. */
+export type GameSessionViewState = {
   allowRetake: boolean;
   canGoBack: boolean;
   canSubmit: boolean;
@@ -18,18 +18,18 @@ export type QuizSessionViewState = {
 };
 
 /** Resolves the effective score, preferring the trusted backend value when present. */
-export function getQuizSessionScore(
-  latestCompletion: QuizCompletionResult | null,
+export function getGameSessionScore(
+  latestCompletion: GameCompletionResult | null,
   localScore: number,
 ) {
   return latestCompletion?.score ?? localScore;
 }
 
-/** Derives the view-facing session state the page and quiz panels consume. */
-export function getQuizSessionViewState(
+/** Derives the view-facing session state the page and game panels consume. */
+export function getGameSessionViewState(
   game: GameConfig,
-  state: QuizState,
-): QuizSessionViewState {
+  state: GameState,
+): GameSessionViewState {
   const currentQuestion = game.questions[state.currentIndex];
   const isComplete = state.phase === "complete";
   const isStarted = state.phase !== "intro";

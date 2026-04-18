@@ -3,7 +3,7 @@ import { featuredGameSlug } from "../data/games";
 import {
   listPublishedGameSummaries,
   type PublishedGameSummary,
-} from "../lib/quizContentApi";
+} from "../lib/gameContentApi";
 import { routes } from "../routes";
 
 /** Props for the landing page route. */
@@ -62,12 +62,12 @@ export function LandingPage({ onNavigate }: LandingPageProps) {
       <header className="landing-hero panel panel-hero">
         <div className="hero-copy">
           <p className="eyebrow">Product demo</p>
-          <h1>See how a two-minute neighborhood quiz becomes an easy raffle check-in.</h1>
+          <h1>See how a two-minute neighborhood game becomes an easy reward check-in.</h1>
           <p className="hero-body">
             This overview is for organizers, sponsors, volunteers, and teammates
             previewing the product. In the live experience, attendees should land
-            directly in the quiz. Here, you can open demo flows and review the full
-            attendee journey from start to raffle-table handoff.
+            directly in the game. Here, you can open demo flows and review the full
+            attendee journey from start to volunteer-table handoff.
           </p>
         </div>
         <div className="hero-actions">
@@ -91,7 +91,7 @@ export function LandingPage({ onNavigate }: LandingPageProps) {
           <h2>Sell a sponsor moment, not just logo space.</h2>
           <p>
             The copy should make the value proposition obvious: scan the code, answer a
-            few questions, and send people to the raffle table with clear proof of
+            few questions, and send people to the volunteer table with clear proof of
             completion.
           </p>
         </article>

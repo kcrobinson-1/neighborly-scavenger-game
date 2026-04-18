@@ -5,8 +5,8 @@ import { CorrectAnswerPanel } from "../game/components/CorrectAnswerPanel";
 import { CurrentQuestionPanel } from "../game/components/CurrentQuestionPanel";
 import { GameCompletionPanel } from "../game/components/GameCompletionPanel";
 import { GameIntroPanel } from "../game/components/GameIntroPanel";
-import { useQuizSession } from "../game/useQuizSession";
-import { ensureServerSession } from "../lib/quizApi";
+import { useGameSession } from "../game/useGameSession";
+import { ensureServerSession } from "../lib/gameApi";
 import { routes } from "../routes";
 
 /** Props for the top-level game route. */
@@ -15,7 +15,7 @@ type GamePageProps = {
   onNavigate: (path: string) => void;
 };
 
-/** Orchestrates the full player-facing quiz flow for a single game. */
+/** Orchestrates the full player-facing game flow for a single game. */
 export function GamePage({ game, onNavigate }: GamePageProps) {
   const [isStartingSession, setIsStartingSession] = useState(false);
   const [startError, setStartError] = useState<string | null>(null);
@@ -46,10 +46,10 @@ export function GamePage({ game, onNavigate }: GamePageProps) {
     selectOption,
     start,
     submit,
-  } = useQuizSession(game);
+  } = useGameSession(game);
 
   const questionCount = game.questions.length;
-  const isQuizActive = isStarted && !isComplete && !isSubmittingCompletion;
+  const isGameActive = isStarted && !isComplete && !isSubmittingCompletion;
   const handleStart = async () => {
     setIsStartingSession(true);
     setStartError(null);
@@ -61,7 +61,7 @@ export function GamePage({ game, onNavigate }: GamePageProps) {
       setStartError(
         error instanceof Error
           ? error.message
-          : "We couldn't prepare your quiz session right now.",
+          : "We couldn't prepare your game session right now.",
       );
     } finally {
       setIsStartingSession(false);
@@ -84,16 +84,16 @@ export function GamePage({ game, onNavigate }: GamePageProps) {
       </nav>
 
       <section className="app-card">
-        <header className={`topbar${isQuizActive ? " topbar-compact" : ""}`}>
+        <header className={`topbar${isGameActive ? " topbar-compact" : ""}`}>
           <div>
-            {!isQuizActive ? (
+            {!isGameActive ? (
               <p className="eyebrow">{game.location} neighborhood event</p>
             ) : null}
-            <h1 className={isQuizActive ? "topbar-title-compact" : undefined}>
+            <h1 className={isGameActive ? "topbar-title-compact" : undefined}>
               {game.name}
             </h1>
           </div>
-          {isQuizActive ? (
+          {isGameActive ? (
             <div className="progress-copy progress-pill" aria-live="polite">
               Question {currentIndex + 1} of {questionCount}
             </div>

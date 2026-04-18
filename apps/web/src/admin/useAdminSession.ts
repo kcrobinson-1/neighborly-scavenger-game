@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import {
   getAdminSession,
   subscribeToAdminAuthState,
-} from "../lib/adminQuizApi";
+} from "../lib/adminGameApi";
 import {
   getMissingSupabaseConfigMessage,
   getSupabaseConfig,

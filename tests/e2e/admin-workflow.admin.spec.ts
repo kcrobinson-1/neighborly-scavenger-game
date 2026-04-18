@@ -14,7 +14,7 @@ test.describe("admin authoring workflow", () => {
 
     await page.goto(fixture.magicLinkUrl, { waitUntil: "networkidle" });
 
-    await expect(page.getByRole("heading", { name: "Quiz draft access" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Game draft access" })).toBeVisible();
     const eventCard = page.getByLabel(`${fixture.eventName} event`);
     await expect(eventCard).toBeVisible();
 
@@ -38,9 +38,9 @@ test.describe("admin authoring workflow", () => {
     expect(publishedState?.publishedAt).not.toBeNull();
     expect(publishedState?.slug).toBe(fixture.eventSlug);
 
-    await page.goto(`/game/${fixture.eventSlug}`, { waitUntil: "networkidle" });
+    await page.goto(`/event/${fixture.eventSlug}/game`, { waitUntil: "networkidle" });
     await expect(page.getByRole("heading", { name: editedEventName })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Start quiz" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Start game" })).toBeVisible();
 
     await page.goto(`/admin/events/${fixture.eventId}`, { waitUntil: "networkidle" });
     await expect(page.getByRole("button", { name: "Unpublish" })).toBeVisible();
@@ -54,9 +54,9 @@ test.describe("admin authoring workflow", () => {
     expect(unpublishedState?.publishedAt).toBeNull();
     expect(unpublishedState?.slug).toBe(fixture.eventSlug);
 
-    await page.goto(`/game/${fixture.eventSlug}`, { waitUntil: "networkidle" });
+    await page.goto(`/event/${fixture.eventSlug}/game`, { waitUntil: "networkidle" });
     await expect(
-      page.getByRole("heading", { name: "This quiz isn't available right now." }),
+      page.getByRole("heading", { name: "This game isn't available right now." }),
     ).toBeVisible();
   });
 });

@@ -1,7 +1,7 @@
-/** Intro panel for the pre-quiz state before the player starts an attempt. */
+/** Intro panel for the pre-game state before the player starts an attempt. */
 import type { GameConfig } from "../../data/games";
 
-/** Props for the pre-quiz intro panel. */
+/** Props for the pre-game intro panel. */
 type GameIntroPanelProps = {
   game: GameConfig;
   isStartingSession: boolean;
@@ -9,7 +9,7 @@ type GameIntroPanelProps = {
   startError: string | null;
 };
 
-/** Intro panel shown before the player starts a quiz attempt. */
+/** Intro panel shown before the player starts a game attempt. */
 export function GameIntroPanel({
   game,
   isStartingSession,
@@ -33,7 +33,7 @@ export function GameIntroPanel({
       </ul>
       {startError ? (
         <div className="feedback-banner feedback-banner-error" role="status">
-          <strong>Can't start the quiz right now.</strong>
+          <strong>Can't start the game right now.</strong>
           <p>{startError}</p>
         </div>
       ) : null}
@@ -45,7 +45,7 @@ export function GameIntroPanel({
         }}
         type="button"
       >
-        {isStartingSession ? "Getting your quiz ready..." : "Start quiz"}
+        {isStartingSession ? "Getting your game ready..." : "Start game"}
       </button>
     </section>
   );

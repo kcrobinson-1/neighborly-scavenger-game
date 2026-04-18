@@ -1,4 +1,4 @@
-# Neighborhood Game Quiz — Product Overview
+# Neighborhood Game — Product Overview
 
 ## Document Role
 
@@ -12,7 +12,7 @@ Related docs:
 - `open-questions.md` tracks unresolved product and operating decisions that the repo should not guess
 
 ## Purpose
-A mobile-first neighborhood game designed for local events (concerts, fairs, markets) that drives sponsor engagement and raffle participation through a short, interactive quiz experience. Organizers control all content and sponsorships, enabling lightweight fundraising without adding operational complexity.
+A mobile-first neighborhood game designed for local events (concerts, fairs, markets) that drives sponsor engagement and reward participation through a short, interactive game experience. Organizers control all content and sponsorships, enabling lightweight fundraising without adding operational complexity.
 
 ## Problem
 Neighborhood associations have limited, low-friction ways to:
@@ -20,25 +20,25 @@ Neighborhood associations have limited, low-friction ways to:
 - Engage attendees during events in a way that feels fun and optional
 - Connect local businesses to the community in a measurable way
 
-Existing tools (forms, generic quiz platforms) are not designed for in-person, mobile, event-based engagement.
+Existing tools (forms, generic trivia platforms) are not designed for in-person, mobile, event-based engagement.
 
 ## Solution
-Provide a fast, mobile-native quiz experience that:
+Provide a fast, mobile-native game experience that:
 - Feels like a lightweight game, not a form
 - Takes under 2 minutes to complete
-- Rewards completion with a raffle entry
+- Rewards completion with a reward entry
 - Embeds sponsor visibility directly into questions
 
-Organizers configure the quiz, sell sponsored questions to local businesses, and use the quiz as both an engagement and fundraising tool.
+Organizers configure the game, sell sponsored questions to local businesses, and use the game as both an engagement and fundraising tool.
 
 ## Current Implemented Slice
 
 Today the repo implements:
 
 - a demo-overview landing page at `/`
-- published attendee quiz routes at `/game/:slug`
+- published attendee game routes at `/event/:slug/game`
 - backend-verified completion with one entitlement per event/session pair
-- shared quiz correctness, validation, and scoring logic
+- shared game correctness, validation, and scoring logic
 - an organizer-facing admin workspace at `/admin` for drafting, editing, publishing, and unpublishing events
 - `game_starts` table and session-issuance write so analytics has the funnel denominator (starts → completions → entitlements) before the first live event
 
@@ -46,7 +46,7 @@ What remains as future product work:
 
 - admin draft preview (let an organizer see the attendee experience before publishing)
 - organizer-visible reporting surface for post-event metrics
-- richer live-event operations (slug expiry, scheduled publish, multi-quiz events)
+- richer live-event operations (slug expiry, scheduled publish, multi-game events)
 
 ## Target Users
 
@@ -69,7 +69,7 @@ What remains as future product work:
 
 ### For Attendees
 - Quick, fun activity during the event
-- Chance to win a raffle prize
+- Chance to win a reward prize
 - Discover local businesses in a low-pressure way
 
 ### For Sponsors
@@ -100,7 +100,7 @@ This event will serve as the primary validation environment for:
 - Real-world UX performance
 
 ## Definition of Success (Initial Event)
-- Attendees can discover, complete, and redeem the quiz without assistance  
+- Attendees can discover, complete, and redeem the game without assistance  
 - Volunteers can verify completion easily  
 - Organizers can set up the experience in under 1 hour  
 - At least one sponsor expresses willingness to pay for inclusion in future events  
@@ -110,8 +110,8 @@ This event will serve as the primary validation environment for:
 # Success Criteria
 
 ## Event-Level KPIs
-- ≥30% of estimated attendees start the quiz  
-- ≥70% of participants complete the quiz  
+- ≥30% of estimated attendees start the game  
+- ≥70% of participants complete the game  
 - At least 1–3 sponsors express willingness to pay for inclusion in a future event  
 
 ## UX KPIs

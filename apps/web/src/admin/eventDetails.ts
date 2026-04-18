@@ -51,7 +51,7 @@ function createRequiredFieldMessage(field: keyof AdminEventDetailsFormValues) {
     intro: "Intro",
     location: "Location",
     name: "Event name",
-    entitlementLabel: "Entitlement label",
+    entitlementLabel: "Reward label",
     slug: "Slug",
     summary: "Summary",
   };

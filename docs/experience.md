@@ -1,4 +1,4 @@
-# Neighborhood Game Quiz — UX Philosophy and Experience
+# Neighborhood Game — UX Philosophy and Experience
 
 ## Document Role
 
@@ -37,7 +37,7 @@ The product should pull users forward with progress, pacing, and visual confiden
 Sponsors should feel like part of the event experience, not an interruption. Their presence should add local character, not friction.
 
 6. Completion must feel official  
-The final state has to be unmistakable so a volunteer can verify it in seconds and hand over the raffle ticket with confidence.
+The final state has to be unmistakable so a volunteer can verify it in seconds and hand over the reward ticket with confidence.
 
 ## Product UX Principles
 
@@ -80,14 +80,14 @@ This reader may have little context. The text on the demo overview should:
 - point people into a concrete attendee demo quickly
 - avoid sounding like attendee instructions when the page is really for evaluation
 
-#### Attendee Intro And Quiz Chrome
+#### Attendee Intro And Game Chrome
 
 The real attendee arrives from a QR code, often standing outside, holding a phone with one hand, and giving the experience only a few seconds of patience.
 
 The attendee likely knows:
 
 - the event name
-- that there is some kind of quiz or raffle
+- that there is some kind of game or reward
 
 The attendee may not know:
 
@@ -95,7 +95,7 @@ The attendee may not know:
 - whether they need an account
 - what happens after they finish
 
-So the intro and shared quiz text should:
+So the intro and shared game text should:
 
 - confirm the time commitment immediately
 - make the reward or completion outcome concrete
@@ -114,7 +114,7 @@ The text here should:
 - feel official
 - put the proof state first
 - tell the attendee exactly what to show and where to go
-- keep retake or review language secondary to the raffle handoff
+- keep retake or review language secondary to the reward handoff
 
 #### Error And Dead-End States
 
@@ -131,9 +131,9 @@ The text should:
 
 Across the experience, the copy should follow these rules:
 
-- Use demo language on preview surfaces and attendee language on quiz surfaces.
+- Use demo language on preview surfaces and attendee language on game surfaces.
 - Lead with what the user gets or does next, not with internal product framing.
-- Prefer concrete phrases like "Start quiz", "Show this screen at the raffle table", and "Start over" over abstract labels.
+- Prefer concrete phrases like "Start game", "Show this screen at the volunteer table", and "Start over" over abstract labels.
 - Keep buttons and helper text action-first and easy to scan from a distance.
 - Use proof-oriented language on completion screens so the handoff feels trustworthy.
 - Keep error messages recoverable first; any development-only setup detail should come after the user-facing explanation.
@@ -144,17 +144,17 @@ The attendee-facing experience should be extremely short and linear:
 
 1. Entry screen
 2. Question sequence
-3. Completion / raffle verification screen
+3. Completion / reward verification screen
 
-There should not be a traditional marketing-style homepage in front of the game. The QR code should open directly into the event quiz experience, with only a minimal entry screen that confirms:
+There should not be a traditional marketing-style homepage in front of the game. The QR code should open directly into the event game experience, with only a minimal entry screen that confirms:
 
 - event name
 - short value proposition
 - estimated time to complete
-- raffle reward
+- reward
 - primary CTA
 
-Example entry promise: "Answer 6 quick questions, support local sponsors, and get a raffle ticket in under 2 minutes."
+Example entry promise: "Answer 6 quick questions, support local sponsors, and get a reward ticket in under 2 minutes."
 
 ## Should Each Question Be Its Own Page?
 
@@ -184,26 +184,26 @@ So the right model is: one application shell, one card at a time, one step per v
 
 ### A) Attendee Flow
 1. Sees QR code or short link at the event
-2. Lands on a simple entry screen with event title, time-to-complete, and raffle CTA
+2. Lands on a simple entry screen with event title, time-to-complete, and reward CTA
 3. Starts the game with one tap
 4. Answers 5-7 questions, one card at a time
-5. Can move backward during the quiz to review or change submitted answers
+5. Can move backward during the game to review or change submitted answers
 6. Sees a clear completion state with verification token or visual pattern
 7. Shows the completion screen to a volunteer
-8. Receives raffle ticket
-9. May optionally retake the quiz for fun or score improvement without earning another raffle entry
+8. Receives reward ticket
+9. May optionally retake the game for fun or score improvement without earning another reward entry
 
 ### B) Volunteer Flow
 1. Sees attendee completion screen
 2. Confirms visual proof quickly
-3. Gives raffle ticket
+3. Gives reward ticket
 
 The volunteer should never need to navigate a dashboard or inspect answers.
 
 ### C) Organizer Flow
 1. Creates event
 2. Adds questions and sponsor attributions
-3. Publishes the quiz
+3. Publishes the game
 4. Shares QR code
 5. Runs event with little or no live intervention
 
@@ -299,7 +299,7 @@ Avoid:
 
 ## Interaction Design
 
-The quiz should feel brisk and reassuring.
+The game should feel brisk and reassuring.
 
 ### Question Behavior
 
@@ -309,12 +309,12 @@ The quiz should feel brisk and reassuring.
 - Use an explicit submit CTA for each question
 - For single-answer questions, allow only one selected answer at a time
 - For multiple-answer questions, allow multiple selected answers before submit
-- Allow the user to go back to earlier questions and resubmit before the quiz is complete
+- Allow the user to go back to earlier questions and resubmit before the game is complete
 - Keep transitions quick and directional so users feel progress
 
-## Quiz Feedback Modes
+## Game Feedback Modes
 
-Different quizzes may need different answer-feedback behavior. The product should support this as a game-level configuration rather than assuming every quiz behaves the same way.
+Different games may need different answer-feedback behavior. The product should support this as a game-level configuration rather than assuming every game behaves the same way.
 
 Recommended modes:
 
@@ -324,11 +324,11 @@ Recommended modes:
 
 Important requirement:
 
-Any quiz using these modes needs a defined correct answer for each scored question.
+Any game using these modes needs a defined correct answer for each scored question.
 
 ### Final Score Reveal
 
-In this mode, the attendee moves through the full quiz without interruption and sees the results at the end.
+In this mode, the attendee moves through the full game without interruption and sees the results at the end.
 
 Recommended end state:
 
@@ -337,9 +337,9 @@ Recommended end state:
 - the attendee's answers
 - optional sponsor facts or explanations
 
-This should be the default mode for most event quizzes because it is the fastest and lowest-friction.
+This should be the default mode for most event games because it is the fastest and lowest-friction.
 
-For this mode to work, each scored question must include a correct answer in the quiz configuration.
+For this mode to work, each scored question must include a correct answer in the game configuration.
 
 ### Instant Feedback Required
 
@@ -353,16 +353,16 @@ Recommended sequence:
 4. optionally show a sponsor fact or company detail
 5. continue to the next question
 
-This mode makes the quiz feel more game-like and gives sponsors a natural educational moment, but it adds friction and should be used intentionally.
+This mode makes the game feel more game-like and gives sponsors a natural educational moment, but it adds friction and should be used intentionally.
 
 This mode depends on each question having a correct answer available at runtime.
 
 ### Recommended UX Rules
 
-- Keep one feedback mode consistent for an entire quiz.
-- Do not mix required-correct and end-of-quiz scoring within the same MVP experience.
+- Keep one feedback mode consistent for an entire game.
+- Do not mix required-correct and end-of-game scoring within the same MVP experience.
 - Keep sponsor facts short and immediately relevant.
-- If raffle entry is based on completion, make that clear even when score is shown.
+- If reward entry is based on completion, make that clear even when score is shown.
 - Treat score as fun feedback unless the product intentionally changes its prize rules later.
 
 ### Progress
@@ -405,7 +405,7 @@ It should:
 Recommended elements:
 
 - strong success headline
-- raffle-entry confirmation
+- reward-entry confirmation
 - large verification token, badge, or timestamped proof state
 - instruction such as "Show this screen to the volunteer table"
 
@@ -413,7 +413,7 @@ Before that official proof arrives, the app should show a dedicated completion-p
 
 Recommended pending-state rules:
 
-- keep the completion screen visually distinct from quiz cards even while proof is still loading
+- keep the completion screen visually distinct from game cards even while proof is still loading
 - reserve the same proof area that will later show the verification token so the official state does not pop in late and shove the layout downward
 - use one clear instruction such as "Keep this screen open while we generate your verification code"
 - avoid showing retake, restart, or answer-review actions until the trusted completion response is ready
@@ -421,11 +421,11 @@ Recommended pending-state rules:
 
 If retakes are allowed, the completion state should also make the reward rule explicit:
 
-- the attendee has already earned their raffle entry
-- retaking the quiz is allowed for fun, learning, or a better score
-- retaking the quiz does not create an additional raffle ticket
+- the attendee has already earned their reward entry
+- retaking the game is allowed for fun, learning, or a better score
+- retaking the game does not create an additional reward ticket
 
-This screen should look materially different from the quiz cards so nobody mistakes it for another step.
+This screen should look materially different from the game cards so nobody mistakes it for another step.
 
 ## Content Guidelines
 

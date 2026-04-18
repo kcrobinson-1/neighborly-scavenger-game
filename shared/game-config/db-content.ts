@@ -5,7 +5,7 @@ import type {
   SelectionMode,
 } from "./types.ts";
 
-/** Published event row fetched from the quiz content tables. */
+/** Published event row fetched from the game content tables. */
 export type PublishedGameEventRow = {
   allow_back_navigation: boolean;
   allow_retake: boolean;
@@ -20,7 +20,7 @@ export type PublishedGameEventRow = {
   summary: string;
 };
 
-/** Published question row fetched from the quiz content tables. */
+/** Published question row fetched from the game content tables. */
 export type PublishedGameQuestionRow = {
   display_order: number;
   event_id: string;
@@ -32,7 +32,7 @@ export type PublishedGameQuestionRow = {
   sponsor_fact: string | null;
 };
 
-/** Published option row fetched from the quiz content tables. */
+/** Published option row fetched from the game content tables. */
 export type PublishedGameOptionRow = {
   display_order: number;
   event_id: string;
@@ -42,7 +42,7 @@ export type PublishedGameOptionRow = {
   question_id: string;
 };
 
-/** Canonical DB row bundle used to hydrate a playable quiz config. */
+/** Canonical DB row bundle used to hydrate a playable game config. */
 export type PublishedGameRows = {
   event: PublishedGameEventRow;
   options: PublishedGameOptionRow[];

@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import type { DraftEventDetail } from "../lib/adminQuizApi";
+import type { DraftEventDetail } from "../lib/adminGameApi";
 import { routes } from "../routes";
 import { computePublishChecklist, isPublishReady } from "./publishChecklist";
 import type { AdminPublishState, AdminUnpublishState } from "./useAdminDashboard";
@@ -87,7 +87,7 @@ export function AdminPublishPanel({
           <p className="admin-message admin-message-success">
             Published as version {publishState.result.versionNumber}.{" "}
             <a href={routes.game(publishState.result.slug)}>
-              View live quiz
+              View live game
             </a>
           </p>
         </div>

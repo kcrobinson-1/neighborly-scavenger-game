@@ -3,7 +3,7 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { GameCompletionPanel } from "../../../../apps/web/src/game/components/GameCompletionPanel.tsx";
 import type { GameConfig } from "../../../../apps/web/src/data/games.ts";
-import type { QuizCompletionResult } from "../../../../apps/web/src/types/quiz.ts";
+import type { GameCompletionResult } from "../../../../apps/web/src/types/game.ts";
 
 function createGame(overrides: Partial<GameConfig> = {}): GameConfig {
   return {
@@ -12,7 +12,7 @@ function createGame(overrides: Partial<GameConfig> = {}): GameConfig {
     name: "Test Game",
     location: "Seattle",
     estimatedMinutes: 2,
-    entitlementLabel: "raffle ticket",
+    entitlementLabel: "reward ticket",
     intro: "Test intro",
     summary: "Test summary",
     feedbackMode: "final_score_reveal",
@@ -35,8 +35,8 @@ function createGame(overrides: Partial<GameConfig> = {}): GameConfig {
 }
 
 function createCompletionResult(
-  overrides: Partial<QuizCompletionResult> = {},
-): QuizCompletionResult {
+  overrides: Partial<GameCompletionResult> = {},
+): GameCompletionResult {
   return {
     attemptNumber: 1,
     completionId: "cmp-123",
@@ -45,7 +45,7 @@ function createCompletionResult(
       status: "new",
       verificationCode: "MMP-1234ABCD",
     },
-    message: "You're checked in for the raffle.",
+    message: "You're checked in for the reward.",
     entitlementEligible: true,
     score: 1,
     ...overrides,
@@ -73,7 +73,7 @@ describe("GameCompletionPanel", () => {
       />,
     );
 
-    expect(screen.getByText("Raffle entry ready")).toBeTruthy();
+    expect(screen.getByText("Reward entry ready")).toBeTruthy();
     expect(screen.getByText("MMP-1234ABCD")).toBeTruthy();
     expect(screen.getByText("Final score")).toBeTruthy();
     expect(screen.getByText("Your answer:", { exact: false })).toBeTruthy();

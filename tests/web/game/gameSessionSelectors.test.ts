@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
 import type { GameConfig } from "../../../apps/web/src/data/games.ts";
-import type { QuizCompletionResult } from "../../../apps/web/src/types/quiz.ts";
+import type { GameCompletionResult } from "../../../apps/web/src/types/game.ts";
 import {
-  getQuizSessionScore,
-  getQuizSessionViewState,
-} from "../../../apps/web/src/game/quizSessionSelectors.ts";
-import { createQuizState } from "../../../apps/web/src/game/quizSessionState.ts";
+  getGameSessionScore,
+  getGameSessionViewState,
+} from "../../../apps/web/src/game/gameSessionSelectors.ts";
+import { createGameState } from "../../../apps/web/src/game/gameSessionState.ts";
 
 function createGame(
   overrides: Partial<GameConfig> = {},
@@ -16,7 +16,7 @@ function createGame(
     name: "Test Game",
     location: "Seattle",
     estimatedMinutes: 2,
-    entitlementLabel: "raffle ticket",
+    entitlementLabel: "reward ticket",
     intro: "Test intro",
     summary: "Test summary",
     feedbackMode: "final_score_reveal",
@@ -50,8 +50,8 @@ function createGame(
 }
 
 function createCompletionResult(
-  overrides: Partial<QuizCompletionResult> = {},
-): QuizCompletionResult {
+  overrides: Partial<GameCompletionResult> = {},
+): GameCompletionResult {
   return {
     attemptNumber: 1,
     completionId: "cmp-123",
@@ -60,23 +60,23 @@ function createCompletionResult(
       status: "new",
       verificationCode: "MMP-1234ABCD",
     },
-    message: "You're checked in for the raffle.",
+    message: "You're checked in for the reward.",
     entitlementEligible: true,
     score: 2,
     ...overrides,
   };
 }
 
-describe("quizSessionSelectors", () => {
-  it("derives the active question state for an in-progress quiz", () => {
+describe("gameSessionSelectors", () => {
+  it("derives the active question state for an in-progress game", () => {
     const game = createGame();
     const state = {
-      ...createQuizState("question", 100),
+      ...createGameState("question", 100),
       currentIndex: 1,
       pendingSelection: ["a"],
     };
 
-    expect(getQuizSessionViewState(game, state)).toEqual({
+    expect(getGameSessionViewState(game, state)).toEqual({
       allowRetake: true,
       canGoBack: true,
       canSubmit: true,
@@ -95,9 +95,9 @@ describe("quizSessionSelectors", () => {
       allowRetake: false,
       questions: [],
     });
-    const state = createQuizState("complete", 100);
+    const state = createGameState("complete", 100);
 
-    expect(getQuizSessionViewState(game, state)).toEqual({
+    expect(getGameSessionViewState(game, state)).toEqual({
       allowRetake: false,
       canGoBack: false,
       canSubmit: false,
@@ -112,7 +112,7 @@ describe("quizSessionSelectors", () => {
   });
 
   it("prefers the trusted backend score over the local fallback score", () => {
-    expect(getQuizSessionScore(null, 1)).toBe(1);
-    expect(getQuizSessionScore(createCompletionResult({ score: 4 }), 1)).toBe(4);
+    expect(getGameSessionScore(null, 1)).toBe(1);
+    expect(getGameSessionScore(createCompletionResult({ score: 4 }), 1)).toBe(4);
   });
 });

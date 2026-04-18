@@ -104,8 +104,8 @@ async function main() {
   logStep("Waiting for deployed game route readiness");
   await waitForRouteReady({
     pollMs,
-    routeLabel: `/game/${eventSlug}`,
-    routeUrl: `${baseUrl}/game/${eventSlug}`,
+    routeLabel: `/event/${eventSlug}/game`,
+    routeUrl: `${baseUrl}/event/${eventSlug}/game`,
     timeoutMs,
   });
 

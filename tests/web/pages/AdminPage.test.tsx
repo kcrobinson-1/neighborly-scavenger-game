@@ -10,7 +10,7 @@ import {
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const {
-  mockGetQuizAdminStatus,
+  mockGetGameAdminStatus,
   mockListDraftEventSummaries,
   mockLoadDraftEvent,
   mockPublishDraftEvent,
@@ -20,7 +20,7 @@ const {
   mockUnpublishEvent,
   mockUseAdminSession,
 } = vi.hoisted(() => ({
-  mockGetQuizAdminStatus: vi.fn(),
+  mockGetGameAdminStatus: vi.fn(),
   mockListDraftEventSummaries: vi.fn(),
   mockLoadDraftEvent: vi.fn(),
   mockPublishDraftEvent: vi.fn(),
@@ -35,8 +35,8 @@ vi.mock("../../../apps/web/src/admin/useAdminSession.ts", () => ({
   useAdminSession: mockUseAdminSession,
 }));
 
-vi.mock("../../../apps/web/src/lib/adminQuizApi.ts", () => ({
-  getQuizAdminStatus: mockGetQuizAdminStatus,
+vi.mock("../../../apps/web/src/lib/adminGameApi.ts", () => ({
+  getGameAdminStatus: mockGetGameAdminStatus,
   listDraftEventSummaries: mockListDraftEventSummaries,
   loadDraftEvent: mockLoadDraftEvent,
   publishDraftEvent: mockPublishDraftEvent,
@@ -161,7 +161,7 @@ function createDeferred<T>() {
 
 describe("AdminPage", () => {
   beforeEach(() => {
-    mockGetQuizAdminStatus.mockReset();
+    mockGetGameAdminStatus.mockReset();
     mockListDraftEventSummaries.mockReset();
     mockLoadDraftEvent.mockReset();
     mockPublishDraftEvent.mockReset();
@@ -236,13 +236,13 @@ describe("AdminPage", () => {
       session: { access_token: "viewer-token" },
       status: "signed_in",
     });
-    mockGetQuizAdminStatus.mockResolvedValue(false);
+    mockGetGameAdminStatus.mockResolvedValue(false);
 
     render(<AdminPage onNavigate={() => {}} />);
 
     expect(
       await screen.findByRole("heading", {
-        name: "This account is not allowlisted for quiz authoring.",
+        name: "This account is not allowlisted for game authoring.",
       }),
     ).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Create draft" })).toBeNull();
@@ -265,7 +265,7 @@ describe("AdminPage", () => {
       }),
     ).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Create draft" })).toBeNull();
-    expect(mockGetQuizAdminStatus).not.toHaveBeenCalled();
+    expect(mockGetGameAdminStatus).not.toHaveBeenCalled();
     expect(mockListDraftEventSummaries).not.toHaveBeenCalled();
     expect(mockLoadDraftEvent).not.toHaveBeenCalled();
     expect(mockSaveDraftEvent).not.toHaveBeenCalled();
@@ -277,7 +277,7 @@ describe("AdminPage", () => {
       session: { access_token: "admin-token" },
       status: "signed_in",
     });
-    mockGetQuizAdminStatus.mockResolvedValue(true);
+    mockGetGameAdminStatus.mockResolvedValue(true);
     mockListDraftEventSummaries.mockResolvedValue(draftSummaries);
 
     render(<AdminPage onNavigate={() => {}} />);
@@ -303,7 +303,7 @@ describe("AdminPage", () => {
       session: { access_token: "admin-token" },
       status: "signed_in",
     });
-    mockGetQuizAdminStatus.mockResolvedValue(true);
+    mockGetGameAdminStatus.mockResolvedValue(true);
     mockListDraftEventSummaries.mockResolvedValue([draftSummaries[0]]);
 
     render(<AdminPage onNavigate={() => {}} />);
@@ -313,14 +313,14 @@ describe("AdminPage", () => {
     expect(screen.getByText("0 draft only")).toBeTruthy();
   });
 
-  it("navigates from event cards to workspaces and live quiz routes", async () => {
+  it("navigates from event cards to workspaces and live game routes", async () => {
     const navigate = vi.fn();
     mockUseAdminSession.mockReturnValue({
       email: "admin@example.com",
       session: { access_token: "admin-token" },
       status: "signed_in",
     });
-    mockGetQuizAdminStatus.mockResolvedValue(true);
+    mockGetGameAdminStatus.mockResolvedValue(true);
     mockListDraftEventSummaries.mockResolvedValue(draftSummaries);
 
     render(<AdminPage onNavigate={navigate} />);
@@ -332,12 +332,12 @@ describe("AdminPage", () => {
       within(liveEventCard).getByRole("button", { name: "Open workspace" }),
     );
     fireEvent.click(
-      within(liveEventCard).getByRole("button", { name: "Open live quiz" }),
+      within(liveEventCard).getByRole("button", { name: "Open live game" }),
     );
 
     expect(navigate).toHaveBeenCalledWith("/admin/events/madrona-music-2026");
-    expect(navigate).toHaveBeenCalledWith("/game/first-sample");
-    expect(screen.getAllByRole("button", { name: "Open live quiz" })).toHaveLength(1);
+    expect(navigate).toHaveBeenCalledWith("/event/first-sample/game");
+    expect(screen.getAllByRole("button", { name: "Open live game" })).toHaveLength(1);
   });
 
   it("creates a starter draft, updates the list, and opens the new workspace", async () => {
@@ -347,7 +347,7 @@ describe("AdminPage", () => {
       session: { access_token: "admin-token" },
       status: "signed_in",
     });
-    mockGetQuizAdminStatus.mockResolvedValue(true);
+    mockGetGameAdminStatus.mockResolvedValue(true);
     mockListDraftEventSummaries.mockResolvedValue(draftSummaries);
     mockSaveDraftEvent.mockResolvedValue({
       id: "untitled-event-created",
@@ -382,10 +382,10 @@ describe("AdminPage", () => {
       session: { access_token: "admin-token" },
       status: "signed_in",
     });
-    mockGetQuizAdminStatus.mockResolvedValue(true);
+    mockGetGameAdminStatus.mockResolvedValue(true);
     mockListDraftEventSummaries.mockResolvedValue(draftSummaries);
     mockSaveDraftEvent.mockRejectedValue(
-      new Error("A quiz event already uses that slug."),
+      new Error("A game event already uses that slug."),
     );
 
     render(<AdminPage onNavigate={navigate} />);
@@ -393,7 +393,7 @@ describe("AdminPage", () => {
     fireEvent.click(await screen.findByRole("button", { name: "Create draft" }));
 
     expect(
-      await screen.findByText("A quiz event already uses that slug."),
+      await screen.findByText("A game event already uses that slug."),
     ).toBeTruthy();
     expect(screen.queryByText("Untitled event created")).toBeNull();
     expect(navigate).not.toHaveBeenCalled();
@@ -406,7 +406,7 @@ describe("AdminPage", () => {
       session: { access_token: "admin-token" },
       status: "signed_in",
     });
-    mockGetQuizAdminStatus.mockResolvedValue(true);
+    mockGetGameAdminStatus.mockResolvedValue(true);
     mockListDraftEventSummaries.mockResolvedValue(draftSummaries);
     mockSaveDraftEvent.mockReturnValue(saveDraft.promise);
 
@@ -441,7 +441,7 @@ describe("AdminPage", () => {
       session: { access_token: "admin-token" },
       status: "signed_in",
     });
-    mockGetQuizAdminStatus.mockResolvedValue(true);
+    mockGetGameAdminStatus.mockResolvedValue(true);
     mockListDraftEventSummaries.mockResolvedValue(draftSummaries);
     mockLoadDraftEvent.mockResolvedValue({
       content: sampleDraft,
@@ -491,7 +491,7 @@ describe("AdminPage", () => {
       session: { access_token: "admin-token" },
       status: "signed_in",
     });
-    mockGetQuizAdminStatus.mockResolvedValue(true);
+    mockGetGameAdminStatus.mockResolvedValue(true);
     mockListDraftEventSummaries.mockResolvedValue(draftSummaries);
     mockLoadDraftEvent.mockRejectedValue(new Error("Draft load failed."));
 
@@ -516,7 +516,7 @@ describe("AdminPage", () => {
       session: { access_token: "admin-token" },
       status: "signed_in",
     });
-    mockGetQuizAdminStatus.mockResolvedValue(true);
+    mockGetGameAdminStatus.mockResolvedValue(true);
     mockListDraftEventSummaries.mockResolvedValue(draftSummaries);
     mockLoadDraftEvent.mockResolvedValue({
       content: sampleDraft,
@@ -551,7 +551,7 @@ describe("AdminPage", () => {
       session: { access_token: "admin-token" },
       status: "signed_in",
     });
-    mockGetQuizAdminStatus.mockResolvedValue(true);
+    mockGetGameAdminStatus.mockResolvedValue(true);
     mockListDraftEventSummaries.mockResolvedValue(draftSummaries);
     mockLoadDraftEvent.mockResolvedValue({
       content: sampleDraft,
@@ -599,7 +599,7 @@ describe("AdminPage", () => {
       session: { access_token: "admin-token" },
       status: "signed_in",
     });
-    mockGetQuizAdminStatus.mockResolvedValue(true);
+    mockGetGameAdminStatus.mockResolvedValue(true);
     mockListDraftEventSummaries.mockResolvedValue(draftSummaries);
     mockLoadDraftEvent.mockResolvedValue(createDraftDetail());
 
@@ -631,7 +631,7 @@ describe("AdminPage", () => {
       session: { access_token: "admin-token" },
       status: "signed_in",
     });
-    mockGetQuizAdminStatus.mockResolvedValue(true);
+    mockGetGameAdminStatus.mockResolvedValue(true);
     mockListDraftEventSummaries.mockResolvedValue(draftSummaries);
     mockLoadDraftEvent.mockReturnValue(loadDraft.promise);
 
@@ -652,7 +652,7 @@ describe("AdminPage", () => {
     expect(getFieldValue("Estimated minutes")).toBe(
       String(selectedDraftContent.estimatedMinutes),
     );
-    expect(getFieldValue("Entitlement label")).toBe(sampleDraft.entitlementLabel);
+    expect(getFieldValue("Reward label")).toBe(sampleDraft.entitlementLabel);
     expect(getFieldValue("Intro")).toBe(sampleDraft.intro);
     expect(getFieldValue("Summary")).toBe(sampleDraft.summary);
     expect(getFieldValue("Feedback mode")).toBe(sampleDraft.feedbackMode);
@@ -669,7 +669,7 @@ describe("AdminPage", () => {
       session: { access_token: "admin-token" },
       status: "signed_in",
     });
-    mockGetQuizAdminStatus.mockResolvedValue(true);
+    mockGetGameAdminStatus.mockResolvedValue(true);
     mockListDraftEventSummaries.mockResolvedValue(draftSummaries);
     mockLoadDraftEvent.mockResolvedValue(createDraftDetail());
 
@@ -702,7 +702,7 @@ describe("AdminPage", () => {
       session: { access_token: "admin-token" },
       status: "signed_in",
     });
-    mockGetQuizAdminStatus.mockResolvedValue(true);
+    mockGetGameAdminStatus.mockResolvedValue(true);
     mockListDraftEventSummaries.mockResolvedValue(draftSummaries);
     mockLoadDraftEvent.mockResolvedValue(createDraftDetail());
 
@@ -726,7 +726,7 @@ describe("AdminPage", () => {
       session: { access_token: "admin-token" },
       status: "signed_in",
     });
-    mockGetQuizAdminStatus.mockResolvedValue(true);
+    mockGetGameAdminStatus.mockResolvedValue(true);
     mockListDraftEventSummaries.mockResolvedValue(draftSummaries);
     mockLoadDraftEvent.mockResolvedValue(createDraftDetail());
 
@@ -752,7 +752,7 @@ describe("AdminPage", () => {
       session: { access_token: "admin-token" },
       status: "signed_in",
     });
-    mockGetQuizAdminStatus.mockResolvedValue(true);
+    mockGetGameAdminStatus.mockResolvedValue(true);
     mockListDraftEventSummaries.mockResolvedValue(draftSummaries);
     mockLoadDraftEvent.mockResolvedValue(createDraftDetail());
     mockSaveDraftEvent.mockResolvedValue({
@@ -817,7 +817,7 @@ describe("AdminPage", () => {
       session: { access_token: "admin-token" },
       status: "signed_in",
     });
-    mockGetQuizAdminStatus.mockResolvedValue(true);
+    mockGetGameAdminStatus.mockResolvedValue(true);
     mockListDraftEventSummaries.mockResolvedValue(draftSummaries);
     mockLoadDraftEvent.mockResolvedValue(createDraftDetail());
     mockSaveDraftEvent.mockResolvedValue({
@@ -873,7 +873,7 @@ describe("AdminPage", () => {
       session: { access_token: "admin-token" },
       status: "signed_in",
     });
-    mockGetQuizAdminStatus.mockResolvedValue(true);
+    mockGetGameAdminStatus.mockResolvedValue(true);
     mockListDraftEventSummaries.mockResolvedValue(draftSummaries);
     mockLoadDraftEvent.mockResolvedValue(createDraftDetail());
     mockSaveDraftEvent.mockResolvedValue({
@@ -912,7 +912,7 @@ describe("AdminPage", () => {
       session: { access_token: "admin-token" },
       status: "signed_in",
     });
-    mockGetQuizAdminStatus.mockResolvedValue(true);
+    mockGetGameAdminStatus.mockResolvedValue(true);
     mockListDraftEventSummaries.mockResolvedValue(draftSummaries);
     mockLoadDraftEvent.mockResolvedValue(createDraftDetail());
     mockSaveDraftEvent.mockResolvedValue({
@@ -950,7 +950,7 @@ describe("AdminPage", () => {
       session: { access_token: "admin-token" },
       status: "signed_in",
     });
-    mockGetQuizAdminStatus.mockResolvedValue(true);
+    mockGetGameAdminStatus.mockResolvedValue(true);
     mockListDraftEventSummaries.mockResolvedValue(draftSummaries);
     mockLoadDraftEvent.mockResolvedValue(createDraftDetail());
     mockSaveDraftEvent.mockResolvedValue({
@@ -986,7 +986,7 @@ describe("AdminPage", () => {
       session: { access_token: "admin-token" },
       status: "signed_in",
     });
-    mockGetQuizAdminStatus.mockResolvedValue(true);
+    mockGetGameAdminStatus.mockResolvedValue(true);
     mockListDraftEventSummaries.mockResolvedValue(draftSummaries);
     mockLoadDraftEvent.mockResolvedValue(
       createDraftDetail({
@@ -1009,7 +1009,7 @@ describe("AdminPage", () => {
       session: { access_token: "admin-token" },
       status: "signed_in",
     });
-    mockGetQuizAdminStatus.mockResolvedValue(true);
+    mockGetGameAdminStatus.mockResolvedValue(true);
     mockListDraftEventSummaries.mockResolvedValue(draftSummaries);
     mockLoadDraftEvent.mockResolvedValue(createDraftDetail());
     mockSaveDraftEvent.mockResolvedValue({
@@ -1043,7 +1043,7 @@ describe("AdminPage", () => {
       session: { access_token: "admin-token" },
       status: "signed_in",
     });
-    mockGetQuizAdminStatus.mockResolvedValue(true);
+    mockGetGameAdminStatus.mockResolvedValue(true);
     mockListDraftEventSummaries.mockResolvedValue(draftSummaries);
     mockLoadDraftEvent.mockResolvedValue(
       createDraftDetail({
@@ -1072,7 +1072,7 @@ describe("AdminPage", () => {
       session: { access_token: "admin-token" },
       status: "signed_in",
     });
-    mockGetQuizAdminStatus.mockResolvedValue(true);
+    mockGetGameAdminStatus.mockResolvedValue(true);
     mockListDraftEventSummaries.mockResolvedValue(draftSummaries);
     mockLoadDraftEvent.mockResolvedValue(createDraftDetail());
     mockSaveDraftEvent.mockResolvedValue({
@@ -1107,7 +1107,7 @@ describe("AdminPage", () => {
       session: { access_token: "admin-token" },
       status: "signed_in",
     });
-    mockGetQuizAdminStatus.mockResolvedValue(true);
+    mockGetGameAdminStatus.mockResolvedValue(true);
     mockListDraftEventSummaries.mockResolvedValue(draftSummaries);
     mockLoadDraftEvent.mockResolvedValue(createDraftDetail());
 
@@ -1128,7 +1128,7 @@ describe("AdminPage", () => {
       session: { access_token: "admin-token" },
       status: "signed_in",
     });
-    mockGetQuizAdminStatus.mockResolvedValue(true);
+    mockGetGameAdminStatus.mockResolvedValue(true);
     mockListDraftEventSummaries.mockResolvedValue(draftSummaries);
     mockLoadDraftEvent.mockResolvedValue(createDraftDetail());
 
@@ -1150,7 +1150,7 @@ describe("AdminPage", () => {
       session: { access_token: "admin-token" },
       status: "signed_in",
     });
-    mockGetQuizAdminStatus.mockResolvedValue(true);
+    mockGetGameAdminStatus.mockResolvedValue(true);
     mockListDraftEventSummaries.mockResolvedValue(draftSummaries);
     mockLoadDraftEvent.mockResolvedValue(createDraftDetail());
     mockSaveDraftEvent.mockRejectedValue(new Error("Draft save failed."));
@@ -1173,10 +1173,10 @@ describe("AdminPage", () => {
       session: { access_token: "admin-token" },
       status: "signed_in",
     });
-    mockGetQuizAdminStatus.mockResolvedValue(true);
+    mockGetGameAdminStatus.mockResolvedValue(true);
     mockListDraftEventSummaries.mockResolvedValue(draftSummaries);
     mockLoadDraftEvent.mockResolvedValue(createDraftDetail());
-    mockSaveDraftEvent.mockRejectedValue(new Error("A quiz event already uses that slug."));
+    mockSaveDraftEvent.mockRejectedValue(new Error("A game event already uses that slug."));
 
     renderAdminRoute("madrona-music-2026");
 
@@ -1186,7 +1186,7 @@ describe("AdminPage", () => {
     fireEvent.click(screen.getByRole("button", { name: "Save changes" }));
 
     expect(
-      await screen.findByText("A quiz event already uses that slug."),
+      await screen.findByText("A game event already uses that slug."),
     ).toBeTruthy();
     expect(screen.queryByRole("heading", { name: "Conflicting Event" })).toBeNull();
   });
@@ -1197,7 +1197,7 @@ describe("AdminPage", () => {
       session: { access_token: "admin-token" },
       status: "signed_in",
     });
-    mockGetQuizAdminStatus.mockResolvedValue(true);
+    mockGetGameAdminStatus.mockResolvedValue(true);
     mockListDraftEventSummaries.mockResolvedValue(draftSummaries);
     mockLoadDraftEvent.mockRejectedValue(new Error("Draft detail failed."));
 
@@ -1218,7 +1218,7 @@ describe("AdminPage", () => {
       session: { access_token: "admin-token" },
       status: "signed_in",
     });
-    mockGetQuizAdminStatus.mockResolvedValue(true);
+    mockGetGameAdminStatus.mockResolvedValue(true);
     mockListDraftEventSummaries.mockResolvedValue([
       {
         ...draftSummaries[0],
@@ -1255,7 +1255,7 @@ describe("AdminPage", () => {
       session: { access_token: "admin-token" },
       status: "signed_in",
     });
-    mockGetQuizAdminStatus.mockResolvedValue(true);
+    mockGetGameAdminStatus.mockResolvedValue(true);
     mockListDraftEventSummaries.mockResolvedValue(draftSummaries);
     mockLoadDraftEvent.mockResolvedValue(
       createDraftDetail({
@@ -1290,7 +1290,7 @@ describe("AdminPage", () => {
       session: { access_token: "admin-token" },
       status: "signed_in",
     });
-    mockGetQuizAdminStatus.mockResolvedValue(true);
+    mockGetGameAdminStatus.mockResolvedValue(true);
     mockListDraftEventSummaries.mockResolvedValue(draftSummaries);
 
     render(
@@ -1319,7 +1319,7 @@ describe("AdminPage", () => {
       session: { access_token: "admin-token" },
       status: "signed_in",
     });
-    mockGetQuizAdminStatus.mockResolvedValue(true);
+    mockGetGameAdminStatus.mockResolvedValue(true);
     mockListDraftEventSummaries.mockResolvedValue(draftSummaries);
     mockSignOutAdmin.mockImplementation(async () => {
       mockUseAdminSession.mockReturnValue({
@@ -1350,7 +1350,7 @@ describe("AdminPage", () => {
         session: { access_token: "admin-token" },
         status: "signed_in",
       });
-      mockGetQuizAdminStatus.mockResolvedValue(true);
+      mockGetGameAdminStatus.mockResolvedValue(true);
       mockListDraftEventSummaries.mockResolvedValue(draftSummaries);
       mockLoadDraftEvent.mockResolvedValue(createDraftDetail());
 
@@ -1372,7 +1372,7 @@ describe("AdminPage", () => {
         session: { access_token: "admin-token" },
         status: "signed_in",
       });
-      mockGetQuizAdminStatus.mockResolvedValue(true);
+      mockGetGameAdminStatus.mockResolvedValue(true);
       mockListDraftEventSummaries.mockResolvedValue(draftSummaries);
       mockLoadDraftEvent.mockResolvedValue(
         createDraftDetail({
@@ -1402,7 +1402,7 @@ describe("AdminPage", () => {
         session: { access_token: "admin-token" },
         status: "signed_in",
       });
-      mockGetQuizAdminStatus.mockResolvedValue(true);
+      mockGetGameAdminStatus.mockResolvedValue(true);
       mockListDraftEventSummaries.mockResolvedValue(draftSummaries);
       mockLoadDraftEvent.mockResolvedValue(createDraftDetail());
       mockPublishDraftEvent.mockReturnValue(publishDraft.promise);
@@ -1425,7 +1425,7 @@ describe("AdminPage", () => {
       });
 
       expect(await screen.findByText(/Published as version 2/)).toBeTruthy();
-      expect(screen.getByRole("link", { name: "View live quiz" })).toBeTruthy();
+      expect(screen.getByRole("link", { name: "View live game" })).toBeTruthy();
     });
 
     it("shows Unpublish button immediately after publishing a draft-only event", async () => {
@@ -1436,7 +1436,7 @@ describe("AdminPage", () => {
         session: { access_token: "admin-token" },
         status: "signed_in",
       });
-      mockGetQuizAdminStatus.mockResolvedValue(true);
+      mockGetGameAdminStatus.mockResolvedValue(true);
       mockListDraftEventSummaries.mockResolvedValue(draftSummaries);
       // Draft-only event: liveVersionNumber starts as null
       mockLoadDraftEvent.mockResolvedValue(
@@ -1467,7 +1467,7 @@ describe("AdminPage", () => {
         session: { access_token: "admin-token" },
         status: "signed_in",
       });
-      mockGetQuizAdminStatus.mockResolvedValue(true);
+      mockGetGameAdminStatus.mockResolvedValue(true);
       mockListDraftEventSummaries.mockResolvedValue(draftSummaries);
       mockLoadDraftEvent.mockResolvedValue(createDraftDetail());
       mockPublishDraftEvent.mockRejectedValue(
@@ -1493,7 +1493,7 @@ describe("AdminPage", () => {
         session: { access_token: "admin-token" },
         status: "signed_in",
       });
-      mockGetQuizAdminStatus.mockResolvedValue(true);
+      mockGetGameAdminStatus.mockResolvedValue(true);
       mockListDraftEventSummaries.mockResolvedValue(draftSummaries);
       mockLoadDraftEvent.mockResolvedValue(createDraftDetail());
       mockUnpublishEvent.mockResolvedValue({
@@ -1525,7 +1525,7 @@ describe("AdminPage", () => {
         session: { access_token: "admin-token" },
         status: "signed_in",
       });
-      mockGetQuizAdminStatus.mockResolvedValue(true);
+      mockGetGameAdminStatus.mockResolvedValue(true);
       mockListDraftEventSummaries.mockResolvedValue(draftSummaries);
       mockLoadDraftEvent.mockResolvedValue(createDraftDetail());
 
@@ -1547,7 +1547,7 @@ describe("AdminPage", () => {
         session: { access_token: "admin-token" },
         status: "signed_in",
       });
-      mockGetQuizAdminStatus.mockResolvedValue(true);
+      mockGetGameAdminStatus.mockResolvedValue(true);
       mockListDraftEventSummaries.mockResolvedValue(draftSummaries);
       mockLoadDraftEvent.mockResolvedValue(createDraftDetail());
       mockUnpublishEvent.mockRejectedValue(
@@ -1575,7 +1575,7 @@ describe("AdminPage", () => {
         session: { access_token: "admin-token" },
         status: "signed_in",
       });
-      mockGetQuizAdminStatus.mockResolvedValue(true);
+      mockGetGameAdminStatus.mockResolvedValue(true);
       mockListDraftEventSummaries.mockResolvedValue(draftSummaries);
       mockLoadDraftEvent.mockResolvedValue(createDraftDetail());
       mockPublishDraftEvent.mockResolvedValue({
@@ -1633,7 +1633,7 @@ describe("AdminPage", () => {
         session: { access_token: "admin-token" },
         status: "signed_in",
       });
-      mockGetQuizAdminStatus.mockResolvedValue(true);
+      mockGetGameAdminStatus.mockResolvedValue(true);
       mockListDraftEventSummaries.mockResolvedValue(draftSummaries);
       mockLoadDraftEvent.mockResolvedValue(createDraftDetail());
       mockSaveDraftEvent.mockResolvedValue({
@@ -1678,7 +1678,7 @@ describe("AdminPage", () => {
         session: { access_token: "admin-token" },
         status: "signed_in",
       });
-      mockGetQuizAdminStatus.mockResolvedValue(true);
+      mockGetGameAdminStatus.mockResolvedValue(true);
       mockListDraftEventSummaries.mockResolvedValue(draftSummaries);
       mockLoadDraftEvent.mockResolvedValue(createDraftDetail());
       mockSaveDraftEvent.mockResolvedValue({
@@ -1734,7 +1734,7 @@ describe("AdminPage", () => {
         session: { access_token: "admin-token" },
         status: "signed_in",
       });
-      mockGetQuizAdminStatus.mockResolvedValue(true);
+      mockGetGameAdminStatus.mockResolvedValue(true);
       mockListDraftEventSummaries.mockResolvedValue(draftSummaries);
       mockLoadDraftEvent.mockResolvedValue(createDraftDetail());
 

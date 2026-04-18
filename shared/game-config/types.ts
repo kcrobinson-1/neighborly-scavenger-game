@@ -4,7 +4,7 @@ export type AnswerOption = {
   label: string;
 };
 
-/** Controls when the player sees correctness feedback during a quiz. */
+/** Controls when the player sees correctness feedback during a game. */
 export type FeedbackMode =
   | "final_score_reveal"
   | "instant_feedback_required";
@@ -12,7 +12,7 @@ export type FeedbackMode =
 /** Defines whether a question accepts one choice or many. */
 export type SelectionMode = "single" | "multiple";
 
-/** Shared quiz-question shape used by the web app and edge functions. */
+/** Shared game-question shape used by the web app and edge functions. */
 export type Question = {
   id: string;
   sponsor: string | null;
@@ -24,7 +24,7 @@ export type Question = {
   sponsorFact?: string;
 };
 
-/** Top-level configuration for a playable quiz experience. */
+/** Top-level configuration for a playable game experience. */
 export type GameConfig = {
   allowBackNavigation?: boolean;
   allowRetake?: boolean;

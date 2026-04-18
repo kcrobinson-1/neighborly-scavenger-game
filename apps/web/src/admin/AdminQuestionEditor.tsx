@@ -4,7 +4,7 @@ import {
   useMemo,
   useState,
 } from "react";
-import type { DraftEventDetail, DraftEventSummary } from "../lib/adminQuizApi";
+import type { DraftEventDetail, DraftEventSummary } from "../lib/adminGameApi";
 import {
   createQuestionFormValues,
   updateQuestionFormValues,

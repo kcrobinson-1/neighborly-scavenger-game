@@ -137,7 +137,7 @@ async function capture(page, runDirectory, fileName) {
 
 /** Verifies that direct navigation to the featured route works before deeper flow checks. */
 async function verifyDirectRoute(page, baseUrl) {
-  await page.goto(`${baseUrl}/game/first-sample`, { waitUntil: "networkidle" });
+  await page.goto(`${baseUrl}/event/first-sample/game`, { waitUntil: "networkidle" });
   await page.getByRole("heading", { name: "Madrona Music in the Playfield" }).waitFor();
 }
 
@@ -167,11 +167,11 @@ async function captureLandingStates(baseUrl, runDirectory) {
 async function captureFeaturedFlow(page, baseUrl, runDirectory) {
   await openHome(page, baseUrl);
   await activate(page.getByRole("button", { name: "Try the attendee demo", exact: true }));
-  await page.waitForURL(`${baseUrl}/game/first-sample`);
+  await page.waitForURL(`${baseUrl}/event/first-sample/game`);
   await page.getByRole("heading", { name: "Madrona Music in the Playfield" }).waitFor();
   await capture(page, runDirectory, "03-featured-intro.png");
 
-  await activate(page.getByRole("button", { name: "Start quiz", exact: true }));
+  await activate(page.getByRole("button", { name: "Start game", exact: true }));
   await page.getByRole("heading", {
     name: "Which local spot is sponsoring this neighborhood music series question?",
   }).waitFor();
@@ -189,21 +189,21 @@ async function captureFeaturedFlow(page, baseUrl, runDirectory) {
 
   await clickOptionAndSubmit(page, "5 to 7");
   await page.getByRole("heading", {
-    name: "What matters most for raffle eligibility in the MVP?",
+    name: "What matters most for reward eligibility in the MVP?",
   }).waitFor();
 
-  await clickOptionAndSubmit(page, "Finishing the quiz");
+  await clickOptionAndSubmit(page, "Finishing the game");
   await page.getByRole("heading", {
     name: "How should questions appear in the experience?",
   }).waitFor();
 
   await activate(page.getByRole("button", { name: "Back to the previous question", exact: true }));
   await page.getByRole("heading", {
-    name: "What matters most for raffle eligibility in the MVP?",
+    name: "What matters most for reward eligibility in the MVP?",
   }).waitFor();
   await capture(page, runDirectory, "05-featured-back-navigation.png");
 
-  await clickOptionAndSubmit(page, "Finishing the quiz");
+  await clickOptionAndSubmit(page, "Finishing the game");
   await page.getByRole("heading", {
     name: "How should questions appear in the experience?",
   }).waitFor();
@@ -214,19 +214,24 @@ async function captureFeaturedFlow(page, baseUrl, runDirectory) {
   }).waitFor();
 
   await clickOptionAndSubmit(page, "That the attendee is officially done");
-  await page.getByRole("heading", { name: "Show this screen at the raffle table" }).waitFor();
+  await page.getByRole("heading", { name: "Show this screen at the volunteer table" }).waitFor();
   await capture(page, runDirectory, "06-featured-completion.png");
 }
 
 /** Captures the incorrect and correct feedback states in the spotlight mode. */
 async function captureSpotlightFlow(page, baseUrl, runDirectory) {
   await openHome(page, baseUrl);
-  await activate(page.getByRole("button", { name: "Try this demo", exact: true }).nth(0));
-  await page.waitForURL(`${baseUrl}/game/sponsor-spotlight`);
+  await activate(
+    page
+      .locator(".sample-game-row")
+      .filter({ hasText: "Sponsor Spotlight Challenge" })
+      .getByRole("button", { name: "Try this demo", exact: true }),
+  );
+  await page.waitForURL(`${baseUrl}/event/sponsor-spotlight/game`);
   await page.getByRole("heading", { name: "Sponsor Spotlight Challenge" }).waitFor();
-  await activate(page.getByRole("button", { name: "Start quiz", exact: true }));
+  await activate(page.getByRole("button", { name: "Start game", exact: true }));
   await page.getByRole("heading", {
-    name: "Which answer best describes why sponsors appear inside the quiz experience?",
+    name: "Which answer best describes why sponsors appear inside the game experience?",
   }).waitFor();
 
   await clickOptionAndSubmit(page, "To interrupt players with ads");
@@ -241,12 +246,17 @@ async function captureSpotlightFlow(page, baseUrl, runDirectory) {
 /** Captures the multiple-selection state in the checklist sample. */
 async function captureCommunityChecklist(page, baseUrl, runDirectory) {
   await openHome(page, baseUrl);
-  await activate(page.getByRole("button", { name: "Try this demo", exact: true }).nth(1));
-  await page.waitForURL(`${baseUrl}/game/community-checklist`);
-  await page.getByRole("heading", { name: "Community Checklist Quiz" }).waitFor();
-  await activate(page.getByRole("button", { name: "Start quiz", exact: true }));
+  await activate(
+    page
+      .locator(".sample-game-row")
+      .filter({ hasText: "Community Checklist Game" })
+      .getByRole("button", { name: "Try this demo", exact: true }),
+  );
+  await page.waitForURL(`${baseUrl}/event/community-checklist/game`);
+  await page.getByRole("heading", { name: "Community Checklist Game" }).waitFor();
+  await activate(page.getByRole("button", { name: "Start game", exact: true }));
   await page.getByRole("heading", {
-    name: "Which behaviors support a strong neighborhood-event quiz experience?",
+    name: "Which behaviors support a strong neighborhood-event game experience?",
   }).waitFor();
 
   await activate(page.getByLabel("Large tap targets", { exact: true }));
@@ -260,8 +270,8 @@ async function captureNotFoundStates(page, baseUrl, runDirectory) {
   await page.getByRole("heading", { name: "That page isn't available in this demo." }).waitFor();
   await capture(page, runDirectory, "10-not-found-route.png");
 
-  await page.goto(`${baseUrl}/game/not-a-real-sample`, { waitUntil: "networkidle" });
-  await page.getByRole("heading", { name: "This quiz isn't available right now." }).waitFor();
+  await page.goto(`${baseUrl}/event/not-a-real-sample/game`, { waitUntil: "networkidle" });
+  await page.getByRole("heading", { name: "This game isn't available right now." }).waitFor();
   await capture(page, runDirectory, "11-unavailable-game-route.png");
 }
 
@@ -277,8 +287,8 @@ async function captureRouteLoadError(errorBaseUrl, runDirectory) {
   });
   const page = await context.newPage();
 
-  await page.goto(`${errorBaseUrl}/game/first-sample`, { waitUntil: "networkidle" });
-  await page.getByRole("heading", { name: "This quiz couldn't load right now." }).waitFor();
+  await page.goto(`${errorBaseUrl}/event/first-sample/game`, { waitUntil: "networkidle" });
+  await page.getByRole("heading", { name: "This game couldn't load right now." }).waitFor();
   await capture(page, runDirectory, "12-route-load-error.png");
 
   await browser.close();
@@ -306,6 +316,24 @@ const ADMIN_MOCK_SESSION = {
     user_metadata: {},
   },
 };
+
+function getSupabaseAuthStorageKey(supabaseUrl) {
+  const hostname = new URL(supabaseUrl).hostname;
+  const projectRef = hostname.split(".")[0];
+  return `sb-${projectRef}-auth-token`;
+}
+
+async function installMockAdminSession(page, supabaseUrl) {
+  await page.addInitScript(
+    ({ session, storageKey }) => {
+      globalThis.localStorage.setItem(storageKey, JSON.stringify(session));
+    },
+    {
+      session: ADMIN_MOCK_SESSION,
+      storageKey: getSupabaseAuthStorageKey(supabaseUrl),
+    },
+  );
+}
 
 const ADMIN_DRAFT_SUMMARY_FIXTURE = [
   {
@@ -339,9 +367,9 @@ const ADMIN_DRAFT_DETAIL_FIXTURE = [
       name: "Madrona Summer Block Party",
       location: "Madrona Playfield, Seattle WA",
       estimatedMinutes: 5,
-      entitlementLabel: "Show this at the raffle table",
-      intro: "Welcome to the Madrona Summer Block Party quiz!",
-      summary: "Thanks for playing. Good luck at the raffle!",
+      entitlementLabel: "Show this at the volunteer table",
+      intro: "Welcome to the Madrona Summer Block Party game!",
+      summary: "Thanks for playing. Visit the volunteer table for reward check-in.",
       feedbackMode: "final_score_reveal",
       allowBackNavigation: true,
       allowRetake: true,
@@ -406,6 +434,8 @@ function buildAdminMocks(supabaseUrl, overrides = {}) {
    * @param {import("playwright").Page} page
    */
   async function installMocks(page) {
+    await installMockAdminSession(page, supabaseUrl);
+
     // Auth session restore (GET)
     await page.route(`${supabaseUrl}/auth/v1/session`, (route) => {
       if (route.request().method() === "GET") {
@@ -475,14 +505,15 @@ function buildAdminMocks(supabaseUrl, overrides = {}) {
 
     // save-draft Edge Function (POST)
     const defaultSaveResponse = {
+      hasBeenPublished: true,
       id: ADMIN_DRAFT_DETAIL_FIXTURE[0].id,
-      live_version_number: ADMIN_DRAFT_DETAIL_FIXTURE[0].live_version_number,
+      liveVersionNumber: ADMIN_DRAFT_DETAIL_FIXTURE[0].live_version_number,
       name: ADMIN_DRAFT_DETAIL_FIXTURE[0].name,
       slug: ADMIN_DRAFT_DETAIL_FIXTURE[0].slug,
-      updated_at: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     };
 
-    await page.route(`${supabaseUrl}/functions/v1/save-draft`, (route) => {
+    await page.route("**/functions/v1/save-draft", (route) => {
       if (saveDraftStatus !== 200) {
         void route.fulfill({
           status: saveDraftStatus,
@@ -708,8 +739,7 @@ async function captureAdminWorkspaceStates(baseUrl, runDirectory, installMocks) 
     // Install the base mocks first (session + auth + allowlist + draft reads)
     await installMocks(page);
     // Then override save-draft to return 500 — Playwright uses most-recently-added handler first
-    const supabaseUrl = getAdminCaptureSupabaseUrl();
-    await page.route(`${supabaseUrl}/functions/v1/save-draft`, (route) => {
+    await page.route("**/functions/v1/save-draft", (route) => {
       void route.fulfill({
         status: 500,
         contentType: "application/json",
@@ -813,7 +843,7 @@ async function captureAdminUnauthorizedState(baseUrl, runDirectory) {
 
   await installMocks(page);
   await page.goto(`${baseUrl}/admin`, { waitUntil: "networkidle" });
-  await page.getByRole("heading", { name: "This account is not allowlisted for quiz authoring." }).waitFor({ timeout: 10000 });
+  await page.getByRole("heading", { name: "This account is not allowlisted for game authoring." }).waitFor({ timeout: 10000 });
   await capture(page, runDirectory, "12-admin-unauthorized.png");
   console.log("  12-admin-unauthorized.png");
   if (consoleErrors.length > 0) {

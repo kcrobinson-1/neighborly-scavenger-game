@@ -4,7 +4,7 @@ import {
   getOptionLabels,
   getQuestionFeedbackMessage,
   getSelectionLabel,
-} from "../../../apps/web/src/game/quizUtils.ts";
+} from "../../../apps/web/src/game/gameUtils.ts";
 
 const singleSelectQuestion = {
   id: "q1",
@@ -31,7 +31,7 @@ const multiSelectQuestion = {
   ],
 };
 
-describe("quizUtils", () => {
+describe("gameUtils", () => {
   it("updates pending selection differently for single and multiple questions", () => {
     expect(getNextSelection(["a"], "b", "single")).toEqual(["b"]);
     expect(getNextSelection([], "a", "multiple")).toEqual(["a"]);

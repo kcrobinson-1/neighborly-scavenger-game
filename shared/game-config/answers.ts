@@ -24,7 +24,7 @@ export function answersMatch(
   return selected.every((optionId, index) => optionId === correct[index]);
 }
 
-/** Computes a quiz score from the current answer payload. */
+/** Computes a game score from the current answer payload. */
 export function scoreAnswers(game: GameConfig, answers: SubmittedAnswers) {
   return game.questions.reduce((total, question) => {
     return total + Number(answersMatch(answers[question.id] ?? [], question.correctAnswerIds));

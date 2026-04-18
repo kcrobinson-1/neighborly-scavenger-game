@@ -6,9 +6,9 @@ const { mockListPublishedGameSummaries } = vi.hoisted(() => ({
   mockListPublishedGameSummaries: vi.fn(),
 }));
 
-vi.mock("../../../apps/web/src/lib/quizContentApi.ts", async () => {
-  const actual = await vi.importActual<typeof import("../../../apps/web/src/lib/quizContentApi.ts")>(
-    "../../../apps/web/src/lib/quizContentApi.ts",
+vi.mock("../../../apps/web/src/lib/gameContentApi.ts", async () => {
+  const actual = await vi.importActual<typeof import("../../../apps/web/src/lib/gameContentApi.ts")>(
+    "../../../apps/web/src/lib/gameContentApi.ts",
   );
 
   return {
@@ -59,7 +59,7 @@ describe("LandingPage", () => {
     expect(screen.getByText("Secondary summary")).toBeTruthy();
 
     fireEvent.click(screen.getByRole("button", { name: "Try featured demo" }));
-    expect(onNavigate).toHaveBeenCalledWith("/game/first-sample");
+    expect(onNavigate).toHaveBeenCalledWith("/event/first-sample/game");
   });
 
   it("shows a retryable load error when published demos fail to load", async () => {

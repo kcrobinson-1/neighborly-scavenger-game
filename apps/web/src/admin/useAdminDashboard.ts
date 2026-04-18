@@ -1,13 +1,13 @@
 import { type FormEvent, useEffect, useState } from "react";
 import {
-  getQuizAdminStatus,
+  getGameAdminStatus,
   listDraftEventSummaries,
   loadDraftEvent,
   requestAdminMagicLink,
   saveDraftEvent,
   signOutAdmin,
   type DraftEventSummary,
-} from "../lib/adminQuizApi";
+} from "../lib/adminGameApi";
 import {
   createDuplicatedDraftContent,
   createStarterDraftContent,
@@ -90,7 +90,7 @@ export function useAdminDashboard(selectedEventId?: string) {
       status: "loading",
     });
 
-    void getQuizAdminStatus()
+    void getGameAdminStatus()
       .then(async (isAdmin) => {
         if (isCancelled) {
           return;

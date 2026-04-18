@@ -142,6 +142,13 @@ existing draft/version JSON from `raffleLabel` to `entitlementLabel` and updates
 
 ## Frontend (Phase 4)
 
+**Implementation status:** complete in this branch. Frontend modules, exports,
+style partials, route helpers, web copy, frontend tests, Playwright route
+expectations, UI review helpers, and production/admin smoke helpers now use the
+target Phase 4 naming. Migration
+`20260418020000_update_demo_game_copy.sql` keeps seeded database demo content in
+sync with the frontend fixture copy used by trusted-backend browser tests.
+
 ### File renames
 
 | Old file | New file |
@@ -185,7 +192,8 @@ No change: `createCompletionRequestId()`, `buildLocalCompletionResult()`,
 ### API payload fields
 
 **Implementation status:** complete in Phase 3 for the trusted completion
-response. Frontend file/type renames remain Phase 4.
+response. Phase 4 completed the frontend file/type renames while preserving the
+Phase 3 `entitlementEligible` data shape.
 
 | Old field | New field |
 |-----------|-----------|
@@ -197,9 +205,9 @@ response. Frontend file/type renames remain Phase 4.
 |-----------|-----------|
 | `/game/:slug` | `/event/:slug/game` |
 
-Changes required: `AppPath` type, `gamePrefix`, `game()` builder, `matchGamePath()`
-in `routes.ts`; rewrite rule in `apps/web/vercel.json`.
-No changes at call sites — all use `routes.game()`.
+Implemented in `routes.ts` and `apps/web/vercel.json`. Call sites continue to
+use `routes.game()`, which now builds `/event/:slug/game`; `matchGamePath()`
+accepts only the new route.
 
 ### No-change zones in frontend
 
@@ -284,11 +292,9 @@ These constraints must be respected across phases:
    names directly. DB renames must land and Supabase TypeScript types must be
    regenerated before edge function code is updated.
 
-2. **Phase 3 before Phase 4**: the frontend still contains module/type/hook
-   names such as `quizApi.ts` and `useQuizSession`, but those files now call
-   `/functions/v1/complete-game` and consume the `entitlementEligible` response
-   field. Phase 4 can rename modules/routes without changing the backend
-   contract again.
+2. **Phase 3 before Phase 4**: Phase 3 moved the backend endpoint and shared
+   contract first. Phase 4 then renamed frontend modules/routes/copy without
+   changing the backend contract again.
 
 3. **`complete_game_and_award_entitlement` RPC rename (Phase 2) before
    `complete-game` edge function rename (Phase 3)**: the function's

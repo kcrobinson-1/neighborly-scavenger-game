@@ -1,6 +1,6 @@
 import { type ReactNode, useEffect, useState } from "react";
 import { featuredGameSlug, type GameConfig } from "../data/games";
-import { loadPublishedGameBySlug } from "../lib/quizContentApi";
+import { loadPublishedGameBySlug } from "../lib/gameContentApi";
 import { GamePage } from "./GamePage";
 import { routes } from "../routes";
 
@@ -59,7 +59,7 @@ function RouteStateShell(
   );
 }
 
-/** Resolves a route slug into published content before rendering the quiz shell. */
+/** Resolves a route slug into published content before rendering the game shell. */
 export function GameRoutePage({ onNavigate, slug }: GameRoutePageProps) {
   const [reloadToken, setReloadToken] = useState(0);
   const [state, setState] = useState<GameRouteState>({ status: "loading" });
@@ -94,7 +94,7 @@ export function GameRoutePage({ onNavigate, slug }: GameRoutePageProps) {
             message:
               error instanceof Error
                 ? error.message
-                : "We couldn't load this quiz event right now.",
+                : "We couldn't load this game event right now.",
             status: "error",
           });
         }
@@ -120,7 +120,7 @@ export function GameRoutePage({ onNavigate, slug }: GameRoutePageProps) {
         body="Loading the published event content for this route."
         chip="Loading event"
         onNavigateHome={() => onNavigate(routes.home)}
-        title="Preparing quiz"
+        title="Preparing game"
       />
     );
   }
@@ -140,7 +140,7 @@ export function GameRoutePage({ onNavigate, slug }: GameRoutePageProps) {
         body="This event link isn't available right now."
         chip="Event unavailable"
         onNavigateHome={() => onNavigate(routes.home)}
-        title="This quiz isn't available right now."
+        title="This game isn't available right now."
       />
     );
   }
@@ -154,7 +154,7 @@ export function GameRoutePage({ onNavigate, slug }: GameRoutePageProps) {
             onClick={retryLoadingGame}
             type="button"
           >
-            Retry loading quiz
+            Retry loading game
           </button>
           {slug !== featuredGameSlug ? (
             <button
@@ -170,7 +170,7 @@ export function GameRoutePage({ onNavigate, slug }: GameRoutePageProps) {
       body={state.message}
       chip="Load error"
       onNavigateHome={() => onNavigate(routes.home)}
-      title="This quiz couldn't load right now."
+      title="This game couldn't load right now."
     />
   );
 }

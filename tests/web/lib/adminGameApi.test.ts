@@ -25,7 +25,7 @@ import {
   publishDraftEvent,
   saveDraftEvent,
   unpublishEvent,
-} from "../../../apps/web/src/lib/adminQuizApi.ts";
+} from "../../../apps/web/src/lib/adminGameApi.ts";
 
 const sampleDraft = getGameById("madrona-music-2026");
 
@@ -81,7 +81,7 @@ function createSupabaseClientMock(
   };
 }
 
-describe("adminQuizApi", () => {
+describe("adminGameApi", () => {
   beforeEach(() => {
     vi.unstubAllGlobals();
     mockCreateSupabaseAuthHeaders.mockReset();
@@ -245,12 +245,12 @@ describe("adminQuizApi", () => {
       },
     });
     const fetchMock = vi.fn().mockResolvedValue(createJsonResponse({ error: "Nope" }, 409));
-    mockReadSupabaseErrorMessage.mockResolvedValue("A quiz event already uses that slug.");
+    mockReadSupabaseErrorMessage.mockResolvedValue("A game event already uses that slug.");
     mockGetBrowserSupabaseClient.mockReturnValue(client);
     vi.stubGlobal("fetch", fetchMock);
 
     await expect(saveDraftEvent(sampleDraft)).rejects.toThrow(
-      "A quiz event already uses that slug.",
+      "A game event already uses that slug.",
     );
   });
 });

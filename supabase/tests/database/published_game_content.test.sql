@@ -39,7 +39,7 @@ values (
   'Hidden Event',
   'Seattle',
   2,
-  'raffle ticket',
+  'reward ticket',
   'Hidden intro',
   'Hidden summary',
   'final_score_reveal',

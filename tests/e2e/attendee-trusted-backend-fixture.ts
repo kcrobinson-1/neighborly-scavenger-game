@@ -114,7 +114,7 @@ export async function assertTrustedAttendeeCompletionPersisted(
 
   if (startError) {
     throw new Error(
-      `Failed to read quiz start state for attendee smoke test: ${startError.message}`,
+      `Failed to read game start state for attendee smoke test: ${startError.message}`,
     );
   }
 

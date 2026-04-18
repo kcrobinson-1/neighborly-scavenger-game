@@ -1,4 +1,4 @@
-# Neighborhood Game Quiz — Architecture
+# Neighborhood Game — Architecture
 
 ## Purpose
 
@@ -33,11 +33,11 @@ The current implementation is:
 - Supabase edge functions for session bootstrap, trusted completion, and
   authenticated authoring transitions
 - Supabase SQL migrations that store published content, record completion attempts, and award one game entitlement per event/session pair
-- local browser state during quiz play, with the backend owning the final verification result
+- local browser state during game play, with the backend owning the final verification result
 
 The core architectural principle already embodied in the code is:
 
-Keep the quiz interaction local and fast, but make the completion state backend-backed and harder to spoof.
+Keep the game interaction local and fast, but make the completion state backend-backed and harder to spoof.
 
 ## Current Codebase Structure
 
@@ -56,7 +56,7 @@ Keep the quiz interaction local and fast, but make the completion state backend-
 
 ### Frontend Structure
 
-The current frontend is still intentionally small, but the quiz flow is now
+The current frontend is still intentionally small, but the game flow is now
 grouped into a dedicated `apps/web/src/game/` module:
 
 - `apps/web/src/main.tsx`
@@ -73,11 +73,11 @@ grouped into a dedicated `apps/web/src/game/` module:
   Thin route adapter for `/admin` that composes the admin module and keeps
   route navigation at the page boundary.
 - `apps/web/src/pages/GameRoutePage.tsx`
-  Async route loader that resolves `/game/:slug` into published content before
-  rendering the quiz shell.
+  Async route loader that resolves `/event/:slug/game` into published content
+  before rendering the game shell.
 - `apps/web/src/pages/GamePage.tsx`
-  Quiz shell for an already-loaded event. It bootstraps the session, consumes
-  the quiz hook, and renders quiz panels from the game module.
+  Game shell for an already-loaded event. It bootstraps the session, consumes
+  the game hook, and renders game panels from the game module.
 - `apps/web/src/pages/NotFoundPage.tsx`
   Fallback route.
 - `apps/web/src/game/useGameSession.ts`
@@ -90,7 +90,7 @@ grouped into a dedicated `apps/web/src/game/` module:
 - `apps/web/src/game/gameUtils.ts`
   Public game-specific selection, label, and feedback helpers.
 - `apps/web/src/game/components/`
-  Quiz-specific intro, question, feedback, and completion panels extracted from
+  Game-specific intro, question, feedback, and completion panels extracted from
   the route shell.
 - `apps/web/src/lib/gameApi.ts`
   Client-side session bootstrap and completion submission logic, including the local-development fallback.
@@ -115,7 +115,7 @@ grouped into a dedicated `apps/web/src/game/` module:
 - `apps/web/src/styles.scss`
   Frontend styling entrypoint.
 - `apps/web/src/styles/`
-  SCSS partials for tokens, mixins, layout, landing-page UI, focused quiz UI
+  SCSS partials for tokens, mixins, layout, landing-page UI, focused game UI
   component groups, admin UI, and responsive rules.
 
 ### Shared Domain Structure
@@ -231,6 +231,9 @@ The Supabase side is intentionally small:
   Renames authoring draft/version JSON from the historical `raffleLabel` key to
   `entitlementLabel` and updates `publish_game_event_draft()` so it projects
   draft content into `game_events.entitlement_label`.
+- `supabase/migrations/20260418020000_update_demo_game_copy.sql`
+  Updates seeded demo event, question, and answer-option copy to the Phase 4
+  game/reward wording used by the frontend fixtures and browser tests.
 
 ## What Is Implemented Now
 
@@ -267,9 +270,9 @@ That means the trust boundary is still backend-controlled, but it no longer depe
 
 This is intentionally lighter than full user identity, but it is stronger than a purely client-rendered completion screen.
 
-### Local quiz state with backend-owned completion
+### Local game state with backend-owned completion
 
-The player experience is client-driven until the end of the quiz.
+The player experience is client-driven until the end of the game.
 
 Today:
 
@@ -277,9 +280,9 @@ Today:
 - final verification is returned from Supabase
 - the completion screen displays backend-produced verification data rather than an entirely local success state
 
-### Multiple quiz modes
+### Multiple game feedback modes
 
-The current shared game model and frontend support more than one quiz behavior:
+The current shared game model and frontend support more than one game behavior:
 
 - `final_score_reveal`
 - `instant_feedback_required`
@@ -330,8 +333,8 @@ The current scope still stops short of a preview route or AI authoring UI.
 The current system works like this:
 
 1. A user lands on the frontend hosted on Vercel.
-2. The React app resolves the pathname locally and, for `/game/:slug`, loads the
-   published event content from Supabase with the publishable key.
+2. The React app resolves the pathname locally and, for `/event/:slug/game`,
+   loads the published event content from Supabase with the publishable key.
 3. The landing page likewise reads published demo summaries from Supabase.
 4. Missing or unpublished event slugs render an explicit unavailable state
    without revealing which case occurred.
@@ -340,7 +343,7 @@ The current system works like this:
 6. Supabase returns a signed browser session credential and attempts to set the
    secure session cookie. As a best-effort side effect, it upserts a row into
    `game_starts` so the event has a permanent record of this session starting.
-7. The player completes the quiz entirely in local browser state.
+7. The player completes the game entirely in local browser state.
 8. At the end, the browser submits answers, duration, event id, and request id
    to `complete-game`.
 9. The backend verifies the signed session credential, reloads the canonical
@@ -435,7 +438,7 @@ Those services have distinct roles:
 - `Supabase` is not rendering the game UI. It stores data and runs the trusted completion/session logic.
 
 In this repo, [apps/web/vercel.json](../apps/web/vercel.json) rewrites `/admin`
-and `/game/:path*` to `index.html` so the SPA can resolve those URLs in the
+and `/event/:path*` to `index.html` so the SPA can resolve those URLs in the
 browser after deployment.
 
 The current deployment discipline is simpler:
@@ -476,7 +479,7 @@ What is still missing:
 ### Production event lookup and publish model
 
 Today, the web app includes a marketing/demo landing page and direct
-`/game/:slug` routes backed by published event records.
+`/event/:slug/game` routes backed by published event records.
 
 What is missing for live operation:
 

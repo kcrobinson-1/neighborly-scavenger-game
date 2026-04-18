@@ -47,7 +47,7 @@ The main working areas are:
 - `apps/web`
   frontend app
 - `shared`
-  shared quiz definitions, validation, and scoring
+  shared game definitions, validation, and scoring
 - `supabase/functions`
   trusted backend runtime code
 - `supabase/migrations`
@@ -103,7 +103,7 @@ validation, mutation state, or API calls.
 
 ### DB-backed content with a shared runtime model
 
-Published quiz content now lives in Supabase tables, not in the default shared
+Published game content now lives in Supabase tables, not in the default shared
 sample catalog.
 
 The shared `game-config` module still matters because:
@@ -115,9 +115,9 @@ The shared `game-config` module still matters because:
 - explicit sample fixtures remain available for tests and the local-only
   prototype fallback without becoming the standard runtime source
 
-### Reducer-based quiz session
+### Reducer-based game session
 
-The quiz flow is modeled as a reducer-backed session rather than scattered component state.
+The game flow is modeled as a reducer-backed session rather than scattered component state.
 
 That keeps:
 
@@ -127,11 +127,11 @@ That keeps:
 
 ### Session bootstrap before gameplay
 
-The attendee flow prepares a backend session before quiz start when Supabase is configured.
+The attendee flow prepares a backend session before game start when Supabase is configured.
 
 That means:
 
-- integration failures surface before the user finishes the quiz
+- integration failures surface before the user finishes the game
 - the browser has the signed session credential ready before completion submission
 - the start screen is a better place for a recoverable backend setup error
 
@@ -217,7 +217,7 @@ Notes:
 - if you use remote Supabase locally, the project `ALLOWED_ORIGINS` secret must include your exact local origin
 - `http://127.0.0.1:4173` and `http://localhost:4173` are distinct origins
 - the shared project already allows `http://127.0.0.1:4173`, `http://localhost:4173`, `http://127.0.0.1:5173`, and `http://localhost:5173`
-- landing-page summaries and `/game/:slug` now expect published event rows in
+- landing-page summaries and `/event/:slug/game` now expect published event rows in
   the connected Supabase project; the repo migrations seed the current demo
   events for local and fresh-project setup
 
@@ -360,7 +360,7 @@ local contributor validation.
 
 The command:
 
-- polls deployed route readiness (`/admin` and `/game/:slug`) with bounded
+- polls deployed route readiness (`/admin` and `/event/:slug/game`) with bounded
   timeout before browser checks start
 - runs a single-worker Playwright admin smoke suite against the deployed web
   origin

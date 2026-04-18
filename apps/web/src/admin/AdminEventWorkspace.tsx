@@ -1,4 +1,4 @@
-import type { DraftEventDetail, DraftEventSummary } from "../lib/adminQuizApi";
+import type { DraftEventDetail, DraftEventSummary } from "../lib/adminGameApi";
 import { routes } from "../routes";
 import { AdminEventDetailsForm } from "./AdminEventDetailsForm";
 import { AdminPublishPanel } from "./AdminPublishPanel";
@@ -226,7 +226,7 @@ export function AdminEventWorkspace({
               onClick={() => onNavigate(routes.game(selectedDraft.slug))}
               type="button"
             >
-              Open live quiz
+              Open live game
             </button>
           ) : null}
           <button
@@ -371,7 +371,7 @@ export function AdminEventWorkspace({
                     onClick={() => onNavigate(routes.game(draft.slug))}
                     type="button"
                   >
-                    Open live quiz
+                    Open live game
                   </button>
                 ) : null}
                 <button

@@ -1,28 +1,28 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { GameConfig } from "../../../apps/web/src/data/games.ts";
-import type { QuizCompletionResult } from "../../../apps/web/src/types/quiz.ts";
+import type { GameCompletionResult } from "../../../apps/web/src/types/game.ts";
 
-const { mockCreateRequestId, mockSubmitQuizCompletion } = vi.hoisted(() => {
+const { mockCreateRequestId, mockSubmitGameCompletion } = vi.hoisted(() => {
   return {
     mockCreateRequestId: vi.fn(),
-    mockSubmitQuizCompletion: vi.fn(),
+    mockSubmitGameCompletion: vi.fn(),
   };
 });
 
 // The reducer and side-effect orchestration are the behavior under test here,
 // so we mock only the API boundary and request-id generator.
-vi.mock("../../../apps/web/src/lib/quizApi.ts", () => ({
-  submitQuizCompletion: mockSubmitQuizCompletion,
+vi.mock("../../../apps/web/src/lib/gameApi.ts", () => ({
+  submitGameCompletion: mockSubmitGameCompletion,
 }));
 
 vi.mock("../../../apps/web/src/lib/session.ts", () => ({
   createRequestId: mockCreateRequestId,
 }));
 
-import { useQuizSession } from "../../../apps/web/src/game/useQuizSession.ts";
+import { useGameSession } from "../../../apps/web/src/game/useGameSession.ts";
 
-function createCompletionResult(overrides: Partial<QuizCompletionResult> = {}): QuizCompletionResult {
+function createCompletionResult(overrides: Partial<GameCompletionResult> = {}): GameCompletionResult {
   return {
     attemptNumber: 1,
     completionId: "cmp-123",
@@ -31,7 +31,7 @@ function createCompletionResult(overrides: Partial<QuizCompletionResult> = {}): 
       status: "new",
       verificationCode: "MMP-1234ABCD",
     },
-    message: "You're checked in for the raffle.",
+    message: "You're checked in for the reward.",
     entitlementEligible: true,
     score: 2,
     ...overrides,
@@ -73,7 +73,7 @@ function createFinalScoreGame(questionCount = 2): GameConfig {
     name: "Test Final Score",
     location: "Seattle",
     estimatedMinutes: 2,
-    entitlementLabel: "raffle ticket",
+    entitlementLabel: "reward ticket",
     intro: "Test intro",
     summary: "Test summary",
     feedbackMode: "final_score_reveal",
@@ -88,7 +88,7 @@ function createInstantFeedbackGame(): GameConfig {
     name: "Test Instant Feedback",
     location: "Seattle",
     estimatedMinutes: 2,
-    entitlementLabel: "raffle ticket",
+    entitlementLabel: "reward ticket",
     intro: "Test intro",
     summary: "Test summary",
     feedbackMode: "instant_feedback_required",
@@ -121,10 +121,10 @@ function createInstantFeedbackGame(): GameConfig {
   };
 }
 
-describe("useQuizSession", () => {
+describe("useGameSession", () => {
   beforeEach(() => {
     mockCreateRequestId.mockReset();
-    mockSubmitQuizCompletion.mockReset();
+    mockSubmitGameCompletion.mockReset();
     // A stable id makes the retry/idempotency assertions readable and matches
     // the product requirement that the same completion attempt reuses its key.
     mockCreateRequestId.mockReturnValue("req-123");
@@ -137,9 +137,9 @@ describe("useQuizSession", () => {
   it("submits the final-score flow and exposes the trusted completion result", async () => {
     const game = createFinalScoreGame();
     const completion = createCompletionResult();
-    mockSubmitQuizCompletion.mockResolvedValue(completion);
+    mockSubmitGameCompletion.mockResolvedValue(completion);
 
-    const { result } = renderHook(() => useQuizSession(game));
+    const { result } = renderHook(() => useGameSession(game));
 
     act(() => {
       result.current.start();
@@ -164,9 +164,9 @@ describe("useQuizSession", () => {
 
     expect(result.current.latestCompletion).toEqual(completion);
     expect(result.current.score).toBe(completion.score);
-    expect(mockSubmitQuizCompletion).toHaveBeenCalledTimes(1);
+    expect(mockSubmitGameCompletion).toHaveBeenCalledTimes(1);
 
-    const submission = mockSubmitQuizCompletion.mock.calls[0]?.[0];
+    const submission = mockSubmitGameCompletion.mock.calls[0]?.[0];
     // The hook should submit canonical answer ordering because the backend and
     // persistence layer treat the shared config as the source of truth.
     expect(submission).toMatchObject({
@@ -182,7 +182,7 @@ describe("useQuizSession", () => {
   });
 
   it("keeps instant-feedback questions on the same step until the correct answer is submitted", () => {
-    const { result } = renderHook(() => useQuizSession(createInstantFeedbackGame()));
+    const { result } = renderHook(() => useGameSession(createInstantFeedbackGame()));
 
     act(() => {
       result.current.start();
@@ -216,7 +216,7 @@ describe("useQuizSession", () => {
   });
 
   it("restores the saved answer when navigating back to a previous question", () => {
-    const { result } = renderHook(() => useQuizSession(createFinalScoreGame()));
+    const { result } = renderHook(() => useGameSession(createFinalScoreGame()));
 
     act(() => {
       result.current.start();
@@ -240,11 +240,11 @@ describe("useQuizSession", () => {
     const game = createFinalScoreGame(1);
     const completion = createCompletionResult({ score: 1 });
 
-    mockSubmitQuizCompletion
+    mockSubmitGameCompletion
       .mockRejectedValueOnce(new Error("Temporary backend problem."))
       .mockResolvedValueOnce(completion);
 
-    const { result } = renderHook(() => useQuizSession(game));
+    const { result } = renderHook(() => useGameSession(game));
 
     act(() => {
       result.current.start();
@@ -267,13 +267,13 @@ describe("useQuizSession", () => {
       expect(result.current.latestCompletion).toEqual(completion);
     });
 
-    expect(mockSubmitQuizCompletion).toHaveBeenCalledTimes(2);
+    expect(mockSubmitGameCompletion).toHaveBeenCalledTimes(2);
     // This is one of the key trust-boundary behaviors from the testing strategy:
     // a retry should preserve idempotency rather than mint a new completion id.
-    expect(mockSubmitQuizCompletion.mock.calls[0]?.[0]).toMatchObject({
+    expect(mockSubmitGameCompletion.mock.calls[0]?.[0]).toMatchObject({
       requestId: "req-123",
     });
-    expect(mockSubmitQuizCompletion.mock.calls[1]?.[0]).toMatchObject({
+    expect(mockSubmitGameCompletion.mock.calls[1]?.[0]).toMatchObject({
       requestId: "req-123",
     });
   });
@@ -281,9 +281,9 @@ describe("useQuizSession", () => {
   it("resets state for a retake without leaving the active question flow", async () => {
     const game = createFinalScoreGame(1);
     const completion = createCompletionResult({ score: 1 });
-    mockSubmitQuizCompletion.mockResolvedValue(completion);
+    mockSubmitGameCompletion.mockResolvedValue(completion);
 
-    const { result } = renderHook(() => useQuizSession(game));
+    const { result } = renderHook(() => useGameSession(game));
 
     act(() => {
       result.current.start();

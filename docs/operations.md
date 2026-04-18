@@ -48,7 +48,7 @@ For this project today, that means:
 ### Vercel
 
 - [`apps/web/vercel.json`](../apps/web/vercel.json)
-  SPA route rewrites for `/admin` and `/game/:slug`, plus other supported project behavior
+  SPA route rewrites for `/admin` and `/event/:slug/game`, plus other supported project behavior
 - [`apps/web/package.json`](../apps/web/package.json)
   frontend build commands
 - [`apps/web/vite.config.ts`](../apps/web/vite.config.ts)
@@ -234,7 +234,7 @@ Use Vercel for deployment and frontend availability questions:
 ```bash
 curl -I "$PRODUCTION_SMOKE_BASE_URL"
 curl -I "${PRODUCTION_SMOKE_BASE_URL%/}/admin"
-curl -I "${PRODUCTION_SMOKE_BASE_URL%/}/game/production-smoke-event"
+curl -I "${PRODUCTION_SMOKE_BASE_URL%/}/event/production-smoke-event/game"
 ```
 
 Notes:

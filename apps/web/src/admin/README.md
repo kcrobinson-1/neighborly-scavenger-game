@@ -15,7 +15,7 @@ It is responsible for:
   mutations, publish/unpublish actions, magic-link requests, and sign-out
   state for the `/admin` dashboard
 - rendering the small presentational pieces used by the `/admin` route shell
-- keeping route-level admin auth state out of the attendee quiz module
+- keeping route-level admin auth state out of the attendee game module
 
 ## Boundaries
 
@@ -47,10 +47,10 @@ It is responsible for:
   through that same function, and load full draft content only through
   authenticated draft reads
 - keep draft reads, admin RPC calls, and authoring function calls in
-  `src/lib/adminQuizApi.ts`
+  `src/lib/adminGameApi.ts`
 - keep publish checklist logic in `publishChecklist.ts`; it runs the five
   semantic content checks as independent pass/fail items so the UI can name
   each blocker; the backend remains authoritative for structural validation
   and slug uniqueness
 - keep `usePreviewSession` (Phase 4.5, deferred) in this module when it
-  lands; it must not modify production `useQuizSession`
+  lands; it must not modify production `useGameSession`

@@ -27,12 +27,12 @@ test("completes the attendee flow against trusted backend persistence", async ({
 }) => {
   await installAttendeeFunctionProxy(page);
 
-  await page.goto("/game/first-sample", { waitUntil: "networkidle" });
+  await page.goto("/event/first-sample/game", { waitUntil: "networkidle" });
   await expect(
     page.getByRole("heading", { name: "Madrona Music in the Playfield" }),
   ).toBeVisible();
 
-  await activate(page.getByRole("button", { exact: true, name: "Start quiz" }));
+  await activate(page.getByRole("button", { exact: true, name: "Start game" }));
   await expect(
     page.getByRole("heading", {
       name: "Which local spot is sponsoring this neighborhood music series question?",
@@ -42,14 +42,14 @@ test("completes the attendee flow against trusted backend persistence", async ({
   await clickOptionAndSubmit(page, "Hi Spot Cafe");
   await clickOptionAndSubmit(page, "A quick neighborhood game");
   await clickOptionAndSubmit(page, "5 to 7");
-  await clickOptionAndSubmit(page, "Finishing the quiz");
+  await clickOptionAndSubmit(page, "Finishing the game");
   await clickOptionAndSubmit(page, "One card at a time");
   await clickOptionAndSubmit(page, "That the attendee is officially done");
 
   await expect(
-    page.getByRole("heading", { name: "Show this screen at the raffle table" }),
+    page.getByRole("heading", { name: "Show this screen at the volunteer table" }),
   ).toBeVisible();
-  await expect(page.getByText("You're checked in for the raffle.")).toBeVisible();
+  await expect(page.getByText("You're checked in for the reward.")).toBeVisible();
 
   const verificationCodeLocator = page.locator(".token-block strong");
   await expect(verificationCodeLocator).not.toHaveText("Loading...");
@@ -72,12 +72,12 @@ test("rejects malformed completion payload before persistence, then succeeds on 
     tamperFirstCompletionPayload: true,
   });
 
-  await page.goto("/game/first-sample", { waitUntil: "networkidle" });
+  await page.goto("/event/first-sample/game", { waitUntil: "networkidle" });
   await expect(
     page.getByRole("heading", { name: "Madrona Music in the Playfield" }),
   ).toBeVisible();
 
-  await activate(page.getByRole("button", { exact: true, name: "Start quiz" }));
+  await activate(page.getByRole("button", { exact: true, name: "Start game" }));
   await expect(
     page.getByRole("heading", {
       name: "Which local spot is sponsoring this neighborhood music series question?",
@@ -87,7 +87,7 @@ test("rejects malformed completion payload before persistence, then succeeds on 
   await clickOptionAndSubmit(page, "Hi Spot Cafe");
   await clickOptionAndSubmit(page, "A quick neighborhood game");
   await clickOptionAndSubmit(page, "5 to 7");
-  await clickOptionAndSubmit(page, "Finishing the quiz");
+  await clickOptionAndSubmit(page, "Finishing the game");
   await clickOptionAndSubmit(page, "One card at a time");
   await clickOptionAndSubmit(page, "That the attendee is officially done");
 
@@ -108,9 +108,9 @@ test("rejects malformed completion payload before persistence, then succeeds on 
   await activate(retryButton);
 
   await expect(
-    page.getByRole("heading", { name: "Show this screen at the raffle table" }),
+    page.getByRole("heading", { name: "Show this screen at the volunteer table" }),
   ).toBeVisible();
-  await expect(page.getByText("You're checked in for the raffle.")).toBeVisible();
+  await expect(page.getByText("You're checked in for the reward.")).toBeVisible();
 
   const verificationCodeLocator = page.locator(".token-block strong");
   await expect(verificationCodeLocator).not.toHaveText("Loading...");
@@ -127,17 +127,17 @@ test("shows bootstrap failure messaging when trusted session bootstrap fails", a
     failFirstIssueSessionRequest: true,
   });
 
-  await page.goto("/game/first-sample", { waitUntil: "networkidle" });
+  await page.goto("/event/first-sample/game", { waitUntil: "networkidle" });
   await expect(
     page.getByRole("heading", { name: "Madrona Music in the Playfield" }),
   ).toBeVisible();
 
-  const startButton = page.getByRole("button", { exact: true, name: "Start quiz" });
+  const startButton = page.getByRole("button", { exact: true, name: "Start game" });
   await expect(startButton).toBeVisible();
   await activate(startButton);
 
   await expect(
-    page.getByText("Can't start the quiz right now."),
+    page.getByText("Can't start the game right now."),
   ).toBeVisible();
   await expect(page.getByText("Backend bootstrap smoke failure.")).toBeVisible();
   await expect(startButton).toBeVisible();

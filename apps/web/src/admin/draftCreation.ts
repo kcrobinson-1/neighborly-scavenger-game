@@ -1,5 +1,5 @@
 import type { AuthoringGameDraftContent } from "../../../../shared/game-config";
-import type { DraftEventDetail, DraftEventSummary } from "../lib/adminQuizApi";
+import type { DraftEventDetail, DraftEventSummary } from "../lib/adminGameApi";
 
 const STARTER_DRAFT_BASE_NAME = "Untitled event";
 const DEFAULT_SUFFIX_LENGTH = 6;
@@ -79,7 +79,7 @@ export function createStarterDraftContent(
         sponsor: "Sponsor name",
       },
     ],
-    entitlementLabel: "raffle ticket",
+    entitlementLabel: "reward ticket",
     slug: identity.slug,
     summary: "Add the event summary before publishing.",
   };

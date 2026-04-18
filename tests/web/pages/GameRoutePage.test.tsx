@@ -7,7 +7,7 @@ const { mockLoadPublishedGameBySlug } = vi.hoisted(() => ({
   mockLoadPublishedGameBySlug: vi.fn(),
 }));
 
-vi.mock("../../../apps/web/src/lib/quizContentApi.ts", () => ({
+vi.mock("../../../apps/web/src/lib/gameContentApi.ts", () => ({
   loadPublishedGameBySlug: mockLoadPublishedGameBySlug,
 }));
 
@@ -27,7 +27,7 @@ function createGame(overrides: Partial<GameConfig> = {}): GameConfig {
     intro: "Test intro",
     location: "Seattle",
     name: "Test Game",
-    entitlementLabel: "raffle ticket",
+    entitlementLabel: "reward ticket",
     slug: "test-game",
     summary: "Test summary",
     questions: [
@@ -53,7 +53,7 @@ describe("GameRoutePage", () => {
     cleanup();
   });
 
-  it("loads a published slug and renders the quiz page", async () => {
+  it("loads a published slug and renders the game page", async () => {
     mockLoadPublishedGameBySlug.mockResolvedValue(createGame({ name: "Loaded Event" }));
 
     render(<GameRoutePage onNavigate={() => {}} slug="loaded-event" />);
@@ -70,7 +70,7 @@ describe("GameRoutePage", () => {
 
     expect(
       await screen.findByRole("heading", {
-        name: "This quiz isn't available right now.",
+        name: "This game isn't available right now.",
       }),
     ).toBeTruthy();
 
@@ -79,14 +79,14 @@ describe("GameRoutePage", () => {
   });
 
   it("shows a retryable load error when the published read fails", async () => {
-    mockLoadPublishedGameBySlug.mockRejectedValueOnce(new Error("Quiz read failed."));
+    mockLoadPublishedGameBySlug.mockRejectedValueOnce(new Error("Game read failed."));
     mockLoadPublishedGameBySlug.mockResolvedValueOnce(createGame({ name: "Recovered Event" }));
 
     render(<GameRoutePage onNavigate={() => {}} slug="broken-event" />);
 
-    expect(await screen.findByText("Quiz read failed.")).toBeTruthy();
+    expect(await screen.findByText("Game read failed.")).toBeTruthy();
 
-    fireEvent.click(screen.getByRole("button", { name: "Retry loading quiz" }));
+    fireEvent.click(screen.getByRole("button", { name: "Retry loading game" }));
 
     await waitFor(() => {
       expect(mockLoadPublishedGameBySlug).toHaveBeenCalledTimes(2);

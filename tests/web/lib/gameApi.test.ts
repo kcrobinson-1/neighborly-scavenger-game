@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { SubmitQuizCompletionInput } from "../../../apps/web/src/types/quiz.ts";
+import type { SubmitGameCompletionInput } from "../../../apps/web/src/types/game.ts";
 
 const { mockCreateOpaqueId } = vi.hoisted(() => {
   return {
@@ -13,11 +13,11 @@ vi.mock("../../../apps/web/src/lib/session.ts", () => ({
 
 import {
   ensureServerSession,
-  submitQuizCompletion,
-} from "../../../apps/web/src/lib/quizApi.ts";
+  submitGameCompletion,
+} from "../../../apps/web/src/lib/gameApi.ts";
 
 const serverSessionTokenStorageKey = "neighborly.server-session-token.v1";
-const sampleInput: SubmitQuizCompletionInput = {
+const sampleInput: SubmitGameCompletionInput = {
   answers: {
     q1: ["a"],
     q2: ["b"],
@@ -84,7 +84,7 @@ function setSupabaseEnv({
   );
 }
 
-describe("quizApi", () => {
+describe("gameApi", () => {
   beforeEach(() => {
     vi.unstubAllEnvs();
     vi.restoreAllMocks();
@@ -176,9 +176,9 @@ describe("quizApi", () => {
     vi.stubGlobal("fetch", fetchMock);
     setSupabaseEnv({ fallbackEnabled: true });
 
-    const firstResult = await submitQuizCompletion(sampleInput);
-    const sameRequestResult = await submitQuizCompletion(sampleInput);
-    const secondAttempt = await submitQuizCompletion({
+    const firstResult = await submitGameCompletion(sampleInput);
+    const sameRequestResult = await submitGameCompletion(sampleInput);
+    const secondAttempt = await submitGameCompletion({
       ...sampleInput,
       requestId: "req-456",
     });
@@ -216,7 +216,7 @@ describe("quizApi", () => {
         status: "new",
         verificationCode: "MMP-SERVER01",
       },
-      message: "You're checked in for the raffle.",
+      message: "You're checked in for the reward.",
       entitlementEligible: true,
       score: 2,
     };
@@ -241,7 +241,7 @@ describe("quizApi", () => {
       url: "https://example.supabase.co",
     });
 
-    await expect(submitQuizCompletion(sampleInput)).resolves.toEqual(completionResponse);
+    await expect(submitGameCompletion(sampleInput)).resolves.toEqual(completionResponse);
 
     expect(fetchMock).toHaveBeenCalledTimes(3);
     expect(fetchMock.mock.calls[0]?.[0]).toBe(

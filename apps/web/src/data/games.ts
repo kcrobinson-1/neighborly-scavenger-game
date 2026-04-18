@@ -1,4 +1,4 @@
-/** Re-export shared quiz types plus explicit sample fixtures for prototype-only paths. */
+/** Re-export shared game types plus explicit sample fixtures for prototype-only paths. */
 export {
   type AnswerOption,
   type FeedbackMode,

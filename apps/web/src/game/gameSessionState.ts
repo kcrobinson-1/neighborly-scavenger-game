@@ -1,39 +1,39 @@
-/** Internal quiz session state machine for reducer-driven quiz progression. */
+/** Internal game session state machine for reducer-driven game progression. */
 import type { Question } from "../data/games";
 import { createRequestId } from "../lib/session";
-import type { Answers, QuizCompletionResult } from "../types/quiz";
+import type { Answers, GameCompletionResult } from "../types/game";
 import {
   answersMatch,
   getNextSelection,
   getQuestionFeedbackMessage,
   normalizeOptionIds,
-} from "./quizUtils";
+} from "./gameUtils";
 
-/** All high-level phases the browser quiz session can occupy. */
-export type QuizPhase =
+/** All high-level phases the browser game session can occupy. */
+export type GamePhase =
   | "intro"
   | "question"
   | "correct_feedback"
   | "submitting_completion"
   | "complete";
 
-/** Reducer state that drives the full quiz interaction flow. */
-export type QuizState = {
+/** Reducer state that drives the full game interaction flow. */
+export type GameState = {
   answers: Answers;
   completionError: string | null;
   completionRequestId: string | null;
   currentIndex: number;
   feedbackKind: "correct" | "incorrect" | null;
   feedbackMessage: string | null;
-  latestCompletion: QuizCompletionResult | null;
+  latestCompletion: GameCompletionResult | null;
   pendingSelection: string[];
-  phase: QuizPhase;
+  phase: GamePhase;
   startedAt: number | null;
 };
 
-/** Supported reducer events for quiz interaction and completion submission. */
-export type QuizAction =
-  | { type: "completeCompletionSubmit"; completion: QuizCompletionResult }
+/** Supported reducer events for game interaction and completion submission. */
+export type GameAction =
+  | { type: "completeCompletionSubmit"; completion: GameCompletionResult }
   | { type: "failCompletionSubmit"; message: string }
   | { type: "goBack"; previousQuestionId: string }
   | { type: "reset" }
@@ -75,8 +75,8 @@ export function createCompletionRequestId(currentIndex: number, questionCount: n
 }
 
 /** Builds a fresh reducer state for a new intro screen or active run. */
-export function createQuizState(
-  phase: QuizPhase = "intro",
+export function createGameState(
+  phase: GamePhase = "intro",
   startedAt: number | null = null,
 ) {
   return {
@@ -90,18 +90,18 @@ export function createQuizState(
     pendingSelection: [],
     phase,
     startedAt,
-  } satisfies QuizState;
+  } satisfies GameState;
 }
 
-/** Moves the reducer into the backend submission phase after local quiz play ends. */
+/** Moves the reducer into the backend submission phase after local game play ends. */
 function createCompletionSubmissionState(
-  state: QuizState,
+  state: GameState,
   completionRequestId: string,
   answers: Answers,
 ) {
-  // Completion is a distinct phase because we want the quiz UX to stay local
+  // Completion is a distinct phase because we want the game UX to stay local
   // and fast during play, while still letting the backend own the official
-  // raffle entitlement decision at the end.
+  // reward entitlement decision at the end.
   return {
     ...state,
     answers,
@@ -114,15 +114,15 @@ function createCompletionSubmissionState(
   };
 }
 
-/** Central state machine for quiz progression, feedback, and completion. */
-export function quizReducer(state: QuizState, action: QuizAction): QuizState {
+/** Central state machine for game progression, feedback, and completion. */
+export function gameReducer(state: GameState, action: GameAction): GameState {
   switch (action.type) {
     case "start":
-      return createQuizState("question", action.startedAt);
+      return createGameState("question", action.startedAt);
     case "reset":
-      return createQuizState();
+      return createGameState();
     case "resetForRetake":
-      return createQuizState("question", action.startedAt);
+      return createGameState("question", action.startedAt);
     case "selectOption":
       if (state.phase !== "question") {
         return state;

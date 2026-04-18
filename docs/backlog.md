@@ -67,8 +67,9 @@ Must be resolved before QR codes are printed or the first real event runs.
   Decision made: phase-based direct rename (Alt C). Phase 0 complete (migration
   map finalized). Phase 2 database and SQL contract rename is implemented on
   main. Phase 3 Edge Function endpoint and shared contract rename is
-  implemented on the current branch; Phases 4–5 (Frontend module/route rename
-  and cleanup/guardrails) remain queued.
+  implemented on main. Phase 4 frontend module, route, and copy migration is
+  implemented on the current branch. Phase 5 cleanup, guardrails, and broad
+  stale-reference cleanup remain queued.
   Detail: [`docs/terminology-migration-strategy.md`](./terminology-migration-strategy.md)
 
 ---
@@ -101,7 +102,7 @@ Reduce deployment risk and contributor friction before the live event.
 - [x] **`infra` Attendee smoke bootstrap failure messaging**
   Completed: trusted-backend attendee smoke now forces a one-shot
   `issue-session` bootstrap failure, then asserts intro-screen error messaging
-  (`Can't start the quiz right now.` + backend failure detail) while preserving
+  (`Can't start the game right now.` + backend failure detail) while preserving
   recoverable start state.
   Detail: [`docs/testing.md` — What Needs Coverage](./testing.md)
 
@@ -185,15 +186,14 @@ prioritization before starting.
   Detail: [`docs/security-and-abuse-plan.md`](./security-and-abuse-plan.md)
 
 - [ ] **`dev` Richer publish controls**
-  Expiry windows, scheduled publish, multiple quizzes per event, and friendlier
+  Expiry windows, scheduled publish, multiple games per event, and friendlier
   inactive-event behavior beyond immediate unpublish.
   Detail: [`docs/open-questions.md` — Authoring And Publishing](./open-questions.md)
 
-- [ ] **`ux` Event landing route model (`/event/:slug` -> `/event/:slug/game`)**
-  Move from the current home-plus-direct-game routing shape to an event landing
-  model where `/event/:slug` is the event entry surface and gameplay lives on a
-  nested route. Intended target once the product starts supporting multiple
-  experiences per event so navigation and URL contracts scale cleanly.
+- [ ] **`ux` Event landing page for `/event/:slug`**
+  Gameplay now lives on `/event/:slug/game`. Add an event landing surface at
+  `/event/:slug` once the product starts supporting multiple experiences per
+  event so navigation and URL contracts scale cleanly.
   Detail: [`docs/open-questions.md` — Product And Live Event Operation](./open-questions.md)
 
 - [ ] **`decision` Sponsor reporting requirements**

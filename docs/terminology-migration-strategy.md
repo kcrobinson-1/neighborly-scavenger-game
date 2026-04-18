@@ -11,17 +11,19 @@ This document is the tracking source of truth for the Tier 1 backlog decision:
 
 ## Why this migration is being done now
 
-The codebase currently mixes two naming systems:
+The codebase has moved the active runtime surfaces onto the target terminology.
+What remains is the Phase 5 cleanup pass for guardrails and broad historical
+documentation cleanup:
 
-- **Generic names** in some runtime surfaces (for example `GameConfig` and
-  `apps/web/src/game/`)
-- **Legacy/specific names** in remaining frontend and documentation surfaces
-  (`/game/:slug` route paired with frontend modules such as `quizApi.ts` and
-  `useQuizSession`)
+- **Generic names** in active runtime surfaces (for example `GameConfig`,
+  `apps/web/src/game/`, `gameApi.ts`, `useGameSession`, and
+  `/event/:slug/game`)
+- **Legacy/specific names** only in historical migration maps, immutable
+  migration filenames, and Phase 5 cleanup targets
 
-That mixed vocabulary is acceptable during rapid MVP build-out, but it creates
-increasing cost as we add redemption, reporting, and future non-quiz
-experiences.
+The prior mixed vocabulary was acceptable during rapid MVP build-out, but it
+created increasing cost as we added redemption, reporting, and future
+non-game-specific experiences.
 
 Doing this migration now is cheaper and safer because:
 
@@ -38,22 +40,23 @@ Doing this migration now is cheaper and safer because:
 The terminology appears across multiple system layers:
 
 - **Frontend/public routes and API clients**
-  - `/game/:slug` route already uses generic `game` naming
-  - `quizApi.ts`, `quizContentApi.ts`, and `types/quiz.ts` still expose quiz
-    terms
+  - `/event/:slug/game` is the attendee game route
+  - `gameApi.ts`, `gameContentApi.ts`, `adminGameApi.ts`, and
+    `types/game.ts` expose target frontend names
 - **Shared runtime and domain model**
-  - `shared/game-config.ts` and `GameConfig` are already generic
-  - quiz-specific helper naming still exists around scoring/flow
+  - `shared/game-config.ts` and `GameConfig` use generic game naming
+  - scoring and answer-validation helpers use game-oriented naming in active
+    code
 - **Edge Functions and contracts**
   - `complete-game`, `issue-session`, `save-draft`, `publish-draft`,
     `unpublish-event`
   - trusted completion response fields now use entitlement terminology
 - **Database schema and SQL functions**
-  - `quiz_events`, `quiz_questions`, `quiz_completions`, `quiz_starts`,
-    `quiz_admin_users`, `raffle_entitlements`, and `is_quiz_admin()`
+  - `game_events`, `game_questions`, `game_completions`, `game_starts`,
+    `admin_users`, `game_entitlements`, and `is_admin()`
 - **Documentation and operational language**
-  - architecture, testing, analytics, product/experience docs and runbooks use
-    mixed terminology
+  - current-state frontend and contributor docs use target terminology
+  - historical and broad stale-reference cleanup remains Phase 5
 
 ## Constraints and assumptions
 
@@ -265,7 +268,7 @@ backend DB call sites to the target names.
 
 ### Phase 3 — Edge Function and shared-contract rename
 
-**Status: complete in this branch** — the trusted completion endpoint/module is
+**Status: complete** — the trusted completion endpoint/module is
 now `complete-game`, the function handler/dependency exports use
 `CompleteGame...` naming, the completion response exposes
 `entitlementEligible`, and the shared published/authoring game model uses
@@ -297,6 +300,8 @@ authoring JSON and updates the publish projection to read `entitlementLabel`.
 
 ### Phase 4 — Frontend route/module/type/copy migration
 
+**Status:** complete in this branch.
+
 **Goal**: remove remaining legacy terminology from the attendee/admin web app.
 
 **Scope**
@@ -304,6 +309,8 @@ authoring JSON and updates the publish projection to read `entitlementLabel`.
 - Rename frontend API modules/types/hooks still named around quiz/raffle.
 - Update user-visible copy to preferred language where product-approved.
 - Migrate test fixtures and UI tests to renamed contracts.
+- Move the attendee route from `/game/:slug` to `/event/:slug/game` without
+  adding compatibility aliases.
 
 **Demonstrable launch difference**
 
@@ -380,21 +387,19 @@ possible.
 
 ## Open questions
 
-Resolve questions 2–4 before Phase 2 starts. Question 1 is a Phase 4 blocker
-only (frontend concern; does not affect DB or edge function work).
+Questions 1–4 are resolved in Phases 2–4.
 
 1. ~~**Naming decision for attendee route shape**~~ **DECIDED**
-   - Adopt `/event/:slug/game`. Cost is low: only `routes.ts` (type, prefix,
-     builder, matcher) and `vercel.json` require changes; all 7 link sites
-     already use `routes.game()` and need no edits. Execute in Phase 4.
+   - Adopted `/event/:slug/game` in Phase 4. `routes.ts`, `vercel.json`, route
+     tests, Playwright expectations, UI review helpers, and smoke helpers now
+     use the new route.
 2. ~~**Role naming convergence timing**~~ **DECIDED**
    - Rename `is_quiz_admin()` → `is_admin()` in Phase 2. "Admin" is the global
      platform role; no qualifier needed. The future organizer role (event-scoped)
      will get its own separate function and does not conflict with this name.
 3. ~~**Analytics naming migration scope**~~ **DECIDED**
    - Rename `quiz_starts` → `game_starts` in Phase 2 along with all other DB
-     artifacts. No live analytics consumers exist, so no breakage risk. The FK
-     to `quiz_events` is already in Phase 2 scope regardless.
+     artifacts. No live analytics consumers exist, so no breakage risk.
 4. ~~**Historical docs policy**~~ **DECIDED**
    - Rewrite docs to use current names. Where a doc references an immutable
      artifact by its original name (e.g., a migration filename), add a short

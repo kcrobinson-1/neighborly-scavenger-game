@@ -139,7 +139,7 @@ export async function loadPublishedGameBySlug(slug: string): Promise<GameConfig 
       ].join(","),
       slug: `eq.${slug}`,
     },
-    "We couldn't load this quiz event right now.",
+    "We couldn't load this game event right now.",
   );
 
   const eventRow = eventRows[0];
@@ -165,7 +165,7 @@ export async function loadPublishedGameBySlug(slug: string): Promise<GameConfig 
           "sponsor_fact",
         ].join(","),
       },
-      "We couldn't load this quiz event right now.",
+      "We couldn't load this game event right now.",
     ),
     fetchPostgrestRows<PublishedGameOptionRow[]>(
       "game_question_options",
@@ -174,7 +174,7 @@ export async function loadPublishedGameBySlug(slug: string): Promise<GameConfig 
         order: "question_id.asc,display_order.asc",
         select: "event_id,question_id,id,display_order,label,is_correct",
       },
-      "We couldn't load this quiz event right now.",
+      "We couldn't load this game event right now.",
     ),
   ]);
 
@@ -185,6 +185,6 @@ export async function loadPublishedGameBySlug(slug: string): Promise<GameConfig 
       questions: questionRows,
     });
   } catch {
-    throw new Error("This quiz event is misconfigured right now.");
+    throw new Error("This game event is misconfigured right now.");
   }
 }

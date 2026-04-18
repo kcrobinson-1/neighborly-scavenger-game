@@ -18,7 +18,7 @@ function createEventRow(
     intro: "Test intro",
     location: "Seattle",
     name: "Test Event",
-    entitlement_label: "raffle ticket",
+    entitlement_label: "reward ticket",
     slug: "test-event",
     summary: "Test summary",
     ...overrides,
@@ -118,7 +118,7 @@ describe("mapPublishedGameRowsToGameConfig", () => {
       intro: "Test intro",
       location: "Seattle",
       name: "Test Event",
-      entitlementLabel: "raffle ticket",
+      entitlementLabel: "reward ticket",
       slug: "test-event",
       summary: "Test summary",
       questions: [

@@ -2,12 +2,12 @@ import { featuredGameSlug } from "./constants.ts";
 import type { GameConfig } from "./types.ts";
 
 /**
- * Sample quiz fixtures for tests and explicit local-only prototype fallback.
+ * Sample game fixtures for tests and explicit local-only prototype fallback.
  * Published runtime content should come from database rows mapped through
  * db-content.ts, not from this fixture file.
  */
 
-/** Sample game that demonstrates a standard quiz with final score reveal. */
+/** Sample game that demonstrates a standard game with final score reveal. */
 const firstSampleGame: GameConfig = {
   id: "madrona-music-2026",
   slug: featuredGameSlug,
@@ -16,11 +16,11 @@ const firstSampleGame: GameConfig = {
   allowRetake: true,
   location: "Seattle",
   estimatedMinutes: 2,
-  entitlementLabel: "raffle ticket",
+  entitlementLabel: "reward ticket",
   summary:
-    "Move through the quiz with explicit submit on each question and see your score plus the correct answers at the end.",
+    "Move through the game with explicit submit on each question and see your score plus the correct answers at the end.",
   feedbackMode: "final_score_reveal",
-  intro: "Answer 6 quick questions, support local sponsors, and earn a raffle ticket.",
+  intro: "Answer 6 quick questions, support local sponsors, and earn a reward ticket.",
   questions: [
     {
       id: "q1",
@@ -67,13 +67,13 @@ const firstSampleGame: GameConfig = {
     {
       id: "q4",
       sponsor: "Creature Consignment",
-      prompt: "What matters most for raffle eligibility in the MVP?",
+      prompt: "What matters most for reward eligibility in the MVP?",
       selectionMode: "single",
       correctAnswerIds: ["a"],
       explanation:
         "Completion matters more than score in the MVP so the flow stays simple and easy to redeem.",
       options: [
-        { id: "a", label: "Finishing the quiz" },
+        { id: "a", label: "Finishing the game" },
         { id: "b", label: "Sharing on social media" },
         { id: "c", label: "Creating an account" },
       ],
@@ -118,7 +118,7 @@ const sponsorSpotlightGame: GameConfig = {
   allowRetake: true,
   location: "Seattle",
   estimatedMinutes: 3,
-  entitlementLabel: "bonus raffle ticket",
+  entitlementLabel: "bonus reward ticket",
   summary:
     "You must submit the correct answer to move on, and each right answer reveals a sponsor fact before the next question.",
   feedbackMode: "instant_feedback_required",
@@ -129,21 +129,21 @@ const sponsorSpotlightGame: GameConfig = {
       id: "q1",
       sponsor: "Bottlehouse",
       prompt:
-        "Which answer best describes why sponsors appear inside the quiz experience?",
+        "Which answer best describes why sponsors appear inside the game experience?",
       selectionMode: "single",
       correctAnswerIds: ["c"],
       sponsorFact:
         "Bottlehouse benefits more from active participation in a community moment than from a passive logo placement.",
       options: [
         { id: "a", label: "To interrupt players with ads" },
-        { id: "b", label: "To replace the raffle entirely" },
+        { id: "b", label: "To replace the reward entirely" },
         { id: "c", label: "To feel integrated into the neighborhood event" },
       ],
     },
     {
       id: "q2",
       sponsor: "Central Co-op",
-      prompt: "What keeps the quiz feeling playable outdoors on a phone?",
+      prompt: "What keeps the game feeling playable outdoors on a phone?",
       selectionMode: "single",
       correctAnswerIds: ["b"],
       sponsorFact:
@@ -157,11 +157,11 @@ const sponsorSpotlightGame: GameConfig = {
     {
       id: "q3",
       sponsor: "Cafe Flora",
-      prompt: "What should happen after a correct answer in this quiz mode?",
+      prompt: "What should happen after a correct answer in this game mode?",
       selectionMode: "single",
       correctAnswerIds: ["a"],
       sponsorFact:
-        "A short sponsor fact keeps the moment informative without derailing the pace of the quiz.",
+        "A short sponsor fact keeps the moment informative without derailing the pace of the game.",
       options: [
         {
           id: "a",
@@ -182,7 +182,7 @@ const sponsorSpotlightGame: GameConfig = {
       options: [
         { id: "a", label: "Move on anyway without feedback" },
         { id: "b", label: "Prompt the player to try again" },
-        { id: "c", label: "End the quiz immediately" },
+        { id: "c", label: "End the game immediately" },
       ],
     },
   ],
@@ -192,12 +192,12 @@ const sponsorSpotlightGame: GameConfig = {
 const communityChecklistGame: GameConfig = {
   id: "community-checklist-2026",
   slug: "community-checklist",
-  name: "Community Checklist Quiz",
+  name: "Community Checklist Game",
   allowBackNavigation: true,
   allowRetake: true,
   location: "Seattle",
   estimatedMinutes: 3,
-  entitlementLabel: "sample raffle ticket",
+  entitlementLabel: "sample reward ticket",
   summary:
     "Includes select-all-that-apply questions so we can validate multiple selection with an explicit submit button.",
   feedbackMode: "final_score_reveal",
@@ -207,7 +207,7 @@ const communityChecklistGame: GameConfig = {
     {
       id: "q1",
       sponsor: "Madrona Farmers Market",
-      prompt: "Which behaviors support a strong neighborhood-event quiz experience?",
+      prompt: "Which behaviors support a strong neighborhood-event game experience?",
       selectionMode: "multiple",
       correctAnswerIds: ["a", "c", "d"],
       explanation:

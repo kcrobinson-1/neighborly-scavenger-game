@@ -352,7 +352,7 @@ How to run:
    - a single structured-log line in each Edge Function error branch
    - a browser error boundary in `apps/web/src/` that reports unhandled
      React errors
-   - an uptime or synthetic check for the published `/game/:slug` route and
+   - an uptime or synthetic check for the published `/event/:slug/game` route and
      for the `issue-session` endpoint
    - a pre-event Supabase query that confirms both new migrations are applied
      and at least one completion can round-trip from a staging device
@@ -809,8 +809,8 @@ progresses.
   sufficient for volunteer raffle handoff. Stronger proof treatment is deferred
   until after this release.
 - Not release-blocking for this target: QR entry route. `experience.md`
-  already says QR codes should open directly into the event quiz experience,
-  and `/game/:slug` exists for that purpose; the long-term question of whether
+  already says QR codes should open directly into the event game experience,
+  and `/event/:slug/game` exists for that purpose; the long-term question of whether
   this should always be the production entry contract remains open in
   [open-questions.md](./open-questions.md).
 - Not release-blocking for this target, deferred as tracked follow-ups:

@@ -7,7 +7,7 @@ import {
   type DraftEventDetail,
   type DraftEventSummary,
   type PublishDraftResult,
-} from "../lib/adminQuizApi";
+} from "../lib/adminGameApi";
 import {
   applyEventDetailsFormValues,
   type AdminEventDetailsFormValues,

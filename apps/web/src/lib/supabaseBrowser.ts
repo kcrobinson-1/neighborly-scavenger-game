@@ -74,11 +74,11 @@ export function isPrototypeFallbackEnabled() {
 /** Explains how to proceed when browser Supabase configuration is missing. */
 export function getMissingSupabaseConfigMessage() {
   if (!import.meta.env.DEV) {
-    return "This quiz isn't available right now.";
+    return "This game isn't available right now.";
   }
 
   return [
-    "This quiz isn't available right now.",
+    "This game isn't available right now.",
     "If you're working locally, add `VITE_SUPABASE_URL` and",
     "`VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY`, or set",
     "`VITE_ENABLE_LOCAL_PROTOTYPE_FALLBACK=true` to run the local-only prototype flow.",

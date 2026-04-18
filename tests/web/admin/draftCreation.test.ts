@@ -4,7 +4,7 @@ import {
   type AuthoringGameDraftContent,
 } from "../../../shared/game-config";
 import { getGameById } from "../../../shared/game-config/sample-fixtures";
-import type { DraftEventDetail, DraftEventSummary } from "../../../apps/web/src/lib/adminQuizApi";
+import type { DraftEventDetail, DraftEventSummary } from "../../../apps/web/src/lib/adminGameApi";
 import {
   createDuplicatedDraftContent,
   createStarterDraftContent,
