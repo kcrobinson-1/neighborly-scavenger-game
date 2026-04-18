@@ -76,9 +76,11 @@ Must be resolved before QR codes are printed or the first real event runs.
 
 Reduce deployment risk and contributor friction before the live event.
 
-- [ ] **`infra` Playwright smoke suite in PR CI**
-  Add the existing mobile smoke suite to `.github/workflows/ci.yml`. Today a
-  merge can break the attendee flow without CI catching it.
+- [x] **`infra` Playwright smoke suite in PR CI**
+  Completed: `.github/workflows/ci.yml` now runs
+  `npm run test:e2e:attendee:trusted-backend` in PR CI (with Playwright
+  browser setup and failure artifact upload), so merge candidates are gated on
+  the trusted attendee completion path instead of prototype fallback smoke.
   Detail: [`docs/testing.md` — Where Tests Should Run](./testing.md)
 
 - [x] **`infra` Attendee smoke path must exercise trusted backend completion**
