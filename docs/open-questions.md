@@ -22,13 +22,9 @@ this file.
 
 ## Product And Live Event Operation
 
-- Should live event QR codes always route directly to event/game entry surfaces
-  while `/` becomes a marketing page post-MVP?
-  Current behavior is `/` preview plus `/game/:slug` attendee route; long-term
-  URL contract is not finalized.
-  Preferred direction: evolve toward an event landing model where
-  `/event/:slug` is the event entry surface and gameplay lives on
-  `/event/:slug/game`.
+No currently open questions in this section under the current tracking rule.
+Product/live-event follow-up direction is represented as direct backlog items,
+including the event landing route model, and should be tracked there.
 
 ## Authoring And Publishing
 
@@ -45,16 +41,14 @@ is tracked in [`backlog.md`](./backlog.md).
 
 ## Development And Release Workflow
 
-- What is the phased path from current local-validation-plus-direct-production
-  releases to a safer continuous deployment model?
-  Answer: check [`continuous-deployment-plan.md`](./continuous-deployment-plan.md).
-- The supported full-browser UI-review path for backend-backed preview
-  environments is now documented in [`dev.md`](./dev.md) (local app +
-  Playwright capture, preferring configured remote Supabase for full trust-path
-  browser review).
+No currently open questions in this section under the current tracking rule.
+Workflow direction and remaining implementation are tracked in
+[`continuous-deployment-plan.md`](./continuous-deployment-plan.md),
+[`dev.md`](./dev.md), and [`backlog.md`](./backlog.md).
 
 ## Trust Boundary And Abuse Controls
 
-The trust-boundary and abuse-controls tracker now lives in
-[`security-and-abuse-plan.md`](./security-and-abuse-plan.md), including current
-MVP accepted risk, abuse scenarios, and post-MVP hardening direction.
+No currently open questions in this section under the current tracking rule.
+Trust-boundary and abuse-control planning now lives in
+[`security-and-abuse-plan.md`](./security-and-abuse-plan.md), and concrete
+hardening work should be tracked via [`backlog.md`](./backlog.md).
