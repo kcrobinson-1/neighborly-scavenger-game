@@ -201,6 +201,8 @@ before refactors.
 - Manual review: every Tier 1 architecture/runtime surface has an explicit
   mapping row.
 
+**Status: complete** — see `terminology-migration-map.md`.
+
 ---
 
 ### Phase 1 — Documentation and product-language alignment (no runtime renames yet)
