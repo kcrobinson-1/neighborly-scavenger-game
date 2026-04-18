@@ -15,9 +15,9 @@ The codebase currently mixes two naming systems:
 
 - **Generic names** in some runtime surfaces (for example `GameConfig` and
   `apps/web/src/game/`)
-- **Legacy/specific names** in many public and persistence surfaces
-  (`/game/:slug` route paired with `quiz_*` table names and `complete-quiz`
-  function naming)
+- **Legacy/specific names** in remaining frontend and documentation surfaces
+  (`/game/:slug` route paired with frontend modules such as `quizApi.ts` and
+  `useQuizSession`)
 
 That mixed vocabulary is acceptable during rapid MVP build-out, but it creates
 increasing cost as we add redemption, reporting, and future non-quiz
@@ -45,9 +45,9 @@ The terminology appears across multiple system layers:
   - `shared/game-config.ts` and `GameConfig` are already generic
   - quiz-specific helper naming still exists around scoring/flow
 - **Edge Functions and contracts**
-  - `complete-quiz`, `issue-session`, `save-draft`, `publish-draft`,
+  - `complete-game`, `issue-session`, `save-draft`, `publish-draft`,
     `unpublish-event`
-  - request/response fields and error copy still reference quiz/raffle in places
+  - trusted completion response fields now use entitlement terminology
 - **Database schema and SQL functions**
   - `quiz_events`, `quiz_questions`, `quiz_completions`, `quiz_starts`,
     `quiz_admin_users`, `raffle_entitlements`, and `is_quiz_admin()`
@@ -231,11 +231,10 @@ unambiguous.
 
 ### Phase 2 — Database and SQL contract migration
 
-**Status: complete in this branch** — migration
+**Status: complete** — migration
 `20260418000000_rename_database_terminology_to_game.sql` renames the persistent
 schema, SQL functions, RLS policies, constraints, indexes, SQL tests, and direct
-backend DB call sites to the target names. Phase 3 still owns the
-`complete-quiz` endpoint/module rename and shared response/type terminology.
+backend DB call sites to the target names.
 
 **Goal**: move persistence layer names to target terminology and migrate seeded
 (test/demo) data.
@@ -265,6 +264,14 @@ backend DB call sites to the target names. Phase 3 still owns the
 ---
 
 ### Phase 3 — Edge Function and shared-contract rename
+
+**Status: complete in this branch** — the trusted completion endpoint/module is
+now `complete-game`, the function handler/dependency exports use
+`CompleteGame...` naming, the completion response exposes
+`entitlementEligible`, and the shared published/authoring game model uses
+`entitlementLabel`. Migration
+`20260418010000_rename_authoring_entitlement_label_json.sql` backfills existing
+authoring JSON and updates the publish projection to read `entitlementLabel`.
 
 **Goal**: align backend runtime interfaces to new terminology.
 

@@ -89,6 +89,10 @@ to `game_` equivalents in the Phase 2 migration. Pattern: replace leading
 
 ## Edge functions (Phase 3)
 
+**Implementation status:** complete in this branch. The trusted completion
+function directory, endpoint URL, handler/dependency exports, local integration
+helpers, Supabase config, and CI Deno check now use `complete-game`.
+
 ### Function directory names and HTTP endpoints
 
 | Old | New |
@@ -122,18 +126,17 @@ within edge functions get updated to match the Phase 2 DB renames.
 
 ---
 
-## Shared modules
+## Shared modules (Phase 3)
 
-**No changes required.** `shared/game-config/` already uses target terminology
-throughout: `GameConfig`, `Question`, `AnswerOption`, `PublishedGameEventRow`,
-`PublishedGameQuestionRow`, `PublishedGameOptionRow`, `AuthoringGameDraftContent`,
-`AuthoringGameDraftRow`, `AuthoringGameVersionRow`,
-`mapPublishedGameRowsToGameConfig()`.
+**Implementation status:** complete in this branch. `shared/game-config/` uses
+the target runtime field `GameConfig.entitlementLabel`, published row field
+`PublishedGameEventRow.entitlement_label`, and authoring draft JSON field
+`AuthoringGameDraftContent.entitlementLabel`.
 
-The `raffle_label` field name on `GameConfig` and related types still needs
-updating to `entitlement_label` in Phase 3. Until then, DB read call sites alias
-`entitlement_label` back to the existing `raffle_label` TypeScript row field so
-the Phase 2 schema rename does not force shared/frontend type renames.
+Migration `20260418010000_rename_authoring_entitlement_label_json.sql` backfills
+existing draft/version JSON from `raffleLabel` to `entitlementLabel` and updates
+`publish_game_event_draft()` so the target draft key projects into
+`game_events.entitlement_label`.
 
 ---
 
@@ -180,6 +183,9 @@ No change: `createCompletionRequestId()`, `buildLocalCompletionResult()`,
 `loadPublishedGameBySlug()`.
 
 ### API payload fields
+
+**Implementation status:** complete in Phase 3 for the trusted completion
+response. Frontend file/type renames remain Phase 4.
 
 | Old field | New field |
 |-----------|-----------|
@@ -278,8 +284,11 @@ These constraints must be respected across phases:
    names directly. DB renames must land and Supabase TypeScript types must be
    regenerated before edge function code is updated.
 
-2. **Phase 3 before Phase 4**: the frontend references the `/functions/v1/complete-quiz`
-   URL string and response field names. Edge function rename must land first.
+2. **Phase 3 before Phase 4**: the frontend still contains module/type/hook
+   names such as `quizApi.ts` and `useQuizSession`, but those files now call
+   `/functions/v1/complete-game` and consume the `entitlementEligible` response
+   field. Phase 4 can rename modules/routes without changing the backend
+   contract again.
 
 3. **`complete_game_and_award_entitlement` RPC rename (Phase 2) before
    `complete-game` edge function rename (Phase 3)**: the function's

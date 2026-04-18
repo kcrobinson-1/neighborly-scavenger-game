@@ -149,11 +149,11 @@ The Supabase side is intentionally small:
   Creates or reuses the signed browser session credential. When an `event_id`
   is present in the POST body, also fires a best-effort upsert into
   `game_starts` to record the funnel denominator for analytics.
-- `supabase/functions/complete-quiz/index.ts`
+- `supabase/functions/complete-game/index.ts`
   Orchestrates trusted completion requests: origin and method gates, session
   verification, published content loading, shared validation and scoring, and
   final response mapping.
-- `supabase/functions/complete-quiz/`
+- `supabase/functions/complete-game/`
   Local helper modules for completion payload parsing, JSON responses,
   dependency wiring, and service-role RPC persistence used by the handler and
   function tests.
@@ -180,7 +180,9 @@ The Supabase side is intentionally small:
 - `supabase/functions/_shared/session-cookie.ts`
   Session signing and verification helpers shared by both the cookie and header-fallback path.
 - `supabase/migrations/20260403120000_complete_quiz_entitlements.sql`
-  Database objects that store completion attempts and ensure only one game entitlement is granted per event/session pair.
+  Historical filename; creates database objects that store completion attempts
+  and ensure only one game entitlement is granted per event/session pair. The
+  active SQL objects are renamed by later migrations.
 - `supabase/migrations/20260405171549_fix_verification_code_pgcrypto_search_path.sql`
   Fixes the pgcrypto search path used for verification code generation.
 - `supabase/migrations/20260405175756_harden_completion_backend.sql`
@@ -225,6 +227,10 @@ The Supabase side is intentionally small:
   `game_event_audit_log`, `game_starts`, `admin_users`, `is_admin()`,
   `complete_game_and_award_entitlement()`, `publish_game_event_draft()`, and
   `unpublish_game_event()`.
+- `supabase/migrations/20260418010000_rename_authoring_entitlement_label_json.sql`
+  Renames authoring draft/version JSON from the historical `raffleLabel` key to
+  `entitlementLabel` and updates `publish_game_event_draft()` so it projects
+  draft content into `game_events.entitlement_label`.
 
 ## What Is Implemented Now
 
@@ -249,7 +255,7 @@ That means:
 
 The backend issues a signed browser session through `issue-session`.
 
-That credential is then used by `complete-quiz` to:
+That credential is then used by `complete-game` to:
 
 - associate completions with a backend-controlled browser session
 - avoid trusting a client-generated session identifier
@@ -336,7 +342,7 @@ The current system works like this:
    `game_starts` so the event has a permanent record of this session starting.
 7. The player completes the quiz entirely in local browser state.
 8. At the end, the browser submits answers, duration, event id, and request id
-   to `complete-quiz`.
+   to `complete-game`.
 9. The backend verifies the signed session credential, reloads the canonical
    published event by `eventId`, validates answers against the shared
    `game-config` runtime model, recomputes score, and executes the database RPC.
@@ -356,7 +362,7 @@ The current implementation uses:
   writes a best-effort start row to `game_starts` for analytics. A DB failure
   on the start write does not prevent the session response from returning —
   session issuance is the trust boundary; analytics is observability.
-- `complete-quiz`
+- `complete-game`
   Owns final validation, scoring, dedupe, and verification-code return.
 - direct PostgREST reads for published `game_events`, `game_questions`, and
   `game_question_options`

@@ -29,7 +29,7 @@ Today the repo validation surface includes:
 - `npm run test:supabase`
 - `npm run build:web`
 - `deno check --no-lock supabase/functions/issue-session/index.ts`
-- `deno check --no-lock supabase/functions/complete-quiz/index.ts`
+- `deno check --no-lock supabase/functions/complete-game/index.ts`
 - `deno check --no-lock supabase/functions/save-draft/index.ts`
 - `deno check --no-lock supabase/functions/publish-draft/index.ts`
 - `deno check --no-lock supabase/functions/unpublish-event/index.ts`
@@ -47,7 +47,7 @@ Use this table to pick the smallest useful command for your change.
 | --- | --- | --- | --- | --- |
 | Fast static + unit confidence | `npm run lint` and `npm test` | TypeScript/frontend/shared-domain/unit behavior and linting | Real Supabase stack, browser e2e, production behavior | Almost every PR |
 | Edge Function request/helper logic | `npm run test:functions` | Deno-level function helper and handler behavior | Real Supabase runtime wiring and DB/RPC integration | Edge Function logic changes |
-| Trust-path backend integration | `npm run test:supabase` | Local Supabase stack, function integration (`issue-session` + `complete-quiz`), pgTAP DB checks | Browser/admin UX path, production deployment wiring | Backend trust/data/auth changes |
+| Trust-path backend integration | `npm run test:supabase` | Local Supabase stack, function integration (`issue-session` + `complete-game`), pgTAP DB checks | Browser/admin UX path, production deployment wiring | Backend trust/data/auth changes |
 | Attendee browser smoke (fallback mode) | `npm run test:e2e` | Mobile browser smoke for attendee route flow with explicit prototype fallback mode | Trusted backend persistence assertions, admin flows | Attendee UX/route-shell changes |
 | Attendee browser smoke (trusted backend) | `npm run test:e2e:attendee:trusted-backend` | Mobile attendee flow against local Supabase + local functions runtime, with assertions for success persistence, malformed-submission non-persistence, and session-bootstrap failure messaging | PR CI wiring, production deployment behavior, admin flows | Attendee trust-path smoke updates and backend completion-path confidence checks |
 | Admin local e2e | `npm run test:e2e:admin` | Real local Supabase-backed `/admin` auth/allowlist/save/publish/unpublish flow | Deployed production auth redirect and production infrastructure wiring | Admin auth/authoring/publish or related UI changes |
@@ -86,7 +86,7 @@ The trust-path validation layer landed in four steps:
 
 1. Add Deno unit coverage for the shared Edge Function trust helpers.
 2. Refactor the Edge Function entrypoints just enough to make request handling directly testable without depending on `Deno.serve` side effects.
-3. Add Deno handler tests for the important request and response behavior of `issue-session` and `complete-quiz`.
+3. Add Deno handler tests for the important request and response behavior of `issue-session` and `complete-game`.
 4. Add one local Supabase integration test that runs the real local stack, serves the local Edge Functions, and exercises the full session bootstrap plus completion flow over HTTP.
 
 The intended split is:
@@ -101,10 +101,10 @@ The intended split is:
 - [x] Add helper tests for `cors.ts`.
 - [x] Add helper tests for `session-cookie.ts`.
 - [x] Refactor `issue-session` so its request handler can be imported and tested directly.
-- [x] Refactor `complete-quiz` so its request handler and payload normalization can be tested directly.
+- [x] Refactor `complete-game` so its request handler and payload normalization can be tested directly.
 - [x] Add Deno handler tests for `issue-session`.
-- [x] Add Deno handler tests for `complete-quiz`, including payload validation and trusted completion behavior.
-- [x] Add a local Supabase integration test for `issue-session` plus `complete-quiz`.
+- [x] Add Deno handler tests for `complete-game`, including payload validation and trusted completion behavior.
+- [x] Add a local Supabase integration test for `issue-session` plus `complete-game`.
 - [x] Add a repo command for the local trust-path integration test.
 - [x] Update local validation and CI to run the new trust-path checks.
 - [x] Update contributor docs so the new commands and local prerequisites are clear.
@@ -346,7 +346,7 @@ Test:
 
 - `issue-session`
   rejects disallowed origins, rejects wrong methods, returns session-ready payload, reuses an existing valid session, includes `Set-Cookie` when creating a new session
-- `complete-quiz`
+- `complete-game`
   rejects disallowed origins, wrong methods, invalid JSON, invalid payload shapes, unknown events, invalid sessions, invalid answers
 - request normalization behavior
   duration clamping, trusted score recomputation, canonical answer persistence inputs
@@ -586,7 +586,7 @@ Everything beyond that should earn its keep.
 
 - [x] Add Deno tests for `session-cookie.ts` and `cors.ts`.
 - [x] Refactor Edge Function request handling slightly if needed so validation and response logic are directly testable.
-- [x] Add an integration test that exercises `issue-session` plus `complete-quiz` against a local Supabase stack.
+- [x] Add an integration test that exercises `issue-session` plus `complete-game` against a local Supabase stack.
 - [x] Add trusted-backend attendee Playwright smoke coverage that runs against local Supabase + local Edge Functions and asserts completion persistence through database reads.
 - [x] Add attendee smoke malformed-submission rejection coverage that forces a backend `400`, asserts no completion persistence for the malformed request, and verifies retry-to-success.
 - [x] Add attendee smoke bootstrap-failure messaging coverage that forces `issue-session` startup failure and asserts the intro error banner plus backend failure detail.

@@ -446,7 +446,7 @@ For Supabase edge function changes, run:
 
 ```bash
 deno check --no-lock supabase/functions/issue-session/index.ts
-deno check --no-lock supabase/functions/complete-quiz/index.ts
+deno check --no-lock supabase/functions/complete-game/index.ts
 ```
 
 If you changed both frontend/shared code and Supabase code, run both sets of checks.

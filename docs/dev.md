@@ -262,7 +262,7 @@ npm run test:supabase
 npm run test:e2e:attendee:trusted-backend
 npm run build:web
 deno check --no-lock supabase/functions/issue-session/index.ts
-deno check --no-lock supabase/functions/complete-quiz/index.ts
+deno check --no-lock supabase/functions/complete-game/index.ts
 deno check --no-lock supabase/functions/save-draft/index.ts
 deno check --no-lock supabase/functions/publish-draft/index.ts
 deno check --no-lock supabase/functions/unpublish-event/index.ts
@@ -314,7 +314,7 @@ Edge Function isolate lifecycle:
 Edge Function trust-path test notes:
 
 - `npm run test:functions` runs the fast Deno helper and handler tests for the Supabase Edge Functions
-- `npm run test:functions:integration` serves the local Edge Functions and exercises the real `issue-session` plus `complete-quiz` flow against the local Supabase stack
+- `npm run test:functions:integration` serves the local Edge Functions and exercises the real `issue-session` plus `complete-game` flow against the local Supabase stack
 
 - `npm run test:supabase` is the preferred local backend validation command because it runs the trust-path integration test and pgTAP database suite on one shared local stack
 
@@ -499,7 +499,7 @@ npx supabase db push
 npx supabase secrets set SESSION_SIGNING_SECRET=your-long-random-secret
 npx supabase secrets set ALLOWED_ORIGINS=http://127.0.0.1:4173,http://localhost:4173,http://127.0.0.1:5173,http://localhost:5173,https://your-production-web-origin.example
 npx supabase functions deploy issue-session
-npx supabase functions deploy complete-quiz
+npx supabase functions deploy complete-game
 npx supabase functions deploy save-draft
 npx supabase functions deploy publish-draft
 npx supabase functions deploy unpublish-event
@@ -608,7 +608,7 @@ event, start with the operator runbook in
 
 ### Session bootstrap succeeds but completion returns 401
 
-If `issue-session` returns `200` but `complete-quiz` returns `401 Session is missing or invalid`, the session credential is not round-tripping correctly.
+If `issue-session` returns `200` but `complete-game` returns `401 Session is missing or invalid`, the session credential is not round-tripping correctly.
 
 Current expectation:
 
@@ -619,7 +619,7 @@ If this regresses, inspect both Edge Functions together rather than treating it 
 
 ### Completion returns 500 after backend verification succeeds
 
-If the user reaches the completion step but receives the generic backend failure message, inspect the Supabase Edge Function logs for the `details` field returned by `complete-quiz`.
+If the user reaches the completion step but receives the generic backend failure message, inspect the Supabase Edge Function logs for the `details` field returned by `complete-game`.
 
 One concrete gotcha already hit in this repo:
 
@@ -632,7 +632,7 @@ The next likely development steps are:
 
 1. Add admin draft preview (Phase 4.5, deferred post-MVP) and AI-assisted
    authoring entry points (Phase 4.7, deferred post-MVP).
-2. Add lightweight reporting for quiz starts, completions, and timing.
+2. Add lightweight reporting for game starts, completions, and timing.
 3. Add richer event publish controls such as expiry windows if operations need them.
 4. Decide whether live usage justifies stronger abuse controls than the current
    browser-session dedupe model.
