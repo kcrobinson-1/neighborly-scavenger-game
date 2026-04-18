@@ -25,15 +25,20 @@ this file.
 - Should live event QR codes always go directly to `/game/:slug`, with `/`
   remaining a demo-overview route only?
   The current web app treats `/` as a preview surface and `/game/:slug` as the
-  attendee route, but the long-term production entry contract is still a product
-  decision rather than a settled implementation rule.
+  attendee route.
+  **MVP direction:** keep current behavior.
+  **Post-MVP direction:** `/` is expected to evolve into a marketing page while
+  live entry remains event/game-route driven.
 - **Pre-launch decision:** For the Madrona pre-launch release milestone, the
   current completion screen plus verification code is sufficient for volunteer
   raffle handoff. Revisit stronger proof treatments after this release is
-  finished.
+  finished. Redemption follow-up is now tracked in
+  [`reward-redemption-mvp-design.md`](./reward-redemption-mvp-design.md).
 - Is one quiz experience per event enough for the MVP, or do some events need
   multiple attendee routes under one organizer-owned event?
-  The current runtime model assumes one event maps to one quiz route.
+  The current runtime model assumes one event maps to one game route.
+  **Post-MVP product direction:** events should not be limited to a single game
+  and are expected to have their own event page concept.
 - For an MVP redemption workflow, what is the minimum volunteer check-in
   experience needed beyond showing a completion verification code?
   Initial design direction is documented in
@@ -53,6 +58,12 @@ this file.
   The current authoring model uses Supabase Auth plus `public.quiz_admin_users`
   for all admin access. It does not yet define organizer-scoped roles,
   event-level permissions, or non-admin collaborator access.
+  **MVP direction:** start with three roles:
+  - `admin`: global permissions
+  - `organizer`: full permissions for assigned event(s)
+  - `agent`: redeem-only permissions for assigned event(s)
+  Detailed enforcement boundaries for redemption are in
+  [`reward-redemption-mvp-design.md`](./reward-redemption-mvp-design.md).
 - With `agent` and `organizer` now split into separate event-scoped roles
   (`agent` for redemption, `organizer` for non-redemption event operations),
   what is the MVP permission matrix between those roles and root admin?
@@ -67,10 +78,12 @@ this file.
   The current setup intentionally keeps allowlist membership as a manual
   Supabase operation, but that is operationally awkward once more than one
   trusted operator needs to grant or revoke access.
+  Priority direction: next milestone.
 - Do organizers need expiry, scheduled publish, or friendlier inactive-event
   behavior beyond immediate unpublish?
   The current backend supports explicit publish and unpublish by clearing
   `quiz_events.published_at`, but richer lifecycle controls are still deferred.
+  Priority direction: low priority; not in current roadmap.
 - **Decided:** Slugs are locked after first publish. The admin UI makes the
   slug field read-only once an event has been published, with explanatory inline
   copy and tooltip text. The backend enforces the same rule, and the DB trigger
@@ -90,6 +103,7 @@ Detailed authoring-specific scope questions are expanded further in
   The product docs frame sponsor engagement as a goal, but the repo does not yet
   capture whether sponsors need simple inclusion proof, aggregate event totals,
   or question-level reporting.
+  Priority direction: low priority; not in current roadmap.
 
 ## Development And Release Workflow
 
@@ -98,6 +112,7 @@ Detailed authoring-specific scope questions are expanded further in
   staging backend path?
   The docs mention this as a likely next step, but the repo has not yet decided
   whether backend preview environments are necessary for normal review flow.
+  Priority direction: low priority; not in current roadmap.
 - What is the supported full-browser UI-review path for backend-backed preview
   environments?
   Local browser review currently prefers a configured remote Supabase project
@@ -110,3 +125,5 @@ Detailed authoring-specific scope questions are expanded further in
   will live usage require person-level or device-level abuse controls?
   The current MVP intentionally uses a lighter no-login trust boundary and does
   not yet answer how much stronger it needs to become.
+  Follow-up direction: maintain a dedicated security notes doc that tracks
+  abuse/threat scenarios against both system integrity and game integrity.

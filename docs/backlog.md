@@ -60,6 +60,13 @@ Must be resolved before QR codes are printed or the first real event runs.
   stronger proof is deferred.
   Detail: [`docs/open-questions.md` — Product And Live Event Operation](./open-questions.md)
 
+- [ ] **`decision` Terminology migration strategy (`quiz`/`raffle` -> `game`/`entitlement`)**
+  Decide whether and how to reframe product/domain language across code, routes,
+  database schema/contracts, and UX copy before launch makes broad cleanup
+  risky. Include compatibility/rollout approach so existing paths and data
+  references remain stable during transition.
+  Detail: [`docs/architecture.md`](./architecture.md) and [`docs/reward-redemption-mvp-design.md`](./reward-redemption-mvp-design.md)
+
 ---
 
 ## Tier 2 — Operational Confidence
@@ -163,7 +170,15 @@ prioritization before starting.
 - [ ] **`decision` Authoring roles and root admin UI**
   Decide whether to add a root-level admin role and UI for managing allowlist
   membership instead of requiring direct SQL edits.
+  Priority direction: next milestone.
   Detail: [`docs/open-questions.md` — Authoring And Publishing](./open-questions.md)
+
+- [ ] **`dev` Security notes baseline doc**
+  Create a dedicated security notes doc to track abuse/threat scenarios for both
+  system integrity (authz, write paths, environment controls) and game integrity
+  (abuse of participation and redemption flows). Keep it lightweight but durable
+  so future hardening work has a single source of context.
+  Detail: [`docs/open-questions.md` — Trust Boundary And Abuse Controls](./open-questions.md)
 
 - [ ] **`dev` Richer publish controls**
   Expiry windows, scheduled publish, multiple quizzes per event, and friendlier
