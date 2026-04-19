@@ -28,6 +28,7 @@ This repository currently includes:
   with named per-check pass/fail indicators and a live-URL confirmation after
   a successful publish
 - authenticated admin APIs for draft save, publish, and unpublish operations
+- server-generated 3-letter event codes for drafts and published events
 - one-question-at-a-time quiz flow with back navigation
 - multiple quiz feedback modes
 - shared quiz mapping, validation, and scoring logic
@@ -160,6 +161,7 @@ npm run build:web
 deno check --no-lock supabase/functions/issue-session/index.ts
 deno check --no-lock supabase/functions/complete-game/index.ts
 deno check --no-lock supabase/functions/save-draft/index.ts
+deno check --no-lock supabase/functions/generate-event-code/index.ts
 deno check --no-lock supabase/functions/publish-draft/index.ts
 deno check --no-lock supabase/functions/unpublish-event/index.ts
 ```

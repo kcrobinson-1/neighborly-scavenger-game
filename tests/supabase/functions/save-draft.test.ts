@@ -16,7 +16,17 @@ Deno.test("validateDraftSavePayload requires a content property", () => {
   assertEquals(validateDraftSavePayload({}), null);
   assertEquals(validateDraftSavePayload({ content: sampleDraft }), {
     content: sampleDraft,
+    eventCode: null,
   });
+  assertEquals(validateDraftSavePayload({ content: sampleDraft, eventCode: " ABC " }), {
+    content: sampleDraft,
+    eventCode: "ABC",
+  });
+  assertEquals(validateDraftSavePayload({ content: sampleDraft, eventCode: "" }), {
+    content: sampleDraft,
+    eventCode: null,
+  });
+  assertEquals(validateDraftSavePayload({ content: sampleDraft, eventCode: 123 }), null);
 });
 
 Deno.test("save-draft rejects missing admin authentication", async () => {
@@ -102,6 +112,7 @@ Deno.test("save-draft upserts the normalized draft and returns a safe summary", 
     | {
       actorUserId: string;
       content: typeof sampleDraft;
+      eventCode: string | null;
     }
     | null = null;
   const handler = createSaveDraftHandler({
@@ -144,7 +155,70 @@ Deno.test("save-draft upserts the normalized draft and returns a safe summary", 
   assertEquals(capturedInput, {
     actorUserId: adminUserId,
     content: sampleDraft,
+    eventCode: null,
   });
+});
+
+Deno.test("save-draft passes supplied event codes to persistence", async () => {
+  let capturedEventCode: string | null = null;
+  const handler = createSaveDraftHandler({
+    ...defaultSaveDraftHandlerDependencies,
+    authoringHttp: createAuthoringHttpDependencies({
+      authenticateQuizAdmin: async () => ({
+        status: "ok",
+        userId: adminUserId,
+      }),
+    }),
+    saveDraft: async (input) => {
+      capturedEventCode = input.eventCode;
+
+      return {
+        data: {
+          id: input.content.id,
+          live_version_number: null,
+          name: input.content.name,
+          slug: input.content.slug,
+          updated_at: "2026-04-11T12:00:00.000Z",
+        },
+        error: null,
+      };
+    },
+  });
+
+  const response = await handler(
+    createAuthoringRequest({ content: sampleDraft, eventCode: "ABC" }),
+  );
+
+  assertEquals(response.status, 200);
+  assertEquals(capturedEventCode, "ABC");
+});
+
+Deno.test("save-draft rejects invalid event codes before persistence", async () => {
+  let saveCalls = 0;
+  const handler = createSaveDraftHandler({
+    ...defaultSaveDraftHandlerDependencies,
+    authoringHttp: createAuthoringHttpDependencies({
+      authenticateQuizAdmin: async () => ({
+        status: "ok",
+        userId: adminUserId,
+      }),
+    }),
+    saveDraft: async () => {
+      saveCalls += 1;
+      return { data: null, error: null };
+    },
+  });
+
+  const response = await handler(
+    createAuthoringRequest({ content: sampleDraft, eventCode: "abc" }),
+  );
+
+  assertEquals(response.status, 422);
+  assertEquals(await response.json(), {
+    details: "event_code_invalid",
+    error: "Event codes are exactly 3 uppercase letters.",
+  });
+  assertEquals(saveCalls, 0);
 });
 
 Deno.test("save-draft rejects slug changes on published events as 422", async () => {
@@ -176,6 +250,35 @@ Deno.test("save-draft rejects slug changes on published events as 422", async ()
   });
 });
 
+Deno.test("save-draft rejects event code changes on published events as 422", async () => {
+  const handler = createSaveDraftHandler({
+    ...defaultSaveDraftHandlerDependencies,
+    authoringHttp: createAuthoringHttpDependencies({
+      authenticateQuizAdmin: async () => ({
+        status: "ok",
+        userId: adminUserId,
+      }),
+    }),
+    saveDraft: async () => ({
+      data: null,
+      error: {
+        code: "event_code_locked",
+        message: "Event code cannot be changed after the event has been published.",
+      },
+    }),
+  });
+
+  const response = await handler(
+    createAuthoringRequest({ content: sampleDraft, eventCode: "ABC" }),
+  );
+
+  assertEquals(response.status, 422);
+  assertEquals(await response.json(), {
+    details: "Event code cannot be changed after the event has been published.",
+    error: "Event code can't change after the event is published.",
+  });
+});
+
 Deno.test("save-draft reports slug conflicts as 409", async () => {
   const handler = createSaveDraftHandler({
     ...defaultSaveDraftHandlerDependencies,
@@ -202,5 +305,36 @@ Deno.test("save-draft reports slug conflicts as 409", async () => {
   assertEquals(await response.json(), {
     details: "duplicate key value violates unique constraint",
     error: "A game event already uses that slug.",
+  });
+});
+
+Deno.test("save-draft reports event code conflicts as 409", async () => {
+  const handler = createSaveDraftHandler({
+    ...defaultSaveDraftHandlerDependencies,
+    authoringHttp: createAuthoringHttpDependencies({
+      authenticateQuizAdmin: async () => ({
+        status: "ok",
+        userId: adminUserId,
+      }),
+    }),
+    saveDraft: async () => ({
+      data: null,
+      error: {
+        code: "23505",
+        message:
+          'duplicate key value violates unique constraint "game_event_drafts_event_code_key"',
+      },
+    }),
+  });
+
+  const response = await handler(
+    createAuthoringRequest({ content: sampleDraft, eventCode: "ABC" }),
+  );
+
+  assertEquals(response.status, 409);
+  assertEquals(await response.json(), {
+    details:
+      'duplicate key value violates unique constraint "game_event_drafts_event_code_key"',
+    error: "That code is already used by another event. Try a different one.",
   });
 });

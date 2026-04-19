@@ -2,17 +2,19 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(9);
+select plan(10);
 
 insert into public.game_event_drafts (
   id,
   slug,
+  event_code,
   name,
   content
 )
 values (
   'phase3-publish-event',
   'phase3-publish',
+  'PPA',
   'Phase 3 Publish Event',
   jsonb_build_object(
     'id', 'phase3-publish-event',
@@ -81,6 +83,16 @@ select is(
   ),
   false,
   'publish projects event metadata into public game_events'
+);
+
+select is(
+  (
+    select event_code
+    from public.game_events
+    where id = 'phase3-publish-event'
+  ),
+  'PPA',
+  'publish projects the event code into public game_events'
 );
 
 select is(

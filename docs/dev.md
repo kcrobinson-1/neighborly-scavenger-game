@@ -226,8 +226,9 @@ If you also need the admin route locally:
 1. make sure Supabase Auth redirect URLs include your local `/admin` origin
 2. add your normalized email to `public.admin_users` in the connected
    project
-3. make sure the `save-draft`, `publish-draft`, and `unpublish-event` Edge
-   Functions are deployed when testing authoring writes against a remote project
+3. make sure the `save-draft`, `generate-event-code`, `publish-draft`, and
+   `unpublish-event` Edge Functions are deployed when testing authoring writes
+   against a remote project
 4. open `/admin` after starting `npm run dev:web` or `npm run dev:web:local`
 
 ### Frontend-only fallback development
@@ -264,6 +265,7 @@ npm run build:web
 deno check --no-lock supabase/functions/issue-session/index.ts
 deno check --no-lock supabase/functions/complete-game/index.ts
 deno check --no-lock supabase/functions/save-draft/index.ts
+deno check --no-lock supabase/functions/generate-event-code/index.ts
 deno check --no-lock supabase/functions/publish-draft/index.ts
 deno check --no-lock supabase/functions/unpublish-event/index.ts
 ```
@@ -501,6 +503,7 @@ npx supabase secrets set ALLOWED_ORIGINS=http://127.0.0.1:4173,http://localhost:
 npx supabase functions deploy issue-session
 npx supabase functions deploy complete-game
 npx supabase functions deploy save-draft
+npx supabase functions deploy generate-event-code
 npx supabase functions deploy publish-draft
 npx supabase functions deploy unpublish-event
 ```

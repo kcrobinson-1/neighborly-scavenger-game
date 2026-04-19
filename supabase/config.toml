@@ -9,6 +9,9 @@ verify_jwt = false
 [functions.save-draft]
 verify_jwt = false
 
+[functions.generate-event-code]
+verify_jwt = false
+
 [functions.publish-draft]
 verify_jwt = false
 

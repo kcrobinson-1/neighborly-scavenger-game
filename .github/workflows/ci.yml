@@ -73,6 +73,9 @@ jobs:
       - name: Check save-draft function
         run: deno check --no-lock supabase/functions/save-draft/index.ts
 
+      - name: Check generate-event-code function
+        run: deno check --no-lock supabase/functions/generate-event-code/index.ts
+
       - name: Check publish-draft function
         run: deno check --no-lock supabase/functions/publish-draft/index.ts
 

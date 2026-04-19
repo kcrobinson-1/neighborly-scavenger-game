@@ -159,7 +159,13 @@ The Supabase side is intentionally small:
   function tests.
 - `supabase/functions/save-draft/index.ts`
   Authenticated admin endpoint that validates canonical draft content and saves
-  it to the private draft table.
+  it to the private draft table. It also accepts an optional top-level
+  `eventCode`, generates one server-side when needed, and preserves the
+  database-owned event-code lock after publish.
+- `supabase/functions/generate-event-code/index.ts`
+  Authenticated admin endpoint that returns a non-persisted random 3-letter
+  event-code suggestion for future admin regenerate controls. Save still happens
+  through `save-draft`, which remains the persistence authority.
 - `supabase/functions/publish-draft/index.ts`
   Authenticated admin endpoint that validates a draft and calls the
   service-role publish RPC.
@@ -234,6 +240,19 @@ The Supabase side is intentionally small:
 - `supabase/migrations/20260418020000_update_demo_game_copy.sql`
   Updates seeded demo event, question, and answer-option copy to the Phase 4
   game/reward wording used by the frontend fixtures and browser tests.
+- `supabase/migrations/20260418030000_add_event_code_columns.sql`
+  Adds nullable `event_code` columns to private drafts and published events
+  with uppercase 3-letter format checks.
+- `supabase/migrations/20260418040000_backfill_event_code.sql`
+  Backfills existing testing/demo rows deterministically, makes event codes
+  required, adds unique indexes, and creates `generate_random_event_code()` for
+  service-role generation.
+- `supabase/migrations/20260418050000_lock_event_code_after_publish.sql`
+  Adds the database trigger that prevents event-code changes after first
+  publish.
+- `supabase/migrations/20260418060000_project_event_code_on_publish.sql`
+  Updates `publish_game_event_draft()` so the published `game_events` projection
+  receives the draft event code.
 
 ## What Is Implemented Now
 

@@ -1,6 +1,6 @@
 # Event Code Prerequisite Plan
 
-**Status:** Proposed
+**Status:** Phase 1 PR 1 implemented in branch; PR 2 and Phase 2 pending
 **Blocks:** Reward Redemption MVP (`docs/plans/reward-redemption-mvp-design.md`)
 **Sequencing note:** The Tier 1 terminology migration (`docs/plans/archive/terminology-migration-strategy.md`)
 has completed its Phase 2 database rename in this branch. This plan now uses
@@ -78,11 +78,11 @@ Because the 3-letter code lives inside the entitlement code (`ABC-1234`), it doe
 `supabase/functions/save-draft/index.ts` is extended to:
 
 - Accept `eventCode` in the payload. If null/empty (initial draft creation, or a "Regenerate" request), the function generates a random 3-letter code server-side and retries on collision (bounded loop, see Migration B for the algorithm shared with backfill).
-- If `eventCode` is provided, validate against `^[A-Z]{3}$` before touching the DB and return `{ outcome: "error", result: { code: "event_code_invalid" } }` (HTTP 422) if it fails.
+- If `eventCode` is provided, validate against `^[A-Z]{3}$` before touching the DB and return the current authoring error envelope with HTTP 422, `{ error: "Event codes are exactly 3 uppercase letters.", details: "event_code_invalid" }`, if it fails.
 - Map unique-violation on `event_code` → 409 `event_code_taken`.
 - Map `event_code_locked` exception from the trigger → 422 `event_code_locked`.
 
-A new endpoint or `save-draft` action is **not** required for "Regenerate" — the admin UI calls a small `generate-event-code` edge function that returns `{ outcome: "ok", result: { eventCode: "XYZ" } }` and the admin form fills the field with the suggestion. Save still happens through the same `save-draft` path.
+A new endpoint or `save-draft` action is **not** required for "Regenerate" — the admin UI calls a small `generate-event-code` edge function that returns `{ eventCode: "XYZ" }` and the admin form fills the field with the suggestion. Save still happens through the same `save-draft` path.
 
 ## Implementation Phases And PR Slicing
 
@@ -120,35 +120,37 @@ Scope:
 
 - Migrations A, B, and C: schema, backfill, `NOT NULL`, indexes, and lock
   trigger.
+- Minimal `publish_game_event_draft` compatibility update so publish carries
+  `event_code` into the new non-null `game_events.event_code` column.
 - `save-draft` edge function update to generate and validate `event_code`.
 - `generate-event-code` edge function.
 - pgTAP coverage for constraint checks, unique violations, lock trigger
   behavior, and `generate_random_event_code()`.
 
 Why together: Migration B makes `event_code` `NOT NULL`, so `save-draft` must
-ship in the same PR or draft creation breaks. Migrations A through C are
-sequential and small. This PR tells a complete story: event codes exist, are
-enforced, and draft creation handles them. The intermediate state after this PR
-is stable and safe: event codes exist in the database while old
-`MMP-XXXXXXXX` entitlements still issue.
+ship in the same PR or draft creation breaks. The publish RPC must also carry
+the code into `game_events` in this PR; otherwise first publish after the
+schema change would fail the new `NOT NULL` constraint. Migrations A through C
+plus the compatibility publish update are sequential and small. This PR tells a
+complete story: event codes exist, are enforced, and draft creation handles
+them. The intermediate state after this PR is stable and safe: event codes
+exist in the database while old `MMP-XXXXXXXX` entitlements still issue.
 
 #### PR 2 — Entitlement Code Format
 
 Scope:
 
 - Migration D: new `generate_neighborly_verification_code`, rewrite of
-  `complete_game_and_award_entitlement`, unique constraint on
-  `game_entitlements`, and `publish_game_event_draft` update.
+  `complete_game_and_award_entitlement`, and unique constraint on
+  `game_entitlements`.
 - pgTAP coverage for the new code generator format plus RPC retry and
   exhaustion behavior.
 - Vitest coverage for `save-draft` handler error codes and the
   `generate-event-code` handler.
 
 Why separate: Migration D is the most complex piece. It includes the retry loop,
-two new error codes, idempotency preservation, and a touched
-`publish_game_event_draft` path that is easy to overlook. Isolating it lets a
-reviewer focus on behavioral correctness of the RPC without the schema noise
-from PR 1.
+two new error codes, and idempotency preservation. Isolating it lets a reviewer
+focus on behavioral correctness of the RPC without the schema noise from PR 1.
 
 ### Phase 2 — Admin Control Surface
 
@@ -172,12 +174,12 @@ split. The diff should be reviewable in one sitting once Phase 1 has landed.
 
 ## Rollout Sequence
 
-### Migration A — `20260418000000_add_event_code_columns.sql`
+### Migration A — `20260418030000_add_event_code_columns.sql`
 1. `alter table game_event_drafts add column event_code text` (nullable).
 2. `alter table game_events add column event_code text` (nullable).
 3. Add `check (event_code is null or event_code ~ '^[A-Z]{3}$')` to both tables.
 
-### Migration B — `20260418010000_backfill_event_code.sql`
+### Migration B — `20260418040000_backfill_event_code.sql`
 1. Backfill `game_event_drafts` deterministically by `created_at asc, id asc`: the Nth row gets the Nth 3-letter sequence starting from `AAA` (`AAA`, `AAB`, …, `AAZ`, `ABA`, …, `ZZZ`). The conversion from row number to 3-letter code is a small PL/pgSQL helper that treats the row number as a base-26 integer with digits in `A-Z`.
 2. Mirror the values into `game_events` for already-published rows by joining on `id`.
 3. `alter table game_event_drafts alter column event_code set not null`.
@@ -189,11 +191,16 @@ split. The diff should be reviewable in one sitting once Phase 1 has landed.
 
 The deterministic `AAA…` sequence keeps the testing snapshot reproducible and easy to inspect in early manual testing. New admin-created events get a server-generated random 3-letter code from the same 17,576-code space, so over time the `AAA…` cluster gets diluted by random codes; that's fine — the deterministic codes are not semantically meaningful, just stable for the migration.
 
-### Migration C — `20260418020000_lock_event_code_after_publish.sql`
+### Migration C — `20260418050000_lock_event_code_after_publish.sql`
 1. Create trigger function `enforce_game_event_draft_event_code_lock` mirroring the slug-lock trigger.
 2. Attach to `game_event_drafts` for `before update`.
 
-### Migration D — `20260418030000_rewrite_verification_code_generator.sql`
+### Migration C2 — `20260418060000_project_event_code_on_publish.sql`
+1. Update `publish_game_event_draft` so the upsert into `game_events` carries
+   `event_code` over from the draft. This belongs in PR 1 because
+   `game_events.event_code` is already `NOT NULL`.
+
+### Migration D — `20260418070000_rewrite_verification_code_generator.sql`
 1. `drop function public.generate_neighborly_verification_code();` (old zero-arg version).
 2. Recreate `generate_neighborly_verification_code(p_event_code text)` per Target Shape (returns `<event_code>-NNNN` with a 4-digit numeric token).
 3. Add `alter table game_entitlements add constraint game_entitlements_event_code_unique unique (event_id, verification_code)`.
@@ -201,11 +208,10 @@ The deterministic `AAA…` sequence keeps the testing snapshot reproducible and 
    - It looks up `event_code` from `game_events` by `p_event_id`. Raise `event_code_missing` if null.
    - The insert into `game_entitlements` runs inside a bounded retry loop (up to 10 attempts): generate a new token, attempt insert, catch `unique_violation` on the new `(event_id, verification_code)` constraint, loop. If all 10 attempts collide, raise `entitlement_code_exhausted`.
    - Idempotency by `request_id` still short-circuits the retry loop so a replayed request returns the original code, not a newly-generated one.
-5. Update `publish_game_event_draft` (defined in historical migration filename `20260410170000_add_quiz_authoring_publish_workflow.sql`) so the upsert into `game_events` carries `event_code` over from the draft. Without this step, newly-published events would have a null `event_code` and the NOT NULL constraint on `game_events.event_code` would fail the publish transaction.
 
 ### Edge Function + Frontend
-1. Update `save-draft` edge function to accept, validate, and (when missing) generate `eventCode`, including error-code mapping.
-2. Add a tiny `generate-event-code` edge function that returns a server-generated random 3-letter code for the "Regenerate" button. It does not persist anything; the admin UI applies the suggestion to the form locally and then saves through `save-draft`.
+1. Update `save-draft` edge function to accept, validate, and (when missing) generate `eventCode`, including error-code mapping. PR 1 preserves the current authoring response envelope (`{ error, details }` on failures).
+2. Add a tiny `generate-event-code` edge function that returns a server-generated random 3-letter code as `{ eventCode: "XYZ" }` for the future "Regenerate" button. It does not persist anything; the admin UI applies the suggestion to the form locally and then saves through `save-draft`.
 3. Update `AdminEventDetailsForm.tsx` and `eventDetails.ts` to render the event-code input, the Regenerate button, and the disabled state, and to persist `eventCode`.
 4. Update `draftCreation.ts::createStarterDraftContent()` to call `generate-event-code` (or omit `eventCode` from the initial save and let `save-draft` generate it server-side — pick the simpler path, likely the latter).
 5. Update the frontend mock `createVerificationCode()` signature and every call site to take a 3-letter `eventCode`.

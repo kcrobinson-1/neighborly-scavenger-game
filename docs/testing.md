@@ -31,6 +31,7 @@ Today the repo validation surface includes:
 - `deno check --no-lock supabase/functions/issue-session/index.ts`
 - `deno check --no-lock supabase/functions/complete-game/index.ts`
 - `deno check --no-lock supabase/functions/save-draft/index.ts`
+- `deno check --no-lock supabase/functions/generate-event-code/index.ts`
 - `deno check --no-lock supabase/functions/publish-draft/index.ts`
 - `deno check --no-lock supabase/functions/unpublish-event/index.ts`
 - `npm run ui:review:capture` for screenshot-based browser review

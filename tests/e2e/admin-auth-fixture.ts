@@ -35,6 +35,7 @@ const defaultEventId = "production-smoke-event";
 const defaultEventSlug = "production-smoke-event";
 const defaultEventName = "Production Smoke Event";
 const defaultAdminRedirectUrl = "http://127.0.0.1:4173/admin";
+const smokeEventCodeCandidates = ["SMK", "SMA", "SMB", "SMC", "SMD"];
 
 function readRequiredEnv(name: string) {
   const value = process.env[name];
@@ -173,11 +174,43 @@ export async function ensureAdminE2eFixture(
     );
   }
 
+  const { data: existingDraft, error: existingDraftError } = await serviceRoleClient
+    .from("game_event_drafts")
+    .select("event_code")
+    .eq("id", config.eventId)
+    .maybeSingle<{ event_code: string | null }>();
+
+  if (existingDraftError) {
+    throw new Error(`Failed to read admin test draft row: ${existingDraftError.message}`);
+  }
+
+  const { data: existingEventCodes, error: existingEventCodesError } =
+    await serviceRoleClient
+      .from("game_event_drafts")
+      .select("event_code");
+
+  if (existingEventCodesError) {
+    throw new Error(`Failed to read existing event codes: ${existingEventCodesError.message}`);
+  }
+
+  const usedEventCodes = new Set(
+    (existingEventCodes ?? [])
+      .map((row: { event_code: string | null }) => row.event_code)
+      .filter((eventCode): eventCode is string => eventCode !== null),
+  );
+  const eventCode = existingDraft?.event_code ??
+    smokeEventCodeCandidates.find((candidate) => !usedEventCodes.has(candidate));
+
+  if (!eventCode) {
+    throw new Error("No unused smoke event code candidate is available.");
+  }
+
   const { error: ensureDraftError } = await serviceRoleClient
     .from("game_event_drafts")
     .upsert(
       {
         content: createDraftContent(config),
+        event_code: eventCode,
         id: config.eventId,
         live_version_number: null,
         name: config.eventName,
