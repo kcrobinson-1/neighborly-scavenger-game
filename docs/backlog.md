@@ -119,6 +119,15 @@ Reduce deployment risk and contributor friction before the live event.
 
 ## Tier 3 — Admin Authoring Polish
 
+- [ ] **`docs` Rewrite `database-backed-quiz-content.md` and `quiz-authoring-plan.md` to target terminology**
+  These two plan docs still use legacy `quiz`/`raffle` language (12 and 27
+  occurrences respectively). All other docs were swept in Phases 1 and 5; these
+  were deferred due to size. Rewrite narrative and headings to use
+  `game`/`entitlement` names per the migration policy.
+  Detail: [`docs/terminology-migration-map.md` — Documentation](./terminology-migration-map.md)
+
+
+
 Improve the authoring experience before the organizer uses it to set up a real
 event.
 
