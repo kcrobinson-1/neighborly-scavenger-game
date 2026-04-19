@@ -84,43 +84,6 @@ Because the 3-letter code lives inside the entitlement code (`ABC-1234`), it doe
 
 A new endpoint or `save-draft` action is **not** required for "Regenerate" — the admin UI calls a small `generate-event-code` edge function that returns `{ outcome: "ok", result: { eventCode: "XYZ" } }` and the admin form fills the field with the suggestion. Save still happens through the same `save-draft` path.
 
-## Phases and PRs
-
-### Phase 1 — Server-side foundation
-
-Releasable state: event codes exist in the database, are enforced, and flow through draft creation automatically. Entitlements issue in the new `ABC-1234` format. Admins cannot yet see or override codes in the UI.
-
-#### PR 1 — Event code data model
-
-- Migrations A, B, C (schema + backfill + NOT NULL + indexes + lock trigger)
-- `save-draft` edge function update (generate/validate `eventCode`)
-- `generate-event-code` edge function
-- pgTAP: constraint checks, unique violations, lock trigger, `generate_random_event_code()`
-
-Migration B makes `event_code` NOT NULL on `game_event_drafts`, so the `save-draft` update must ship in the same PR or draft creation breaks. Migrations A→B→C are sequential and small. The intermediate state after this PR — event codes exist and are enforced, old `MMP-XXXXXXXX` entitlements still issuing — is stable.
-
-#### PR 2 — Entitlement code format
-
-- Migration D (new `generate_neighborly_verification_code`, `complete_game_and_award_entitlement` rewrite, unique constraint on `game_entitlements`, `publish_game_event_draft` update)
-- pgTAP: new code generator format, RPC retry and exhaustion behavior
-- Vitest: `save-draft` handler error codes, `generate-event-code` handler
-
-Migration D is the most complex piece — retry loop, two new error codes, idempotency preservation, and a `publish_game_event_draft` touch that is easy to overlook. Isolating it gives reviewers a focused surface for behavioral correctness of the RPC without schema noise from PR 1.
-
-### Phase 2 — Admin control surface
-
-Releasable state: admins can view and customize event codes before publishing.
-
-#### PR 3 — Admin control surface
-
-- `AdminEventDetailsForm.tsx` (event-code input, Regenerate button, disabled-after-publish, error surfaces)
-- `draftCreation.ts` (omit `eventCode` on initial save; server generates)
-- Frontend mock `createVerificationCode()` rewrite and all call sites
-- Vitest: form component behavior
-- `complete-game.test.ts` expectation updates
-
-All frontend and mock changes in one reviewable PR. No internal coupling hazards; depends on Phase 1 being merged.
-
 ## Rollout Sequence
 
 ### Migration A — `20260418000000_add_event_code_columns.sql`

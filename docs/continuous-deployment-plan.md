@@ -199,7 +199,7 @@ these platform and proof-run steps:
   - `ALLOWED_ORIGINS` includes the production Vercel origin
   - Supabase Auth Site URL and redirect URLs include the production `/admin`
     origin
-  - at least one active admin email exists in `public.quiz_admin_users`
+  - at least one active admin email exists in `public.admin_users`
 - run beta acceptance checks after merge:
   - push or merge a non-doc change and confirm full `CI` runs
   - confirm `Release / Sync Supabase Production` runs only after successful `CI`

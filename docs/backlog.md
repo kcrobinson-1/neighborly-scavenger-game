@@ -63,13 +63,10 @@ Must be resolved before QR codes are printed or the first real event runs.
   stronger proof is deferred.
   Detail: [`docs/open-questions.md` — Product And Live Event Operation](./open-questions.md)
 
-- [ ] **`dev` Terminology migration (`quiz`/`raffle` → `game`/`entitlement`)**
-  Decision made: phase-based direct rename (Alt C). Phase 0 complete (migration
-  map finalized). Phase 2 database and SQL contract rename is implemented on
-  main. Phase 3 Edge Function endpoint and shared contract rename is
-  implemented on main. Phase 4 frontend module, route, and copy migration is
-  implemented on the current branch. Phase 5 cleanup, guardrails, and broad
-  stale-reference cleanup remain queued.
+- [x] **`dev` Terminology migration (`quiz`/`raffle` → `game`/`entitlement`)**
+  All phases complete. Core runtime (frontend/shared/functions/schema) uses
+  target terminology consistently. Final repo-wide scan confirmed zero legacy
+  identifiers in active code. Backlog decision closed.
   Detail: [`docs/terminology-migration-strategy.md`](./terminology-migration-strategy.md)
 
 ---
@@ -121,6 +118,15 @@ Reduce deployment risk and contributor friction before the live event.
 ---
 
 ## Tier 3 — Admin Authoring Polish
+
+- [ ] **`docs` Rewrite `database-backed-quiz-content.md` and `quiz-authoring-plan.md` to target terminology**
+  These two plan docs still use legacy `quiz`/`raffle` language (12 and 27
+  occurrences respectively). All other docs were swept in Phases 1 and 5; these
+  were deferred due to size. Rewrite narrative and headings to use
+  `game`/`entitlement` names per the migration policy.
+  Detail: [`docs/terminology-migration-map.md` — Documentation](./terminology-migration-map.md)
+
+
 
 Improve the authoring experience before the organizer uses it to set up a real
 event.
