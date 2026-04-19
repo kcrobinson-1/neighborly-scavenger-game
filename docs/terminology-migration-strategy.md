@@ -9,17 +9,17 @@ before launch hardens contracts and creates long-term confusion.
 This document is the tracking source of truth for the Tier 1 backlog decision:
 **Terminology migration strategy (`quiz`/`raffle` → `game`/`entitlement`)**.
 
-## Why this migration is being done now
+## Why this migration was done
 
-The codebase has moved the active runtime surfaces onto the target terminology.
-What remains is the Phase 5 cleanup pass for guardrails and broad historical
-documentation cleanup:
+The migration is complete. All five phases have landed. Active runtime surfaces
+use target terminology consistently:
 
-- **Generic names** in active runtime surfaces (for example `GameConfig`,
+- **Generic names** throughout active runtime surfaces (for example `GameConfig`,
   `apps/web/src/game/`, `gameApi.ts`, `useGameSession`, and
   `/event/:slug/game`)
-- **Legacy/specific names** only in historical migration maps, immutable
-  migration filenames, and Phase 5 cleanup targets
+- **Legacy/specific names** only in historical migration filenames (immutable)
+  and two deferred plan docs (`database-backed-quiz-content.md`,
+  `quiz-authoring-plan.md`) tracked in `docs/backlog.md`
 
 The prior mixed vocabulary was acceptable during rapid MVP build-out, but it
 created increasing cost as we added redemption, reporting, and future
