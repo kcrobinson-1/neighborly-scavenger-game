@@ -48,6 +48,7 @@ select ok(
 insert into public.game_event_drafts (
   id,
   slug,
+  event_code,
   name,
   content,
   live_version_number
@@ -55,6 +56,7 @@ insert into public.game_event_drafts (
 values (
   'phase3-failed-publish',
   'phase3-failed-publish',
+  'PFB',
   'Phase 3 Failed Publish',
   jsonb_build_object(
     'id', 'phase3-failed-publish',
@@ -97,6 +99,7 @@ where id = 'phase3-failed-publish';
 insert into public.game_events (
   id,
   slug,
+  event_code,
   name,
   location,
   estimated_minutes,
@@ -109,6 +112,7 @@ insert into public.game_events (
 values (
   'phase3-failed-publish',
   'phase3-failed-publish',
+  'PFB',
   'Phase 3 Failed Publish',
   'Seattle',
   2,

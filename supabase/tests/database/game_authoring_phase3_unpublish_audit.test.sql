@@ -7,12 +7,14 @@ select plan(5);
 insert into public.game_event_drafts (
   id,
   slug,
+  event_code,
   name,
   content
 )
 values (
   'phase3-publish-event',
   'phase3-publish',
+  'UPA',
   'Phase 3 Publish Event',
   jsonb_build_object(
     'id', 'phase3-publish-event',

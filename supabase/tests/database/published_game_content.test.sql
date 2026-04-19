@@ -22,6 +22,7 @@ select ok(
 insert into public.game_events (
   id,
   slug,
+  event_code,
   name,
   location,
   estimated_minutes,
@@ -36,6 +37,7 @@ insert into public.game_events (
 values (
   'hidden-event',
   'hidden-event',
+  'HID',
   'Hidden Event',
   'Seattle',
   2,
