@@ -1,8 +1,8 @@
 # Event Code Prerequisite Plan
 
 **Status:** Proposed
-**Blocks:** Reward Redemption MVP (`docs/reward-redemption-mvp-design.md`)
-**Sequencing note:** The Tier 1 terminology migration (`docs/terminology-migration-strategy.md`)
+**Blocks:** Reward Redemption MVP (`docs/plans/reward-redemption-mvp-design.md`)
+**Sequencing note:** The Tier 1 terminology migration (`docs/plans/archive/terminology-migration-strategy.md`)
 has completed its Phase 2 database rename in this branch. This plan now uses
 the post-migration database names directly. Immutable historical artifact names
 are cited verbatim only when referring to existing migration filenames.

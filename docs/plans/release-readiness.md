@@ -25,15 +25,15 @@ maps onto an existing tracker, add it there and only reference it from here.
 
 Owner docs this file coordinates:
 
-- [backlog.md](./backlog.md) — priority-ordered follow-up work
-- [testing.md](./testing.md) — test strategy, coverage snapshot, testing todo list
-- [code-refactor-checklist.md](./code-refactor-checklist.md) — behavior-preserving refactor tasks
-- [documentation-quality-checklist.md](./documentation-quality-checklist.md) — docs maintenance
-- [open-questions.md](./open-questions.md) — unresolved product/UX/architecture decisions
+- [backlog.md](../backlog.md) — priority-ordered follow-up work
+- [testing.md](../testing.md) — test strategy, coverage snapshot, testing todo list
+- [code-refactor-checklist.md](../tracking/code-refactor-checklist.md) — behavior-preserving refactor tasks
+- [documentation-quality-checklist.md](../tracking/documentation-quality-checklist.md) — docs maintenance
+- [open-questions.md](../open-questions.md) — unresolved product/UX/architecture decisions
 - [analytics-strategy.md](./analytics-strategy.md) — analytics rollout and the only current telemetry surface
-- [operations.md](./operations.md) — platform-managed settings and production responsibilities
-- [production-admin-smoke-tracking.md](./production-admin-smoke-tracking.md) — post-release smoke triage
-- [dev.md](./dev.md) — validation commands and local workflow source of truth
+- [operations.md](../operations.md) — platform-managed settings and production responsibilities
+- [production-admin-smoke-tracking.md](../tracking/production-admin-smoke-tracking.md) — post-release smoke triage
+- [dev.md](../dev.md) — validation commands and local workflow source of truth
 
 ## Scope And Release Target
 
@@ -58,13 +58,13 @@ Out of scope for this doc:
 - broad role/permission design, analytics dashboards, and cross-event
   comparisons that the product intentionally defers post-MVP
 - infrastructure-as-code settings migration (see the future option note in
-  [operations.md](./operations.md))
+  [operations.md](../operations.md))
 
 ## Status Snapshot
 
 Update this section at the start of every quality check pass so the doc never
 lags behind the reviewed state. This is the section the doc-currency PR gate
-in [AGENTS.md](../AGENTS.md) reads first.
+in [AGENTS.md](../../AGENTS.md) reads first.
 
 | Field | Value |
 | --- | --- |
@@ -99,7 +99,7 @@ Editing rules:
 - do not mark a release gate as met on the basis of "tests pass" alone —
   confirm the target shape, coverage, or behavioral claim the gate actually
   describes, consistent with the Refactor Completion Proof and Validation
-  Honesty rules in [AGENTS.md](../AGENTS.md)
+  Honesty rules in [AGENTS.md](../../AGENTS.md)
 - keep this doc branch-ready: if a pass stops partway, update Status Snapshot
   to reflect the partial state and do not leave aspirational claims in the
   Release Gates table
@@ -113,8 +113,8 @@ Cadence guidance:
   platform configuration — scoped means the Methodology dimension(s) actually
   touched by the change, not the whole doc
 - do not treat routine feature PRs as needing a full pass; rely on the per-PR
-  validation already required by [AGENTS.md](../AGENTS.md) and
-  [dev.md](./dev.md)
+  validation already required by [AGENTS.md](../../AGENTS.md) and
+  [dev.md](../dev.md)
 
 ## Release Gates
 
@@ -124,14 +124,14 @@ tests pass.
 
 | # | Gate | Evidence required | Tracker of record |
 | --- | --- | --- | --- |
-| G1 | Trust-path behavior is validated against real Supabase, not mocks only | `npm run test:supabase` passes locally; pgTAP confirms entitlement uniqueness, request idempotency, and verification-code stability | [testing.md — Trust-Path Validation Strategy](./testing.md) |
-| G2 | Attendee mobile flow works end to end in a real browser | `npm run test:e2e` passes and the captured mobile smoke sequence covers intro → answer → completion → direct route load | [testing.md — UX And End-To-End Browser Flow](./testing.md) |
-| G3 | Admin authoring, publish, and unpublish work against deployed production | `npm run test:e2e:admin:production-smoke` has passed for the release candidate commit (via `Production Admin Smoke` workflow or manual run) | [production-admin-smoke-tracking.md](./production-admin-smoke-tracking.md) |
+| G1 | Trust-path behavior is validated against real Supabase, not mocks only | `npm run test:supabase` passes locally; pgTAP confirms entitlement uniqueness, request idempotency, and verification-code stability | [testing.md — Trust-Path Validation Strategy](../testing.md) |
+| G2 | Attendee mobile flow works end to end in a real browser | `npm run test:e2e` passes and the captured mobile smoke sequence covers intro → answer → completion → direct route load | [testing.md — UX And End-To-End Browser Flow](../testing.md) |
+| G3 | Admin authoring, publish, and unpublish work against deployed production | `npm run test:e2e:admin:production-smoke` has passed for the release candidate commit (via `Production Admin Smoke` workflow or manual run) | [production-admin-smoke-tracking.md](../tracking/production-admin-smoke-tracking.md) |
 | G4 | Completion and starts instrumentation is in place for the event | `game_starts` and completion tables populate correctly in a local Supabase run; the production Supabase project has both migrations applied before attendees arrive | [analytics-strategy.md — Phase 1 Implementation Plan](./analytics-strategy.md) |
-| G5 | Release-blocking open questions are either decided or explicitly deferred | Each item listed in [Release-Blocking Open Questions](#release-blocking-open-questions) has a linked decision or a recorded post-event deferral | [open-questions.md](./open-questions.md) |
+| G5 | Release-blocking open questions are either decided or explicitly deferred | Each item listed in [Release-Blocking Open Questions](#release-blocking-open-questions) has a linked decision or a recorded post-event deferral | [open-questions.md](../open-questions.md) |
 | G6 | Operational visibility is sufficient to detect a live event failure | The observability review in [3. Monitoring, Logging, And Observability](#3-monitoring-logging-and-observability) has been completed against the release candidate; any resulting gaps are in `backlog.md` with a Tier 1 or Tier 2 placement or explicitly deferred | [analytics-strategy.md](./analytics-strategy.md) and this doc |
-| G7 | Docs describe the implemented state of the release candidate | The doc currency walkthrough in [AGENTS.md — Doc Currency Is a PR Gate](../AGENTS.md) has been executed for the release branch; `README.md`, `docs/architecture.md`, `docs/dev.md`, `docs/testing.md`, `docs/operations.md`, `docs/backlog.md`, and `docs/open-questions.md` match the shipped code | [documentation-quality-checklist.md](./documentation-quality-checklist.md) |
-| G8 | PR CI covers the pre-release change set at a meaningful depth | For non-doc changes, lint, unit, Deno function tests, local Supabase integration, attendee trusted-backend Playwright smoke, and build pass on the release candidate commit via `.github/workflows/ci.yml`; markdown/docs-only commits are intentionally ignored by CI and do not trigger production release. Any intentional gap is a known item in `backlog.md` | [testing.md — Where Tests Should Run](./testing.md) and [backlog.md Tier 2](./backlog.md) |
+| G7 | Docs describe the implemented state of the release candidate | The doc currency walkthrough in [AGENTS.md — Doc Currency Is a PR Gate](../../AGENTS.md) has been executed for the release branch; `README.md`, `docs/architecture.md`, `docs/dev.md`, `docs/testing.md`, `docs/operations.md`, `docs/backlog.md`, and `docs/open-questions.md` match the shipped code | [documentation-quality-checklist.md](../tracking/documentation-quality-checklist.md) |
+| G8 | PR CI covers the pre-release change set at a meaningful depth | For non-doc changes, lint, unit, Deno function tests, local Supabase integration, attendee trusted-backend Playwright smoke, and build pass on the release candidate commit via `.github/workflows/ci.yml`; markdown/docs-only commits are intentionally ignored by CI and do not trigger production release. Any intentional gap is a known item in `backlog.md` | [testing.md — Where Tests Should Run](../testing.md) and [backlog.md Tier 2](../backlog.md) |
 
 Gate status is recorded under [Running Findings](#running-findings) at each
 pass. Do not edit this table when a gate is met for a single pass — edit the
@@ -165,7 +165,7 @@ Scope:
 
 This dimension does not cover load testing, broad cross-browser matrices, or
 visual regression. Those are intentionally deferred per
-[testing.md — What Is Overkill Right Now](./testing.md).
+[testing.md — What Is Overkill Right Now](../testing.md).
 
 How to run:
 
@@ -178,8 +178,8 @@ How to run:
    state.
 3. After merge and deploy, confirm the `Production Admin Smoke` workflow has
    run successfully against the release commit (or trigger a `workflow_dispatch`
-   rerun). See [production-admin-smoke-tracking.md](./production-admin-smoke-tracking.md).
-4. Walk the [Proposed Test Inventory in testing.md](./testing.md) against the
+   rerun). See [production-admin-smoke-tracking.md](../tracking/production-admin-smoke-tracking.md).
+4. Walk the [Proposed Test Inventory in testing.md](../testing.md) against the
    current repo and list any item that is no longer representative of the
    shipped behavior. This is the step that catches "tests passed but coverage
    drifted" situations.
@@ -196,11 +196,11 @@ How to run:
 
 Where findings live:
 
-- missing automated tests: add to [testing.md — Todo List](./testing.md) with
-  an appropriate tier, and link from [backlog.md](./backlog.md) if it is
+- missing automated tests: add to [testing.md — Todo List](../testing.md) with
+  an appropriate tier, and link from [backlog.md](../backlog.md) if it is
   release-blocking
 - new known-flaky tests: add under
-  [testing.md — Known Flaky Tests](./testing.md)
+  [testing.md — Known Flaky Tests](../testing.md)
 - manual checks required before release: record under
   [Running Findings — Test Coverage](#running-findings), noting the pass date
   and the hardware used
@@ -212,7 +212,7 @@ Release bar (see G1, G2, G3, G8):
 - admin local e2e is clean on the release commit
 - admin production smoke has run against the release commit
 - every release-blocking gap named in the pass is either closed or explicitly
-  deferred with a Tier 1/Tier 2 entry in [backlog.md](./backlog.md)
+  deferred with a Tier 1/Tier 2 entry in [backlog.md](../backlog.md)
 
 ### 2. Code Documentation And Comments
 
@@ -229,7 +229,7 @@ Scope:
 This dimension does not require coverage metrics, blanket JSDoc on every
 symbol, or a generated documentation site. The repo intentionally keeps docs
 human-edited, per
-[documentation-quality-checklist.md](./documentation-quality-checklist.md).
+[documentation-quality-checklist.md](../tracking/documentation-quality-checklist.md).
 
 The project standard is: document intent, contracts, invariants, and
 non-obvious failure behavior at durable boundaries; document file
@@ -239,7 +239,7 @@ implementation details that names and TypeScript types already explain.
 How to run:
 
 1. Walk every trigger in
-   [AGENTS.md — Doc Currency Is a PR Gate](../AGENTS.md) against the release
+   [AGENTS.md — Doc Currency Is a PR Gate](../../AGENTS.md) against the release
    branch. For each named doc, confirm it reflects the shipped state.
 2. Open the top ~15 largest source files (see the size observation under
    [4. Code Cleanliness And Quality](#4-code-cleanliness-and-quality)) and
@@ -276,18 +276,18 @@ Where findings live:
   [Running Findings — Documentation](#running-findings) and resolve it before
   the release candidate ships
 - broad comment-coverage uncertainty: add a bounded audit item to
-  [backlog.md](./backlog.md) that requires a gap list and remediation plan
+  [backlog.md](../backlog.md) that requires a gap list and remediation plan
   before implementation
 - docs drift: add to
-  [documentation-quality-checklist.md](./documentation-quality-checklist.md)
+  [documentation-quality-checklist.md](../tracking/documentation-quality-checklist.md)
   under the appropriate subsection, and update any stale doc in the same PR as
   the discovering change when practical
 - missing area readmes or ownership docs: add a bounded task to
-  [documentation-quality-checklist.md](./documentation-quality-checklist.md)
+  [documentation-quality-checklist.md](../tracking/documentation-quality-checklist.md)
 
 Release bar (see G7):
 
-- every doc named under [AGENTS.md — Doc Currency Is a PR Gate](../AGENTS.md)
+- every doc named under [AGENTS.md — Doc Currency Is a PR Gate](../../AGENTS.md)
   that the release branch should have touched has been updated
 - no new exported seam at a shared domain, trust, persistence, authorization,
   idempotency, completion verification, entitlement, API, publish, unpublish,
@@ -343,7 +343,7 @@ How to run:
    before the first live event. Start data is permanently unrecoverable
    otherwise — see [analytics-strategy.md](./analytics-strategy.md).
 4. Walk the operator runbook for a live event in
-   [operations.md — Live Monitoring And Log Triage](./operations.md#live-monitoring-and-log-triage):
+   [operations.md — Live Monitoring And Log Triage](../operations.md#live-monitoring-and-log-triage):
    which dashboards or queries would the on-call contributor open at minute
    five if attendees reported the flow was broken? A recorded answer is the
    deliverable; absence of an answer is the finding.
@@ -357,15 +357,15 @@ How to run:
    - a pre-event Supabase query that confirms both new migrations are applied
      and at least one completion can round-trip from a staging device
 6. Decide for the current release whether the identified improvement is a
-   release-blocker, a Tier 1 item in [backlog.md](./backlog.md), or an
+   release-blocker, a Tier 1 item in [backlog.md](../backlog.md), or an
    explicit deferral. Record that decision.
 
 Where findings live:
 
 - observability gaps: add a Tier 1 or Tier 2 item to
-  [backlog.md](./backlog.md) with a link to this doc for context
+  [backlog.md](../backlog.md) with a link to this doc for context
 - operator runbook content: keep the durable runbook in
-  [operations.md — Live Monitoring And Log Triage](./operations.md#live-monitoring-and-log-triage)
+  [operations.md — Live Monitoring And Log Triage](../operations.md#live-monitoring-and-log-triage)
   and summarize release-specific evidence under
   [Running Findings — Monitoring, Logging, Observability](#running-findings)
 - analytics-adjacent gaps: add to
@@ -388,8 +388,8 @@ Scope:
 - test-to-code coupling that would block future changes
 - lint and type-check hygiene
 - consistency with the repo's architecture guardrails in
-  [AGENTS.md](../AGENTS.md) and
-  [architecture.md](./architecture.md)
+  [AGENTS.md](../../AGENTS.md) and
+  [architecture.md](../architecture.md)
 
 This dimension does not try to enforce stylistic preferences beyond the repo's
 existing lint and TypeScript settings.
@@ -397,7 +397,7 @@ existing lint and TypeScript settings.
 How to run:
 
 1. Run `npm run lint`, `npm test`, `npm run build:web`, and the Deno
-   `deno check` commands from [dev.md](./dev.md). A clean run is a
+   `deno check` commands from [dev.md](../dev.md). A clean run is a
    precondition for the rest of this dimension.
 2. Re-check the top ~15 largest `.ts`/`.tsx` source files under
    `apps/web/src/`, `shared/`, and `supabase/functions/` for
@@ -419,11 +419,11 @@ How to run:
    the tracked source directories) because the shape changes as refactor
    items land.
 3. For each oversized file, map it against
-   [code-refactor-checklist.md](./code-refactor-checklist.md). If it is
+   [code-refactor-checklist.md](../tracking/code-refactor-checklist.md). If it is
    already in that checklist, do nothing. If it is a new candidate, add it
    there with the specific responsibility problem, the desired target shape,
    and the minimum validation command — following the rules in that file.
-4. Walk the architecture guardrails in [AGENTS.md](../AGENTS.md) and confirm
+4. Walk the architecture guardrails in [AGENTS.md](../../AGENTS.md) and confirm
    no guardrail has silently drifted:
    - visual and interaction logic stays in `apps/web/src`
    - shared styling tokens stay in `apps/web/src/styles/`
@@ -437,7 +437,7 @@ How to run:
 5. Confirm that every DB write reachable from a public or origin-gated
    endpoint has DB-level referential integrity or constraints, not only
    application-layer validation. This is the hard rule in
-   [AGENTS.md — Pre-Edit Gate](../AGENTS.md).
+   [AGENTS.md — Pre-Edit Gate](../../AGENTS.md).
 6. Look for recent commits that fixed a bug by adding application-layer
    validation where a migration-level constraint would have been more durable.
    Flag any such case for follow-up as a schema hardening task.
@@ -445,14 +445,14 @@ How to run:
 Where findings live:
 
 - file-size and split candidates: add to
-  [code-refactor-checklist.md](./code-refactor-checklist.md)
+  [code-refactor-checklist.md](../tracking/code-refactor-checklist.md)
 - architectural drift: fix in the PR that introduced it when discovered
   in-review; record a short entry under
   [Running Findings — Cleanliness](#running-findings) when discovered after
   the fact, and either resolve or open a tracker before the release candidate
   ships
 - missing DB-level constraints: record in
-  [backlog.md](./backlog.md) under the appropriate tier; treat as
+  [backlog.md](../backlog.md) under the appropriate tier; treat as
   release-blocking if the write is reachable from a public endpoint
 
 Release bar:
@@ -460,8 +460,8 @@ Release bar:
 - lint, unit, function tests, build, and Deno checks all clean on the release
   commit
 - no new file over ~400 lines has been added without a split plan recorded in
-  [code-refactor-checklist.md](./code-refactor-checklist.md)
-- no architectural guardrail from [AGENTS.md](../AGENTS.md) has drifted
+  [code-refactor-checklist.md](../tracking/code-refactor-checklist.md)
+- no architectural guardrail from [AGENTS.md](../../AGENTS.md) has drifted
   since the last pass
 - every public-write backend endpoint is still referentially protected at the
   database level
@@ -506,9 +506,9 @@ How to run:
 
 Where findings live:
 
-- concrete inefficiencies: add to [backlog.md](./backlog.md) if
+- concrete inefficiencies: add to [backlog.md](../backlog.md) if
   release-relevant, or to
-  [code-refactor-checklist.md](./code-refactor-checklist.md) if the fix is
+  [code-refactor-checklist.md](../tracking/code-refactor-checklist.md) if the fix is
   behavior-preserving and small
 - bundle size observations: record under
   [Running Findings — Efficiency](#running-findings) with the measurement, so
@@ -535,7 +535,7 @@ docs.
 
 How to run:
 
-1. Read [open-questions.md](./open-questions.md) end to end. For each entry,
+1. Read [open-questions.md](../open-questions.md) end to end. For each entry,
    decide one of:
    - still open and not release-blocking for the current target — leave
      as-is
@@ -547,14 +547,14 @@ How to run:
      entry in `open-questions.md` in the same PR
 2. Confirm any new unresolved decision surfaced during this pass is captured
    in `open-questions.md` before the pass closes, per
-   [AGENTS.md](../AGENTS.md).
+   [AGENTS.md](../../AGENTS.md).
 3. For each decision listed in `backlog.md` as `decision`, confirm whether it
    is expected to be decided before the release target. If yes, mirror under
    [Release-Blocking Open Questions](#release-blocking-open-questions).
 
 Where findings live:
 
-- canonical tracking is [open-questions.md](./open-questions.md)
+- canonical tracking is [open-questions.md](../open-questions.md)
 - release-blocking mirror lives in this doc only as a short reference list,
   refreshed at each pass
 
@@ -568,18 +568,18 @@ Release bar (see G5):
 #### Release-Blocking Open Questions
 
 This subsection is refreshed at each quality check pass. The contents are a
-filtered view of [open-questions.md](./open-questions.md) — items that block
+filtered view of [open-questions.md](../open-questions.md) — items that block
 the current release target go here. Everything else stays in the canonical
 tracker.
 
 Refresh instructions:
 
 - do not invent new entries here; mirror an entry from
-  [open-questions.md](./open-questions.md) and link back
+  [open-questions.md](../open-questions.md) and link back
 - remove an entry when the underlying question is decided, answered in code,
   or explicitly deferred past the current release target
 - if an entry has been deferred, record the deferral decision and owner
-  directly in [open-questions.md](./open-questions.md), then remove it from
+  directly in [open-questions.md](../open-questions.md), then remove it from
   this list
 
 The list below was refreshed during the 2026-04-16 pass and updated after the
@@ -655,7 +655,7 @@ progresses.
 **Documentation:**
 
 - Completed a scoped code-documentation audit artifact at
-  [`docs/code-documentation-audit.md`](./code-documentation-audit.md), covering
+  [`docs/tracking/code-documentation-audit.md`](../tracking/code-documentation-audit.md), covering
   `shared/game-config`, `apps/web/src/lib`, `apps/web/src/admin`,
   `apps/web/src/game`, `supabase/functions`, and `supabase/migrations`.
 - Classified findings as `Required`, `Optional`, and `Noise` with rationale and
@@ -665,7 +665,7 @@ progresses.
 
 **Follow-ups opened:**
 
-- Tier 5 remediation slices in [`backlog.md`](./backlog.md) for Slice A (admin),
+- Tier 5 remediation slices in [`backlog.md`](../backlog.md) for Slice A (admin),
   B (shared barrel), C (browser API), D (edge function boundaries), and E
   (migration/RPC invariants).
 
@@ -682,9 +682,9 @@ progresses.
 - G3 Admin production smoke: met — GitHub run `24541137250` passed on the release-readiness branch after fixture defaults and GitHub `production` environment settings were configured
 - G4 Starts + completion instrumentation: met — `npm run validate:local` exercised start-row Deno tests, local Supabase integration, and pgTAP; release workflow run `24537097693` successfully applied migrations and deployed functions at `d08f65e`, which already contained `20260416000000_add_game_starts.sql` and `20260416010000_add_game_starts_event_fk.sql`; `70977d6` is docs-only and its release job was skipped
 - G5 Release-blocking open questions: met — Madrona pre-launch volunteer handoff uses the current completion screen plus verification code; stronger proof treatment is deferred until after this release
-- G6 Observability: met for the coordinator branch — the live monitoring runbook in [operations.md](./operations.md#live-monitoring-and-log-triage) identifies the manual operator surfaces, and `Production Admin Smoke` run `24541137250` now provides the release-candidate deployed admin signal
+- G6 Observability: met for the coordinator branch — the live monitoring runbook in [operations.md](../operations.md#live-monitoring-and-log-triage) identifies the manual operator surfaces, and `Production Admin Smoke` run `24541137250` now provides the release-candidate deployed admin signal
 - G7 Docs currency: met for the coordinator branch — Dimension 2 doc-currency audit completed, with stale README release-flow and production-smoke status docs updated
-- G8 PR CI depth: not met — no PR CI evidence exists for the coordinator branch yet; `.github/workflows/ci.yml` covers lint, unit tests, Deno function tests, local Supabase integration/database tests, build, and function `deno check`, while attendee Playwright smoke in PR CI remains tracked in [backlog.md](./backlog.md)
+- G8 PR CI depth: not met — no PR CI evidence exists for the coordinator branch yet; `.github/workflows/ci.yml` covers lint, unit tests, Deno function tests, local Supabase integration/database tests, build, and function `deno check`, while attendee Playwright smoke in PR CI remains tracked in [backlog.md](../backlog.md)
 
 **Test coverage:**
 
@@ -692,7 +692,7 @@ progresses.
 - After that fix, `npm run validate:local` passed end to end: lint; 23 Vitest files / 175 tests; 34 Deno Edge Function tests; 3 attendee mobile Playwright smoke tests; local Supabase integration and pgTAP database tests; `npm run build:web`; and `deno check` for `issue-session`, `complete-game`, `save-draft`, `publish-draft`, and `unpublish-event`.
 - `npm run test:e2e:admin` passed 1 local Supabase-backed admin Playwright test covering save, publish, unpublish, and public route verification.
 - `Production Admin Smoke` run `24541137250` passed on the release-readiness branch, covering deployed admin auth, allowlist denial, draft save, publish, unpublish, and public route state against the dedicated production smoke fixture.
-- Proposed Test Inventory still matches the current suite at a high level: shared-domain tests, frontend session/API/page tests, Deno Edge Function tests, pgTAP database tests, attendee mobile smoke, local admin e2e, and production admin smoke harness all exist. The known gaps remain attendee Playwright smoke in PR CI and broader Playwright retry/backend-failure coverage, both already tracked in [testing.md](./testing.md) or [backlog.md](./backlog.md).
+- Proposed Test Inventory still matches the current suite at a high level: shared-domain tests, frontend session/API/page tests, Deno Edge Function tests, pgTAP database tests, attendee mobile smoke, local admin e2e, and production admin smoke harness all exist. The known gaps remain attendee Playwright smoke in PR CI and broader Playwright retry/backend-failure coverage, both already tracked in [testing.md](../testing.md) or [backlog.md](../backlog.md).
 
 **Documentation:**
 
@@ -731,7 +731,7 @@ progresses.
   completion retry states surface through `GamePage`, and admin API failures
   throw user-facing messages consumed by the admin dashboard state.
 - Live-event operator path is now documented in
-  [operations.md — Live Monitoring And Log Triage](./operations.md#live-monitoring-and-log-triage):
+  [operations.md — Live Monitoring And Log Triage](../operations.md#live-monitoring-and-log-triage):
   check the latest `Production Admin Smoke` workflow result first; inspect
   Vercel deployment/runtime logs for frontend route availability; inspect
   Supabase Edge Function logs for `issue-session`, `complete-game`,
@@ -762,7 +762,7 @@ progresses.
   `AdminQuestionEditor.tsx`, `AdminEventWorkspace.tsx`,
   `draft-content.ts`, `gameApi.ts`, `useAdminDashboard.ts`,
   `sample-games.ts`, and `adminGameApi.ts` where appropriate.
-- New follow-up opened in [code-refactor-checklist.md](./code-refactor-checklist.md):
+- New follow-up opened in [code-refactor-checklist.md](../tracking/code-refactor-checklist.md):
   split selected draft publish/unpublish state from draft loading and save
   state in `apps/web/src/admin/useSelectedDraft.ts`.
 - Architecture guardrails still hold at the reviewed boundaries: visual/admin
@@ -802,8 +802,8 @@ progresses.
 
 **Release-blocking open questions:**
 
-- Dimension 6 audit completed against [open-questions.md](./open-questions.md)
-  and `decision` entries in [backlog.md](./backlog.md).
+- Dimension 6 audit completed against [open-questions.md](../open-questions.md)
+  and `decision` entries in [backlog.md](../backlog.md).
 - Release-blocking question resolved after the pass: for the Madrona pre-launch
   release milestone, the current completion screen plus verification code is
   sufficient for volunteer raffle handoff. Stronger proof treatment is deferred
@@ -812,7 +812,7 @@ progresses.
   already says QR codes should open directly into the event game experience,
   and `/event/:slug/game` exists for that purpose; the long-term question of whether
   this should always be the production entry contract remains open in
-  [open-questions.md](./open-questions.md).
+  [open-questions.md](../open-questions.md).
 - Not release-blocking for this target, deferred as tracked follow-ups:
   staging/branch Supabase promotion path, sponsor reporting requirements,
   organizer roles/root admin UI, richer publish controls, multi-quiz events,
@@ -826,19 +826,19 @@ progresses.
   `Production Admin Smoke` run `24541137250` passed on the release-readiness
   branch.
 - Resolved after pass: volunteer verification affordance for Madrona recorded in
-  [backlog.md](./backlog.md) and [open-questions.md](./open-questions.md).
+  [backlog.md](../backlog.md) and [open-questions.md](../open-questions.md).
 - Refactor candidate: split selected draft publish/unpublish state from draft
-  loading and save state in [code-refactor-checklist.md](./code-refactor-checklist.md).
+  loading and save state in [code-refactor-checklist.md](../tracking/code-refactor-checklist.md).
 
 ## Related Docs
 
-- [AGENTS.md](../AGENTS.md) — agent behavior, pre-edit gate, doc currency PR gate, validation honesty rules
-- [dev.md](./dev.md) — contributor workflow source of truth
-- [testing.md](./testing.md) — test strategy, coverage snapshot, testing todo list
-- [backlog.md](./backlog.md) — priority-ordered follow-up across all concerns
-- [open-questions.md](./open-questions.md) — unresolved decisions
-- [code-refactor-checklist.md](./code-refactor-checklist.md) — behavior-preserving refactor candidates
-- [documentation-quality-checklist.md](./documentation-quality-checklist.md) — docs maintenance checklist
+- [AGENTS.md](../../AGENTS.md) — agent behavior, pre-edit gate, doc currency PR gate, validation honesty rules
+- [dev.md](../dev.md) — contributor workflow source of truth
+- [testing.md](../testing.md) — test strategy, coverage snapshot, testing todo list
+- [backlog.md](../backlog.md) — priority-ordered follow-up across all concerns
+- [open-questions.md](../open-questions.md) — unresolved decisions
+- [code-refactor-checklist.md](../tracking/code-refactor-checklist.md) — behavior-preserving refactor candidates
+- [documentation-quality-checklist.md](../tracking/documentation-quality-checklist.md) — docs maintenance checklist
 - [analytics-strategy.md](./analytics-strategy.md) — analytics and the only current telemetry surface
-- [operations.md](./operations.md) — platform-managed settings
-- [production-admin-smoke-tracking.md](./production-admin-smoke-tracking.md) — post-release smoke coverage and triage
+- [operations.md](../operations.md) — platform-managed settings
+- [production-admin-smoke-tracking.md](../tracking/production-admin-smoke-tracking.md) — post-release smoke coverage and triage

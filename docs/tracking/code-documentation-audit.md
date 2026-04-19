@@ -30,7 +30,7 @@ Classification rules for this pass:
 
 - `Required`
   Needed to satisfy `docs/dev.md` code-documentation standard and
-  `docs/release-readiness.md` Dimension 2 release bar at a durable boundary.
+  `docs/plans/release-readiness.md` Dimension 2 release bar at a durable boundary.
   Typical cases: large route/orchestration/boundary modules with unclear ownership,
   exported seams at trust/persistence/API boundaries, and non-obvious SQL
   invariants.

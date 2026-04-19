@@ -78,9 +78,9 @@ The main docs are:
   how the attendee, volunteer, and organizer flows should feel
 - [Architecture Notes](./docs/architecture.md)
   current system shape, trust boundaries, and runtime flow
-- [Database-backed Quiz Content](./docs/database-backed-quiz-content.md)
+- [Database-backed Quiz Content](./docs/plans/archive/database-backed-quiz-content.md)
   durable implementation reference for the published-content milestone
-- [Quiz Authoring Plan](./docs/quiz-authoring-plan.md)
+- [Quiz Authoring Plan](./docs/plans/archive/quiz-authoring-plan.md)
   proposed path for organizer/admin quiz creation, editing, preview, and publish
 - [Development Guide](./docs/dev.md)
   local workflow, validation commands, troubleshooting, and release flow
@@ -91,9 +91,9 @@ The main docs are:
   Vercel, and Supabase, plus the current live monitoring and log-triage runbook
 - [Open Questions](./docs/open-questions.md)
   unresolved product, workflow, and operational decisions that should stay explicit
-- [Documentation Quality Checklist](./docs/documentation-quality-checklist.md)
+- [Documentation Quality Checklist](./docs/tracking/documentation-quality-checklist.md)
   action checklist for keeping the documentation set accurate and complete
-- [Release Readiness](./docs/release-readiness.md)
+- [Release Readiness](./docs/plans/release-readiness.md)
   living release readiness plan, release gates, and senior-engineer quality-check methodology
 
 ## Quick Start

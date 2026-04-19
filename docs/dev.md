@@ -17,7 +17,7 @@ System shape and data ownership live in `architecture.md`. UX intent lives in `e
 Testing scope, layer ownership, and rollout priorities live in `testing.md`.
 Unresolved contributor-workflow and release questions live in `open-questions.md`.
 Release gates, the senior-engineer quality-check methodology, and the living
-release-blocking view live in [`release-readiness.md`](./release-readiness.md).
+release-blocking view live in [`release-readiness.md`](./plans/release-readiness.md).
 
 ## Current Tooling
 
@@ -93,7 +93,7 @@ Avoid comment noise:
   describe
 
 Release-readiness documentation checks are defined in
-[`release-readiness.md` — Code Documentation And Comments](./release-readiness.md#2-code-documentation-and-comments).
+[`release-readiness.md` — Code Documentation And Comments](./plans/release-readiness.md#2-code-documentation-and-comments).
 
 File-level headers should answer "what is this file responsible for?" and,
 when useful, "what does this file deliberately not own?" For example, a
@@ -365,7 +365,7 @@ The command:
 - runs a single-worker Playwright admin smoke suite against the deployed web
   origin
 - expects the smoke environment contract documented in
-  [`production-admin-smoke-tracking.md`](./production-admin-smoke-tracking.md)
+  [`production-admin-smoke-tracking.md`](./tracking/production-admin-smoke-tracking.md)
 
 Manual execution path:
 
@@ -383,7 +383,7 @@ Failure triage categories:
 - public route publish-state mismatch
 
 Use the detailed runbook in
-[`production-admin-smoke-tracking.md`](./production-admin-smoke-tracking.md)
+[`production-admin-smoke-tracking.md`](./tracking/production-admin-smoke-tracking.md)
 for owner routing and first-response checks.
 
 For live-event monitoring beyond the smoke workflow, use

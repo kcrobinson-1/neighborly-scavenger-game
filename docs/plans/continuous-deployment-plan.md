@@ -251,9 +251,9 @@ Given current scale and team size, avoid:
 ## Tracking And Ownership
 
 - Backlog tracker:
-  [`backlog.md` — Tier 2 decision on staging/branch promotion path](./backlog.md)
+  [`backlog.md` — Tier 2 decision on staging/branch promotion path](../backlog.md)
 - Related open-question ownership:
-  [`open-questions.md` — Development And Release Workflow](./open-questions.md)
+  [`open-questions.md` — Development And Release Workflow](../open-questions.md)
 
 ## External References (Best-Practice Inputs)
 

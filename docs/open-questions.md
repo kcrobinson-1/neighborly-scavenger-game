@@ -16,7 +16,7 @@ here in the same change.
 
 When a quality check pass runs against an upcoming release, the subset of these
 items that blocks the current release target is mirrored under
-[Release-Blocking Open Questions in `release-readiness.md`](./release-readiness.md#release-blocking-open-questions).
+[Release-Blocking Open Questions in `release-readiness.md`](./plans/release-readiness.md#release-blocking-open-questions).
 Do not duplicate the question body there; mirror the title and link back to
 this file.
 
@@ -36,19 +36,19 @@ items and should be tracked there rather than duplicated here.
 
 No currently open questions in this section under the current tracking rule.
 Recommended first metrics and sponsor-proof baseline are documented in
-[`analytics-strategy.md`](./analytics-strategy.md), and implementation priority
+[`analytics-strategy.md`](./plans/analytics-strategy.md), and implementation priority
 is tracked in [`backlog.md`](./backlog.md).
 
 ## Development And Release Workflow
 
 No currently open questions in this section under the current tracking rule.
 Workflow direction and remaining implementation are tracked in
-[`continuous-deployment-plan.md`](./continuous-deployment-plan.md),
+[`continuous-deployment-plan.md`](./plans/continuous-deployment-plan.md),
 [`dev.md`](./dev.md), and [`backlog.md`](./backlog.md).
 
 ## Trust Boundary And Abuse Controls
 
 No currently open questions in this section under the current tracking rule.
 Trust-boundary and abuse-control planning now lives in
-[`security-and-abuse-plan.md`](./security-and-abuse-plan.md), and concrete
+[`security-and-abuse-plan.md`](./plans/security-and-abuse-plan.md), and concrete
 hardening work should be tracked via [`backlog.md`](./backlog.md).

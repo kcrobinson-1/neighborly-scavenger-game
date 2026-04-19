@@ -71,7 +71,7 @@ For this project today, that means:
   project entrypoint and quick-start guidance
 - [`docs/dev.md`](./dev.md)
   workflow, validation, release, and troubleshooting guidance
-- [`docs/production-admin-smoke-tracking.md`](./production-admin-smoke-tracking.md)
+- [`docs/tracking/production-admin-smoke-tracking.md`](./tracking/production-admin-smoke-tracking.md)
   production admin smoke rollout policy, fixture ownership, and triage runbook
 
 ## Manually Maintained Settings
@@ -218,7 +218,7 @@ Interpretation:
   event state, or slug mapping
 
 Detailed smoke-specific triage lives in
-[`production-admin-smoke-tracking.md`](./production-admin-smoke-tracking.md).
+[`production-admin-smoke-tracking.md`](./tracking/production-admin-smoke-tracking.md).
 
 ### Site And Frontend Checks: Vercel
 
@@ -378,7 +378,7 @@ For this repo today:
 - treat `supabase/migrations/`, `supabase/functions/`, and `supabase/config.toml` as the backend source of truth
 - treat GitHub workflow files as the source of truth for CI and release automation
 - treat Vercel environment variable values and Supabase secret values as platform-managed
-- treat production smoke fixture settings as manually managed production-environment configuration described in [`production-admin-smoke-tracking.md`](./production-admin-smoke-tracking.md)
+- treat production smoke fixture settings as manually managed production-environment configuration described in [`production-admin-smoke-tracking.md`](./tracking/production-admin-smoke-tracking.md)
 - avoid manual production edits that do not get reconciled back into the repository
 
 ## Future Option

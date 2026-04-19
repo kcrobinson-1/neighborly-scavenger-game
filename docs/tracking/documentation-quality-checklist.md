@@ -24,7 +24,7 @@ Use it as:
 - [x] Open questions are tracked explicitly in `docs/open-questions.md` instead
   of being guessed inside canonical docs.
 - [x] A living release readiness and quality-check plan exists in
-  [`docs/release-readiness.md`](./release-readiness.md) and coordinates with
+  [`docs/plans/release-readiness.md`](../plans/release-readiness.md) and coordinates with
   the trackers in this file rather than duplicating them.
 
 ## Keep The Canonical Docs Honest

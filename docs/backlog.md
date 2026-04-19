@@ -18,15 +18,15 @@ steps, and validation commands.
 **Detail file locations:**
 
 - Open questions and product decisions: [`docs/open-questions.md`](./open-questions.md)
-- Terminology migration planning: [`docs/terminology-migration-strategy.md`](./terminology-migration-strategy.md)
-- Admin UX polish: [`docs/admin-ux-roadmap.md`](./admin-ux-roadmap.md)
-- Contributor workflow tooling: [`docs/dev-workflow-improvements.md`](./dev-workflow-improvements.md)
-- Continuous deployment planning: [`docs/continuous-deployment-plan.md`](./continuous-deployment-plan.md)
-- Security and abuse planning: [`docs/security-and-abuse-plan.md`](./security-and-abuse-plan.md)
-- Code refactors: [`docs/code-refactor-checklist.md`](./code-refactor-checklist.md)
+- Terminology migration planning: [`docs/plans/archive/terminology-migration-strategy.md`](./plans/archive/terminology-migration-strategy.md)
+- Admin UX polish: [`docs/tracking/admin-ux-roadmap.md`](./tracking/admin-ux-roadmap.md)
+- Contributor workflow tooling: [`docs/tracking/dev-workflow-improvements.md`](./tracking/dev-workflow-improvements.md)
+- Continuous deployment planning: [`docs/plans/continuous-deployment-plan.md`](./plans/continuous-deployment-plan.md)
+- Security and abuse planning: [`docs/plans/security-and-abuse-plan.md`](./plans/security-and-abuse-plan.md)
+- Code refactors: [`docs/tracking/code-refactor-checklist.md`](./tracking/code-refactor-checklist.md)
 - Test coverage rollout: [`docs/testing.md`](./testing.md)
-- Deferred authoring features: [`docs/quiz-authoring-plan.md`](./quiz-authoring-plan.md)
-- Release gates, quality-check methodology, and live release-blocking view: [`docs/release-readiness.md`](./release-readiness.md)
+- Deferred authoring features: [`docs/plans/archive/quiz-authoring-plan.md`](./plans/archive/quiz-authoring-plan.md)
+- Release gates, quality-check methodology, and live release-blocking view: [`docs/plans/release-readiness.md`](./plans/release-readiness.md)
 
 ---
 
@@ -46,17 +46,17 @@ Must be resolved before QR codes are printed or the first real event runs.
 - [x] **`dev` Record game starts in Supabase**
   Completed: `game_starts` persistence is wired from `issue-session` for funnel
   denominator coverage.
-  Detail: [`docs/analytics-strategy.md` — Approach 2 and Recommended Sequencing](./analytics-strategy.md)
+  Detail: [`docs/plans/analytics-strategy.md` — Approach 2 and Recommended Sequencing](./plans/analytics-strategy.md)
 
 - [x] **`infra` Production admin smoke workflow**
   Completed: workflow covers deployed admin auth, allowlist, draft save,
   publish/unpublish, and public route state transitions.
-  Detail: [`docs/production-admin-smoke-tracking.md`](./production-admin-smoke-tracking.md) and [`docs/testing.md` — Admin Functionality Validation Goal](./testing.md)
+  Detail: [`docs/tracking/production-admin-smoke-tracking.md`](./tracking/production-admin-smoke-tracking.md) and [`docs/testing.md` — Admin Functionality Validation Goal](./testing.md)
 
 - [x] **`infra` Configure production admin smoke settings and rerun release-candidate smoke**
   Completed: production environment settings are configured and release-candidate
   smoke evidence is tracked in the owning doc.
-  Detail: [`docs/production-admin-smoke-tracking.md`](./production-admin-smoke-tracking.md)
+  Detail: [`docs/tracking/production-admin-smoke-tracking.md`](./tracking/production-admin-smoke-tracking.md)
 
 - [x] **`decision` Volunteer verification affordance**
   Completed decision: pre-launch relies on completion screen + verification code;
@@ -67,7 +67,7 @@ Must be resolved before QR codes are printed or the first real event runs.
   All phases complete. Core runtime (frontend/shared/functions/schema) uses
   target terminology consistently. Final repo-wide scan confirmed zero legacy
   identifiers in active code. Backlog decision closed.
-  Detail: [`docs/terminology-migration-strategy.md`](./terminology-migration-strategy.md)
+  Detail: [`docs/plans/archive/terminology-migration-strategy.md`](./plans/archive/terminology-migration-strategy.md)
 
 ---
 
@@ -107,13 +107,13 @@ Reduce deployment risk and contributor friction before the live event.
   Decide whether the current local-validation-plus-direct-to-production release
   model is sufficient or whether a staging backend is needed before the first
   real event. A bad migration today goes directly to the production project.
-  Detail: [`docs/continuous-deployment-plan.md`](./continuous-deployment-plan.md) and [`docs/open-questions.md` — Development And Release Workflow](./open-questions.md)
+  Detail: [`docs/plans/continuous-deployment-plan.md`](./plans/continuous-deployment-plan.md) and [`docs/open-questions.md` — Development And Release Workflow](./open-questions.md)
 
 - [ ] **`dev` Admin UI-review capture mode**
   Add `npm run ui:review:capture -- --mode admin` (or a sibling script) so
   admin UX PRs have a documented screenshot path that does not write production
   data. Without this, each admin UX PR improvises its own screenshot approach.
-  Detail: [`docs/dev-workflow-improvements.md` — Add an admin UI-review capture mode](./dev-workflow-improvements.md)
+  Detail: [`docs/tracking/dev-workflow-improvements.md` — Add an admin UI-review capture mode](./tracking/dev-workflow-improvements.md)
 
 ---
 
@@ -124,7 +124,7 @@ Reduce deployment risk and contributor friction before the live event.
   occurrences respectively). All other docs were swept in Phases 1 and 5; these
   were deferred due to size. Rewrite narrative and headings to use
   `game`/`entitlement` names per the migration policy.
-  Detail: [`docs/terminology-migration-map.md` — Documentation](./terminology-migration-map.md)
+  Detail: [`docs/plans/archive/terminology-migration-map.md` — Documentation](./plans/archive/terminology-migration-map.md)
 
 
 
@@ -135,25 +135,25 @@ event.
   Rework the question editor stacking on narrow viewports so the question list,
   focused editor, and option controls do not crowd each other. The highest-value
   admin UX refinement before real authoring use.
-  Detail: [`docs/admin-ux-roadmap.md` — Improve the mobile question editor layout](./admin-ux-roadmap.md)
+  Detail: [`docs/tracking/admin-ux-roadmap.md` — Improve the mobile question editor layout](./tracking/admin-ux-roadmap.md)
 
 - [ ] **`ux` Desktop admin workspace hierarchy**
   Clarify the two-panel balance between the event summary, event-details form,
   and question editor on wide screens. Affects editing confidence before preview
   and publish controls add more surface to the same page.
-  Detail: [`docs/admin-ux-roadmap.md` — Clarify the desktop admin workspace hierarchy](./admin-ux-roadmap.md)
+  Detail: [`docs/tracking/admin-ux-roadmap.md` — Clarify the desktop admin workspace hierarchy](./tracking/admin-ux-roadmap.md)
 
 - [x] **`dev` Split `useAdminDashboard.ts`** (refactor score 9/10)
   Completed.
-  Detail: [`docs/code-refactor-checklist.md`](./code-refactor-checklist.md)
+  Detail: [`docs/tracking/code-refactor-checklist.md`](./tracking/code-refactor-checklist.md)
 
 - [x] **`dev` Split `draft-content.ts`** (refactor score 8/10)
   Completed.
-  Detail: [`docs/code-refactor-checklist.md`](./code-refactor-checklist.md)
+  Detail: [`docs/tracking/code-refactor-checklist.md`](./tracking/code-refactor-checklist.md)
 
 - [x] **`dev` Split `questionBuilder.ts`** (refactor score 8/10)
   Completed.
-  Detail: [`docs/code-refactor-checklist.md`](./code-refactor-checklist.md)
+  Detail: [`docs/tracking/code-refactor-checklist.md`](./tracking/code-refactor-checklist.md)
 
 ---
 
@@ -164,11 +164,11 @@ prioritization before starting.
 
 - [ ] **`dev` Admin draft preview** (Phase 4.5)
   Let an admin preview the attendee experience from the draft before publishing.
-  Detail: [`docs/quiz-authoring-plan.md` — Phase 4.5](./quiz-authoring-plan.md)
+  Detail: [`docs/plans/archive/quiz-authoring-plan.md` — Phase 4.5](./plans/archive/quiz-authoring-plan.md)
 
 - [ ] **`dev` AI-assisted authoring** (Phase 4.7)
   AI-generated draft questions refined by the organizer.
-  Detail: [`docs/quiz-authoring-plan.md` — Phase 4.7](./quiz-authoring-plan.md)
+  Detail: [`docs/plans/archive/quiz-authoring-plan.md` — Phase 4.7](./plans/archive/quiz-authoring-plan.md)
 
 - [ ] **`dev` Analytics and reporting**
   SQL views on `game_completions`, `game_entitlements`, and `game_starts`
@@ -176,7 +176,7 @@ prioritization before starting.
   and sponsor question engagement. Follow-on: an organizer-facing reporting
   section in the admin workspace that surfaces those views for a selected event
   without requiring Supabase Studio access.
-  Detail: [`docs/analytics-strategy.md`](./analytics-strategy.md)
+  Detail: [`docs/plans/analytics-strategy.md`](./plans/analytics-strategy.md)
 
 - [ ] **`decision` Authoring roles and root admin UI**
   Decide whether to add a root-level admin role and UI for managing allowlist
@@ -189,7 +189,7 @@ prioritization before starting.
   Created a dedicated security and abuse tracker covering system-integrity and
   game-integrity threat scenarios, MVP accepted risk, and post-MVP hardening
   direction.
-  Detail: [`docs/security-and-abuse-plan.md`](./security-and-abuse-plan.md)
+  Detail: [`docs/plans/security-and-abuse-plan.md`](./plans/security-and-abuse-plan.md)
 
 - [ ] **`dev` Richer publish controls**
   Expiry windows, scheduled publish, multiple games per event, and friendlier
@@ -218,7 +218,7 @@ prioritization before starting.
   attendee status updates; keep offline fallback out of MVP; keep assignment
   management as direct SQL inserts for MVP; and allow reversal only from
   organizer/root-admin paths.
-  Detail: [`docs/reward-redemption-mvp-design.md`](./reward-redemption-mvp-design.md) and [`docs/open-questions.md` — Product And Live Event Operation](./open-questions.md)
+  Detail: [`docs/plans/reward-redemption-mvp-design.md`](./plans/reward-redemption-mvp-design.md) and [`docs/open-questions.md` — Product And Live Event Operation](./open-questions.md)
 
 ---
 
@@ -229,63 +229,63 @@ Execute in any order.
 
 - [x] **`dev` Audit file-level TSDoc/JSDoc and inline code-documentation gaps**
   Completed on 2026-04-17.
-  Detail: [`docs/code-documentation-audit.md`](./code-documentation-audit.md),
-  [`docs/dev.md` — Code documentation standard](./dev.md#code-documentation-standard), and [`docs/release-readiness.md` — Code Documentation And Comments](./release-readiness.md#2-code-documentation-and-comments)
+  Detail: [`docs/tracking/code-documentation-audit.md`](./tracking/code-documentation-audit.md),
+  [`docs/dev.md` — Code documentation standard](./dev.md#code-documentation-standard), and [`docs/plans/release-readiness.md` — Code Documentation And Comments](./plans/release-readiness.md#2-code-documentation-and-comments)
 
 - [x] **`dev` Code-documentation remediation Slice A (admin modules)**
   Completed on 2026-04-17.
-  Detail: [`docs/code-documentation-audit.md` — Slice A](./code-documentation-audit.md#slice-a--admin-orchestration-and-form-modules)
+  Detail: [`docs/tracking/code-documentation-audit.md` — Slice A](./tracking/code-documentation-audit.md#slice-a--admin-orchestration-and-form-modules)
 
 - [x] **`dev` Code-documentation remediation Slice B (shared barrel clarity)**
   Completed on 2026-04-17.
-  Detail: [`docs/code-documentation-audit.md` — Slice B](./code-documentation-audit.md#slice-b--shared-domain-exports-and-barrel-clarity)
+  Detail: [`docs/tracking/code-documentation-audit.md` — Slice B](./tracking/code-documentation-audit.md#slice-b--shared-domain-exports-and-barrel-clarity)
 
 - [x] **`dev` Code-documentation remediation Slice C (browser API boundaries)**
   Completed on 2026-04-17.
-  Detail: [`docs/code-documentation-audit.md` — Slice C](./code-documentation-audit.md#slice-c--browser-api-boundary-helpers)
+  Detail: [`docs/tracking/code-documentation-audit.md` — Slice C](./tracking/code-documentation-audit.md#slice-c--browser-api-boundary-helpers)
 
 - [x] **`dev` Code-documentation remediation Slice D (edge function boundaries)**
   Completed on 2026-04-17.
-  Detail: [`docs/code-documentation-audit.md` — Slice D](./code-documentation-audit.md#slice-d--edge-function-boundary-helpers-and-handler-dependencies)
+  Detail: [`docs/tracking/code-documentation-audit.md` — Slice D](./tracking/code-documentation-audit.md#slice-d--edge-function-boundary-helpers-and-handler-dependencies)
 
 - [x] **`dev` Code-documentation remediation Slice E (migration/RPC invariants)**
   Completed on 2026-04-17.
-  Detail: [`docs/code-documentation-audit.md` — Slice E](./code-documentation-audit.md#slice-e--migrationrpc-invariant-comments)
+  Detail: [`docs/tracking/code-documentation-audit.md` — Slice E](./tracking/code-documentation-audit.md#slice-e--migrationrpc-invariant-comments)
 
 - [ ] **`dev` Split `gameApi.ts` local fallback** (refactor score 8/10)
   Extract local prototype entitlement storage and completion into a separate
   module so the production Supabase path is easier to review.
-  Detail: [`docs/code-refactor-checklist.md`](./code-refactor-checklist.md)
+  Detail: [`docs/tracking/code-refactor-checklist.md`](./tracking/code-refactor-checklist.md)
 
 - [ ] **`dev` Split `AdminQuestionEditor.tsx`** (refactor score 7/10)
   Extract `AdminQuestionList` and `AdminOptionEditor` so the top-level editor
   reads as buffer/save orchestration.
-  Detail: [`docs/code-refactor-checklist.md`](./code-refactor-checklist.md)
+  Detail: [`docs/tracking/code-refactor-checklist.md`](./tracking/code-refactor-checklist.md)
 
 - [ ] **`dev` Split `capture-ui-review.cjs` admin mode** (refactor score 7/10)
   Extract admin-specific Supabase mocks and admin screenshot sequences into
   focused helper modules so the shared runner stays readable.
-  Detail: [`docs/code-refactor-checklist.md`](./code-refactor-checklist.md)
+  Detail: [`docs/tracking/code-refactor-checklist.md`](./tracking/code-refactor-checklist.md)
 
 - [ ] **`dev` Split `AdminEventWorkspace.tsx`** (refactor score 6/10)
   Extract summary card, selected draft header, and action groups so the
   route-level component mainly coordinates layout and callbacks.
-  Detail: [`docs/code-refactor-checklist.md`](./code-refactor-checklist.md)
+  Detail: [`docs/tracking/code-refactor-checklist.md`](./tracking/code-refactor-checklist.md)
 
 - [ ] **`dev` Split `adminGameApi.ts`** (refactor score 5/10)
   Extract shared transport and response helpers so the public exports focus on
   intent-specific admin operations.
-  Detail: [`docs/code-refactor-checklist.md`](./code-refactor-checklist.md)
+  Detail: [`docs/tracking/code-refactor-checklist.md`](./tracking/code-refactor-checklist.md)
 
 - [ ] **`dev` Stable PR screenshot upload path**
   Add `npm run ui:review:upload` backed by a scriptable durable provider so
   agents have a consistent, documented path for uploading UX review images.
-  Detail: [`docs/dev-workflow-improvements.md` — Add a stable PR screenshot upload path](./dev-workflow-improvements.md)
+  Detail: [`docs/tracking/dev-workflow-improvements.md` — Add a stable PR screenshot upload path](./tracking/dev-workflow-improvements.md)
 
 - [ ] **`ux` Event details inline vs. dedicated route**
   Decide whether event details should remain in the selected workspace or move
   to a dedicated route once the page gets denser.
-  Detail: [`docs/admin-ux-roadmap.md` — Decide whether event details should stay inline](./admin-ux-roadmap.md)
+  Detail: [`docs/tracking/admin-ux-roadmap.md` — Decide whether event details should stay inline](./tracking/admin-ux-roadmap.md)
 
 - [ ] **`dev` Broader Playwright coverage**
   Add retry-after-401, backend failure states, and post-merge nightly integration

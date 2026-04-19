@@ -153,7 +153,7 @@ During implementation:
 - if a file or module becomes noticeably harder to review because of the
   feature, decide whether a small extraction belongs in the same PR
 - if the cleanup is useful but not necessary for the feature, record it as a
-  bounded follow-up in `docs/code-refactor-checklist.md`
+  bounded follow-up in `docs/tracking/code-refactor-checklist.md`
 
 Before handoff, run a post-implementation structure review:
 
@@ -383,7 +383,7 @@ Update `docs/open-questions.md` when:
 - you discover an unresolved product, UX, architecture, or operations decision that materially affects future work
 - a previously open question has been answered in code, docs, or platform configuration
 
-Update `docs/documentation-quality-checklist.md` when:
+Update `docs/tracking/documentation-quality-checklist.md` when:
 
 - a docs improvement pass completes a checklist item
 - a new recurring docs debt pattern shows up in review or handoff
@@ -411,7 +411,7 @@ Walk through the triggers above and confirm each relevant update was made:
 - `docs/product.md` — correct if the implemented capability set changed
 - `docs/backlog.md` — mark items complete or add follow-ups if the branch
   closes or creates tracked work
-- `docs/analytics-strategy.md` (or the relevant detail doc) — mark phases or
+- `docs/plans/analytics-strategy.md` (or the relevant detail doc) — mark phases or
   decisions resolved when the branch lands the described work
 - `README.md` — correct if setup, capabilities, or repo structure changed
 - `docs/dev.md` — correct if workflow, validation commands, or tooling changed

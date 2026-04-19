@@ -156,9 +156,9 @@ Open design questions for post-MVP implementation:
 ## Ownership And Tracking
 
 - Open-question ownership:
-  [`open-questions.md` — Trust Boundary And Abuse Controls](./open-questions.md)
+  [`open-questions.md` — Trust Boundary And Abuse Controls](../open-questions.md)
 - Backlog tracking:
-  [`backlog.md` — Security notes baseline doc](./backlog.md)
+  [`backlog.md` — Security notes baseline doc](../backlog.md)
 
 ## External References (Best-Practice Inputs)
 

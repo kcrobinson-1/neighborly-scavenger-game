@@ -262,8 +262,8 @@ internal reference updates (table names, type imports): `issue-session.test.ts`,
 plan docs still contain legacy terminology and are tracked as a follow-up in
 `docs/backlog.md`:
 
-- `docs/database-backed-quiz-content.md` — 12 occurrences remaining
-- `docs/quiz-authoring-plan.md` — 27 occurrences remaining
+- `docs/plans/archive/database-backed-quiz-content.md` — 12 occurrences remaining
+- `docs/plans/archive/quiz-authoring-plan.md` — 27 occurrences remaining
 
 The following docs were confirmed clean across Phase 1 and Phase 5:
 
@@ -273,17 +273,17 @@ The following docs were confirmed clean across Phase 1 and Phase 5:
 - `docs/testing.md`
 - `docs/dev.md`
 - `docs/operations.md`
-- `docs/release-readiness.md`
+- `docs/plans/release-readiness.md`
 - `docs/backlog.md`
-- `docs/analytics-strategy.md`
-- `docs/security-and-abuse-plan.md`
-- `docs/reward-redemption-mvp-design.md`
-- `docs/production-admin-smoke-tracking.md`
-- `docs/event-code-prerequisite-plan.md` (rewrite to target names before implementation)
-- `docs/code-documentation-audit.md`
-- `docs/code-refactor-checklist.md`
+- `docs/plans/analytics-strategy.md`
+- `docs/plans/security-and-abuse-plan.md`
+- `docs/plans/reward-redemption-mvp-design.md`
+- `docs/tracking/production-admin-smoke-tracking.md`
+- `docs/plans/event-code-prerequisite-plan.md` (rewrite to target names before implementation)
+- `docs/tracking/code-documentation-audit.md`
+- `docs/tracking/code-refactor-checklist.md`
 - `docs/README.md`
-- `docs/documentation-quality-checklist.md`
+- `docs/tracking/documentation-quality-checklist.md`
 
 Policy (per Q4 decision): rewrite to current names; add inline notes only where
 an immutable artifact name (e.g., a migration filename) must be cited verbatim.

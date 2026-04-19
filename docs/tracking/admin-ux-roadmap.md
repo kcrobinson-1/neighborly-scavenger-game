@@ -7,7 +7,7 @@ will want to revisit.
 
 Use this file for product-facing polish items, layout decisions, and navigation
 shape questions. Keep workflow tooling, screenshot capture, and PR process
-changes in `docs/dev-workflow-improvements.md` instead.
+changes in `docs/tracking/dev-workflow-improvements.md` instead.
 
 ## Candidate Refinements
 
