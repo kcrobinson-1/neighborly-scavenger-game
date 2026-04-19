@@ -256,8 +256,16 @@ internal reference updates (table names, type imports): `issue-session.test.ts`,
 
 ## Documentation (Phase 1 and Phase 5)
 
-The following docs contain legacy terminology and are updated in Phase 1
-(high-level language alignment) and Phase 5 (final sweep):
+**Implementation status:** complete for runtime and core contributor docs. Phase
+1 aligned active contributor docs; Phase 5 corrected stale references in
+`continuous-deployment-plan.md` and `code-refactor-checklist.md`. Two heavy
+plan docs still contain legacy terminology and are tracked as a follow-up in
+`docs/backlog.md`:
+
+- `docs/database-backed-quiz-content.md` — 12 occurrences remaining
+- `docs/quiz-authoring-plan.md` — 27 occurrences remaining
+
+The following docs were confirmed clean across Phase 1 and Phase 5:
 
 - `docs/architecture.md`
 - `docs/product.md`
@@ -271,8 +279,6 @@ The following docs contain legacy terminology and are updated in Phase 1
 - `docs/security-and-abuse-plan.md`
 - `docs/reward-redemption-mvp-design.md`
 - `docs/production-admin-smoke-tracking.md`
-- `docs/database-backed-quiz-content.md` (24 occurrences — heaviest doc rewrite)
-- `docs/quiz-authoring-plan.md` (45 occurrences — heaviest doc rewrite)
 - `docs/event-code-prerequisite-plan.md` (rewrite to target names before implementation)
 - `docs/code-documentation-audit.md`
 - `docs/code-refactor-checklist.md`

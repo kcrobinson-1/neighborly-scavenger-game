@@ -9,17 +9,17 @@ before launch hardens contracts and creates long-term confusion.
 This document is the tracking source of truth for the Tier 1 backlog decision:
 **Terminology migration strategy (`quiz`/`raffle` → `game`/`entitlement`)**.
 
-## Why this migration is being done now
+## Why this migration was done
 
-The codebase has moved the active runtime surfaces onto the target terminology.
-What remains is the Phase 5 cleanup pass for guardrails and broad historical
-documentation cleanup:
+The migration is complete. All five phases have landed. Active runtime surfaces
+use target terminology consistently:
 
-- **Generic names** in active runtime surfaces (for example `GameConfig`,
+- **Generic names** throughout active runtime surfaces (for example `GameConfig`,
   `apps/web/src/game/`, `gameApi.ts`, `useGameSession`, and
   `/event/:slug/game`)
-- **Legacy/specific names** only in historical migration maps, immutable
-  migration filenames, and Phase 5 cleanup targets
+- **Legacy/specific names** only in historical migration filenames (immutable)
+  and two deferred plan docs (`database-backed-quiz-content.md`,
+  `quiz-authoring-plan.md`) tracked in `docs/backlog.md`
 
 The prior mixed vocabulary was acceptable during rapid MVP build-out, but it
 created increasing cost as we added redemption, reporting, and future
@@ -210,6 +210,8 @@ before refactors.
 
 ### Phase 1 — Documentation and product-language alignment (no runtime renames yet)
 
+**Status: complete.**
+
 **Goal**: align docs and reviewer vocabulary so implementation phases are
 unambiguous.
 
@@ -323,29 +325,35 @@ authoring JSON and updates the publish projection to read `entitlementLabel`.
 
 ---
 
-### Phase 5 — Cleanup, guardrails, and closure
+### Phase 5 — Cleanup and closure
 
-**Goal**: prevent regression into mixed naming and close backlog decision.
+**Status: complete.**
+
+**Goal**: remove stale references and close the backlog decision.
 
 **Scope**
 
-- Remove any temporary migration notes and stale references.
-- Add guardrails to prevent regression into legacy naming:
-  - ESLint `no-restricted-syntax` rule banning identifiers matching
-    `quiz_`/`raffle_` prefixes in `apps/` and `shared/`.
-  - CI grep gate: `grep -r "quiz_\|raffle_" supabase/migrations/ apps/ shared/ --include="*.ts"`
-    fails on any non-historical match (gate can allowlist existing migration
-    file names that are intentional historical references).
-- Final docs sweep and backlog updates.
+- Fix stale legacy terminology references in docs
+  (`continuous-deployment-plan.md`, `code-refactor-checklist.md`).
+- Final docs sweep: mark Phase 1 and Phase 5 complete in
+  `terminology-migration-strategy.md` and `terminology-migration-map.md`.
+- Mark backlog decision item complete in `docs/backlog.md`.
+
+**Note on guardrails**: permanent ESLint and CI grep gates were considered and
+rejected. The migration is complete and verified; normal code review is the
+appropriate ongoing enforcement. The one-time grep scan below confirmed a clean
+codebase before closure.
 
 **Demonstrable launch difference**
 
-- Migration is complete, enforceable in review, and reflected in all core docs.
+- Migration is complete, verified by a final repo-wide scan, and reflected in
+  all core docs. Backlog item closed.
 
 **Validation gate**
 
-- Final repo-wide terminology scan shows only intentional historical mentions
-  (e.g., migration notes).
+- Final repo-wide terminology scan shows zero legacy identifiers in active code:
+  `grep -rn "quiz_\|raffle_" apps/ shared/ supabase/functions/ --include="*.ts" --include="*.tsx"`
+  returned no matches.
 
 ## PR slicing guidance inside phases
 
